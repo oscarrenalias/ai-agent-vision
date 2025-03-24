@@ -1,0 +1,329 @@
+{
+    "items": [
+        {
+            "name_fi": "Danone Actimel 12x100g mansikk",
+            "name_en": "Danone Actimel 12x100g strawberry",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "6.59",
+            "total_price": "6.59",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Pirkka täysmaito",
+            "name_en": "Pirkka whole milk",
+            "unit_of_measure": "l",
+            "quantity": "4",
+            "unit_price": "1.29",
+            "total_price": "5.16",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Powerade Mountain Blast",
+            "name_en": "Powerade Mountain Blast",
+            "unit_of_measure": "l",
+            "quantity": "2",
+            "unit_price": "1.37",
+            "total_price": "2.75",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Pullopantti KMP 0.20 0.35-1L",
+            "name_en": "Bottle deposit KMP 0.20 0.35-1L",
+            "unit_of_measure": "unit",
+            "quantity": "2",
+            "unit_price": "0.20",
+            "total_price": "0.40",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Schneider Bayrisch Hell 0.5l 5.0%",
+            "name_en": "Schneider Bayrisch Hell 0.5l 5.0%",
+            "unit_of_measure": "l",
+            "quantity": "6",
+            "unit_price": "1.29",
+            "total_price": "7.78",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Pullopantti KLP kaikki tilavuuv",
+            "name_en": "Bottle deposit KLP all volumes",
+            "unit_of_measure": "unit",
+            "quantity": "6",
+            "unit_price": "0.15",
+            "total_price": "0.90",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Mutti tomaattimurska 400g",
+            "name_en": "Mutti crushed tomatoes 400g",
+            "unit_of_measure": "pkg",
+            "quantity": "2",
+            "unit_price": "1.05",
+            "total_price": "2.10",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Al'Fez Harissa-tahna 180g",
+            "name_en": "Al'Fez Harissa paste 180g",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "3.95",
+            "total_price": "3.95",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Urtekram vihreä linssi 400g lu",
+            "name_en": "Urtekram green lentils 400g organic",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "3.95",
+            "total_price": "3.95",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Järvikylä basilika rkk Suomi",
+            "name_en": "Järvikylä basil pot Finland",
+            "unit_of_measure": "unit",
+            "quantity": "1",
+            "unit_price": "1.69",
+            "total_price": "1.69",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Rummo Penne rigate No66 500g",
+            "name_en": "Rummo Penne rigate No66 500g",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "2.69",
+            "total_price": "2.69",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Järvikylä Pehtoorin sal",
+            "name_en": "Järvikylä Pehtoori salad",
+            "unit_of_measure": "unit",
+            "quantity": "1",
+            "unit_price": "2.69",
+            "total_price": "2.69",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Duck Fresh Action Gel Mango-Ve",
+            "name_en": "Duck Fresh Action Gel Mango-Ve",
+            "unit_of_measure": "pkg",
+            "quantity": "2",
+            "unit_price": "2.69",
+            "total_price": "5.38",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Urtekram couscous 500g luomu",
+            "name_en": "Urtekram couscous 500g organic",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "1.38",
+            "total_price": "1.38",
+            "loyalty_discount": "1.38",
+            "has_loyalty_discount": true
+        },
+        {
+            "name_fi": "Tonnikalapihvi",
+            "name_en": "Tuna steak",
+            "unit_of_measure": "kg",
+            "quantity": "0.082",
+            "unit_price": "29.99",
+            "total_price": "2.45",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Nauta-Sika jauheliha 600g-40%",
+            "name_en": "Beef-Pork minced meat 600g-40%",
+            "unit_of_measure": "kg",
+            "quantity": "0.638",
+            "unit_price": "8.95",
+            "total_price": "5.70",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Palcarsa Taquitos de panceta 8",
+            "name_en": "Palcarsa Taquitos de panceta 8",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "2.45",
+            "total_price": "2.45",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "La Molisana Ditali N.45 500g",
+            "name_en": "La Molisana Ditali N.45 500g",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "2.09",
+            "total_price": "2.09",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Naudan Sisäpaisti Palana",
+            "name_en": "Beef inside roast whole",
+            "unit_of_measure": "kg",
+            "quantity": "1.024",
+            "unit_price": "19.95",
+            "total_price": "20.43",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Corny Big 40g salted caramel",
+            "name_en": "Corny Big 40g salted caramel",
+            "unit_of_measure": "pkg",
+            "quantity": "3",
+            "unit_price": "0.95",
+            "total_price": "2.85",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Cava tonnik 3x65/52g oliiviöl",
+            "name_en": "Cava tuna 3x65/52g olive oil",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "3.99",
+            "total_price": "3.99",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Atria saunapalvi 150g",
+            "name_en": "Atria sauna ham 150g",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "2.99",
+            "total_price": "2.99",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Alf Spagetti 500g",
+            "name_en": "Alf Spaghetti 500g",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "1.29",
+            "total_price": "1.29",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Kantarellikastike 780g",
+            "name_en": "Chanterelle sauce 780g",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "3.99",
+            "total_price": "3.99",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Mäkelän sipuli",
+            "name_en": "Mäkelä onion",
+            "unit_of_measure": "kg",
+            "quantity": "0.396",
+            "unit_price": "1.69",
+            "total_price": "0.67",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Chili Vihreä",
+            "name_en": "Green Chili",
+            "unit_of_measure": "kg",
+            "quantity": "0.032",
+            "unit_price": "24.90",
+            "total_price": "0.80",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Chili punainen",
+            "name_en": "Red Chili",
+            "unit_of_measure": "kg",
+            "quantity": "0.026",
+            "unit_price": "25.95",
+            "total_price": "0.67",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Pirkka peruna 2kg punainen",
+            "name_en": "Pirkka potato 2kg red",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "2.29",
+            "total_price": "2.29",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Pågen Hönö rieska 630g",
+            "name_en": "Pågen Hönö flatbread 630g",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "2.51",
+            "total_price": "2.51",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Inkivääri tuore",
+            "name_en": "Fresh ginger",
+            "unit_of_measure": "kg",
+            "quantity": "0.064",
+            "unit_price": "7.79",
+            "total_price": "0.51",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Munakoiso",
+            "name_en": "Eggplant",
+            "unit_of_measure": "kg",
+            "quantity": "0.348",
+            "unit_price": "2.99",
+            "total_price": "1.04",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        },
+        {
+            "name_fi": "Porkkanapussi 1kg Suomi",
+            "name_en": "Carrot bag 1kg Finland",
+            "unit_of_measure": "pkg",
+            "quantity": "1",
+            "unit_price": "1.45",
+            "total_price": "1.45",
+            "loyalty_discount": null,
+            "has_loyalty_discount": false
+        }
+    ],
+    "receipt_summary": {
+        "total_before_discounts": "181.18",
+        "total_loyalty_savings": "1.73",
+        "total_paid": "181.18"
+    }
+}
