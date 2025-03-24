@@ -1,10 +1,15 @@
 from langgraph.graph import Graph
 from agents import ItemClassifier, PersistData, ReceiptState, ReceiptAnalyzer
 from langgraph.graph import StateGraph, START, END
+import logging
 
 class MainAgent:
     def __init__(self):
-        pass
+        # configure logging for everyone
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] [%(funcName)s] %(message)s"
+        )
 
     def run(self):
         # Initialize agents
