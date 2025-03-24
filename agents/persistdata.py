@@ -9,4 +9,5 @@ class PersistData:
         logging.info("PersistData initialized")
 
     def run(self, state: ReceiptState) -> ReceiptState:
+        logging.info("PersistData run")
         return(state)

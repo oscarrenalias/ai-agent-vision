@@ -10,4 +10,5 @@ class ItemClassifier:
         pass
 
     def run(self, state: ReceiptState) -> ReceiptState:
+        logging.info("ItemClassifier run")
         return(state)
