@@ -14,6 +14,9 @@ class MainAgent:
     def run(self):
         # Initialize agents
         receipt_analyzer_agent = ReceiptAnalyzer()
+
+        receipt_analyzer_agent.set_receipt_from_file("data/samples/receipt_sample_1.jpg")
+
         item_classifier_agent = ItemClassifier()
         persist_data_agent = PersistData()
 
@@ -35,8 +38,10 @@ class MainAgent:
         graph = workflow.compile()
 
         # Initialize the state
-        receipt_state = ReceiptState()
-        graph.invoke(receipt_state)
+        receipt_state = ReceiptState(
+            receipt_image_path="data/samples/receipt_sample_1.jpg",
+        )
+        response = graph.invoke(receipt_state)
 
 #
 # Run the main agent
