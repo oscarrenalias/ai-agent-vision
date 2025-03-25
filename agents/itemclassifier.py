@@ -1,4 +1,5 @@
 from .receiptstate import ReceiptState
+from .models import Model
 import logging
 
 class ItemClassifier:
@@ -7,7 +8,7 @@ class ItemClassifier:
     """
 
     system_prompt = """
-        You are given a grocery list where each item includes a name, quantity, and other metadata, in JSON format. Response must always be in JSON format, by extending the initial request. You must obey the output format under all circumstances. Please follow the formatting instructions exactly.
+        You are given a grocery list in JSON format where each item includes a name, quantity, and other metadata, in JSON format. Response must always be in JSON format, by extending the initial request. You must obey the output format under all circumstances. Please follow the formatting instructions exactly.
 
         Your task is to classify each item using a 3-level taxonomy and add a new "category" object to each item in the list using the following format:
 
@@ -58,9 +59,12 @@ class ItemClassifier:
         Please return the response in correctly formatted JSON. Do not return any additional comments or explanation.
     """
 
+    # Keeps track of the LLM model
+    model: None
+
     def __init__(self):
         logging.info("ItemClassifier initialized")
-        pass
+        self.model = Model("openai")
 
     def run(self, state: ReceiptState) -> ReceiptState:
         logging.info("ItemClassifier run")
