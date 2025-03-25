@@ -15,7 +15,7 @@ class MainAgent:
         # Initialize agents
         receipt_analyzer_agent = ReceiptAnalyzer()
 
-        receipt_analyzer_agent.set_receipt_from_file("data/samples/receipt_sample_1.jpg")
+        receipt_analyzer_agent.set_receipt_from_file("data/samples/receipt_sample_1_small.jpg")
 
         item_classifier_agent = ItemClassifier()
         persist_data_agent = PersistData()
