@@ -59,7 +59,6 @@ class ReceiptAnalyzer:
     def set_up_chain(self):
         extraction_model = self.model
         prompt = ReceiptAnalyzerPrompt()
-        #prompt = self.system_prompt
         parser = JsonOutputParser(pydantic_object=Receipt)
 
         load_image_chain = TransformChain(
