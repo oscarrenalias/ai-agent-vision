@@ -32,13 +32,6 @@ class ReceiptAnalyzer:
         """
         self.model = Model("openai").get_model()
         
-    def set_receipt_from_file(self, receipt_file_path: str):
-        """
-            Set the receipt to be analyzed based on a local file
-        """
-        logging.info(f"Setting receipt from file {receipt_file_path}")
-        self.receipt_file = receipt_file_path
-
     def run(self, state: ReceiptState) -> ReceiptState:
         """
             Analyze the receipt
