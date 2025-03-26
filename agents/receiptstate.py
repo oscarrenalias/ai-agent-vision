@@ -1,4 +1,4 @@
-from typing_extensions import TypedDict, Dict, Any, Optional, List
+from typing_extensions import TypedDict, Dict, Any, Optional, List, Literal
 from pydantic import BaseModel, Field
 
 class ReceiptItemCategory(BaseModel):
@@ -50,6 +50,9 @@ class ReceiptState(TypedDict):
 
     # Processing metadata
     messages: List[Dict[str, Any]] = None
+
+    # Tracks status of the persistence operation
+    persistence_status: Literal["success", "failed"] = None
 
     def __init__(
         self,
