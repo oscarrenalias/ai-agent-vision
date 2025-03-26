@@ -21,14 +21,6 @@ class ItemClassifier:
     def run(self, state: ReceiptState) -> ReceiptState:
         logging.info("ItemClassifier run")
 
-        # TODO: I should probably use a prompt template here (https://python.langchain.com/docs/concepts/prompt_templates/)
-        message = [HumanMessage(
-            content = [
-                {"type": "text", "text": ItemClassifierPrompt.template},
-                {"type": "text", "text": str(state["receipt"]["items"])},
-            ]
-        )]
-
         # call the LLM model to classify the items and map the response to the JSON object accordingly
         # Create prompt template with output format instructions
         parser = JsonOutputParser(pydantic_object=Receipt)
