@@ -1,8 +1,10 @@
-from .receiptstate import ReceiptState
+from .receiptstate import ReceiptState, Receipt
 from .models import Model
 import logging
 from langchain_core.messages import HumanMessage
 from .itemclassifierprompt import ItemClassifierPrompt
+from langchain.prompts import PromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
 
 class ItemClassifier:
     """
@@ -27,7 +29,19 @@ class ItemClassifier:
             ]
         )]
 
-        response = self.model.invoke(message)
-        logging.info("response = " + str(response.content))
+        # call the LLM model to classify the items and map the response to the JSON object accordingly
+        # Create prompt template with output format instructions
+        parser = JsonOutputParser(pydantic_object=Receipt)
+        prompt = PromptTemplate(
+            template=ItemClassifierPrompt.template + "\n{format_instructions}\n{receipt}",
+            input_variables=["receipt"],
+            partial_variables={"format_instructions": parser.get_format_instructions()}
+        )
 
+        chain = prompt | self.model | parser
+        response = chain.invoke({"receipt": state["receipt"]})
+        logging.info("Response from classifier = " + str(response))
+
+        # update the state with the new information
+        state["receipt"] = response
         return(state)

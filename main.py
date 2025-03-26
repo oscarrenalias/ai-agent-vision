@@ -39,7 +39,7 @@ class MainAgent:
 
         # Initialize the state
         receipt_state = ReceiptState(
-            receipt_image_path="data/samples/receipt_sample_1.jpg",
+            receipt_image_path="data/samples/receipt_sample_1_small.jpg",
         )
         response = graph.invoke(receipt_state)
 
