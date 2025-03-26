@@ -1,6 +1,14 @@
 from typing_extensions import TypedDict, Dict, Any, Optional, List
 from pydantic import BaseModel, Field
 
+class ReceiptItemCategory(BaseModel):
+    """
+    Used to categoryze items in the receipt according to a simple taxonomy
+    """
+    level_1:  Optional[str] = Field(description = "Level 1 category (e.g., food, household, other, etc.)")
+    level_2:  Optional[str] = Field(description = "Level 2 category (e.g., fruits, vegetables, meats, depending on the level 1 category)")
+    level_3:  Optional[str] = Field(description = "Level 3 category (e.g., pork, beef, poultry, mixed, other, etc.)", default=None)
+
 class ReceiptItem(BaseModel):
     """
     List of Items. For each line item (product), extract the following
@@ -13,6 +21,7 @@ class ReceiptItem(BaseModel):
     quantity: Optional[float] = Field(description = "Number of units, kilos, or packages (include unit type: e.g., kg, unit, pkg, box, etc.). Only include the number, do not include the unit type.")
     loyalty_discount: Optional[float] = Field(description = "If a discount is listed under the item (indicated by a line starting with PLUSSA-ETU), include the total discount for that item. Otherwise, set to null.", default=0.0)
     has_loyalty_discount: Optional[bool] = Field(description = "true or false depending on whether a loyalty discount was applied to this item", default=False)
+    item_category: Optional[ReceiptItemCategory] = Field(description = "Category of the item")
     
 class ReceiptData(BaseModel):
     """
