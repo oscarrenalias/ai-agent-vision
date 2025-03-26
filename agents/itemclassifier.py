@@ -19,10 +19,10 @@ class ItemClassifier:
     def run(self, state: ReceiptState) -> ReceiptState:
         logging.info("ItemClassifier run")
 
+        # TODO: I should probably use a prompt template here (https://python.langchain.com/docs/concepts/prompt_templates/)
         message = [HumanMessage(
             content = [
                 {"type": "text", "text": ItemClassifierPrompt.template},
-                #{"type": "text", "text": str(state["receipt"]["items"][0]["name_en"])},
                 {"type": "text", "text": str(state["receipt"]["items"])},
             ]
         )]
