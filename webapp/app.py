@@ -14,6 +14,18 @@ app = FastAPI()
 async def root():
     return {"message": "Hello World"}
 
+#
+# can be removed later, for now this is useful to trigger the opeartion with a simple GET
+#
+@app.get("/test")
+async def test() -> ReceiptResponse: 
+    orchestrator = Orchestrator()
+    result = orchestrator.run(receipt_image_path="data/samples/receipt_sample_1_small.jpg")        
+    logging.info(f"Receipt processing result: {result}")
+    return ReceiptResponse(
+        status="success"
+    )
+
 @app.post("/process", response_model=ReceiptResponse)
 async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
     try:

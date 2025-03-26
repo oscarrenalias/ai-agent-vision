@@ -16,6 +16,7 @@ class Orchestrator:
         )
 
     def run(self, receipt_image_path: str):
+        
         # Initialize nodes
         receipt_analyzer_agent = ReceiptAnalyzer()
         item_classifier_agent = ItemClassifier()
