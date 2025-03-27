@@ -15,7 +15,7 @@ class ReceiptRepository:
     This class provides methods to create, read, update, and delete receipt records.
     """
     
-    def __init__(self, data_store: DataStore = None, db_path: str = "../receipts.db"):
+    def __init__(self, data_store: DataStore = None):
         """
         Initialize the repository with a data store.
         
@@ -23,7 +23,7 @@ class ReceiptRepository:
             data_store: DataStore implementation to use
             db_path: Path to the database file (used only if data_store is not provided)
         """
-        self.data_store = data_store or SQLiteStore(db_path)
+        self.data_store = data_store or SQLiteStore()
         self.data_store.initialize()
         logging.info("ReceiptRepository initialized")
         

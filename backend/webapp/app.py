@@ -21,7 +21,7 @@ class ReceiptListResponse(BaseModel):
     receipts: List[Dict[str, Any]] = []
 
 app = FastAPI()
-data_store = SQLiteStore(db_path="../receipts.db")
+data_store = SQLiteStore()
 receipt_repository = ReceiptRepository(data_store=data_store)
 
 @app.post("/process", response_model=ReceiptResponse)
