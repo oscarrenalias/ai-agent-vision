@@ -21,6 +21,10 @@ This project consists of a backend service for receipt analysis using AI vision 
   - Receipt summary table
   - Loyalty discount summary with total savings
   - Detailed items table with highlighting for discounted items
+- Receipt history:
+  - View all previously processed receipts
+  - Detailed view of past receipts with all analysis data
+  - Summary of savings from loyalty discounts
 
 ## Backend Setup
 
@@ -81,7 +85,6 @@ npm run dev
 
 - Sorting functionality for the items table (by price, category, etc.)
 - Filtering options to show only items with discounts
-- Receipt history and storage for viewing past receipts
 - Charts and visualizations of spending by category
 - Receipt comparison tool to compare prices across different stores
 - Export functionality (PDF, CSV)
@@ -89,3 +92,5 @@ npm run dev
 - Mobile-optimized interface with camera integration
 - OCR pre-processing to improve receipt image quality
 - Provide suggestions on recipes that could be prepared with the contents of the receipt
+- Barcode scanning for quick product identification
+- Integration with budgeting tools or expense trackers

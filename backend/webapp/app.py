@@ -1,19 +1,26 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Path
 from pydantic import BaseModel
-from typing import Optional, Literal, Dict, Any
+from typing import Optional, Literal, Dict, Any, List
 from agents.orchestrator import Orchestrator
 from agents.receiptstate import Receipt
 import logging
 import os
 import shutil
 from datetime import datetime
+from .receipt_repository import ReceiptRepository
 
 class ReceiptResponse(BaseModel):
     status: Literal["success", "failed"]
     error: Optional[str] = None
     receipt: Optional[Dict[str, Any]] = None
 
+class ReceiptListResponse(BaseModel):
+    status: Literal["success", "failed"]
+    error: Optional[str] = None
+    receipts: List[Dict[str, Any]] = []
+
 app = FastAPI()
+receipt_repository = ReceiptRepository(db_path="../receipts.db")
 
 @app.post("/process", response_model=ReceiptResponse)
 async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
@@ -55,6 +62,48 @@ async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
         
     except Exception as e:
         logging.error(f"Error processing receipt: {str(e)}")
+        return ReceiptResponse(
+            status="failed",
+            error=str(e)
+        )
+    
+@app.get("/receipts", response_model=ReceiptListResponse)
+async def get_all_receipts() -> ReceiptListResponse:
+    """
+    Retrieve all receipts from the database
+    """
+    try:
+        receipts = receipt_repository.get_all_receipts()
+        return ReceiptListResponse(
+            status="success",
+            receipts=receipts
+        )
+    except Exception as e:
+        logging.error(f"Error retrieving receipts: {str(e)}")
+        return ReceiptListResponse(
+            status="failed",
+            error=str(e)
+        )
+
+@app.get("/receipts/{receipt_id}", response_model=ReceiptResponse)
+async def get_receipt_by_id(receipt_id: int = Path(..., title="The ID of the receipt to retrieve")) -> ReceiptResponse:
+    """
+    Retrieve a specific receipt by ID
+    """
+    try:
+        receipt = receipt_repository.get_receipt_by_id(receipt_id)
+        if receipt:
+            return ReceiptResponse(
+                status="success",
+                receipt=receipt
+            )
+        else:
+            return ReceiptResponse(
+                status="failed",
+                error=f"Receipt with ID {receipt_id} not found"
+            )
+    except Exception as e:
+        logging.error(f"Error retrieving receipt {receipt_id}: {str(e)}")
         return ReceiptResponse(
             status="failed",
             error=str(e)

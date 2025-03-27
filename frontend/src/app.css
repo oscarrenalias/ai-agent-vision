@@ -1,32 +1,37 @@
 :root {
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
-    'Open Sans', 'Helvetica Neue', sans-serif;
-  --color-bg-0: #fff;
-  --color-bg-1: #f5f5f5;
-  --color-text: #333;
-  --color-accent: #0066cc;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  --font-body: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font-mono: 'Fira Mono', monospace;
+  --color-bg-0: rgb(255, 255, 255);
+  --color-bg-1: rgb(245, 245, 245);
+  --color-bg-2: rgb(235, 235, 235);
+  --color-accent: rgb(0, 100, 200);
+  --color-text: rgba(0, 0, 0, 0.7);
+  --column-width: 42rem;
+  --column-margin-top: 4rem;
+  font-family: var(--font-body);
+  color: var(--color-text);
 }
 
 body {
-  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
   background-color: var(--color-bg-0);
-  color: var(--color-text);
-  line-height: 1.6;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  margin-bottom: 0.5em;
-  font-weight: 600;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0 0 0.5em 0;
+  font-weight: 400;
+  line-height: 1.2;
 }
 
-p {
-  margin-bottom: 1em;
+h1 {
+  font-size: 2rem;
 }
 
 a {
@@ -39,31 +44,27 @@ a:hover {
 }
 
 button {
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0.5em 1em;
   background-color: var(--color-accent);
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
-  font-family: var(--font-sans);
 }
 
 button:hover {
   opacity: 0.9;
 }
 
-input, textarea {
-  font-family: var(--font-sans);
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: 100%;
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.card {
-  background-color: var(--color-bg-0);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
