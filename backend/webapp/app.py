@@ -3,6 +3,9 @@ from pydantic import BaseModel
 from typing import Optional, Literal
 from agents.orchestrator import Orchestrator
 import logging
+import os
+import shutil
+from datetime import datetime
 
 class ReceiptResponse(BaseModel):
     status: Literal["success", "failed"]
@@ -31,9 +34,24 @@ async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
     try:
         if not file.content_type.startswith('image/'):
             raise HTTPException(400, "File must be an image")
-            
+        
+        # Create uploads directory if it doesn't exist
+        upload_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generate a unique filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"receipt_{timestamp}{file_extension}"
+        file_path = os.path.join(upload_dir, unique_filename)
+        
+        # Save the uploaded file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Process the receipt using the saved file path
         orchestrator = Orchestrator()
-        result = orchestrator.run(receipt_image_path="data/samples/receipt_sample_1_small.jpg")        
+        result = orchestrator.run(receipt_image_path=file_path)        
 
         logging.info(f"Receipt processing result: {result}")
         
@@ -42,6 +60,7 @@ async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
         )
         
     except Exception as e:
+        logging.error(f"Error processing receipt: {str(e)}")
         return ReceiptResponse(
             status="failed",
             error=str(e)
