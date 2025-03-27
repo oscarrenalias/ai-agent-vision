@@ -7,6 +7,21 @@ This project consists of a backend service for receipt analysis using AI vision 
 - `backend/` - Python backend with FastAPI and AI agents
 - `frontend/` - SvelteKit frontend application
 
+## Features
+
+### Current Features
+- Receipt image upload and processing
+- AI-powered receipt analysis that extracts:
+  - Receipt metadata (date, place, total)
+  - Individual items with prices and quantities
+  - Item categorization
+  - Loyalty discount detection
+- JSON response from backend with complete receipt data
+- Frontend display of receipt analysis results:
+  - Receipt summary table
+  - Loyalty discount summary with total savings
+  - Detailed items table with highlighting for discounted items
+
 ## Backend Setup
 
 ```bash
@@ -61,3 +76,16 @@ npm run dev
 
 - Backend API runs on http://localhost:8000
 - Frontend development server runs on http://localhost:5173
+
+## Potential Future Features
+
+- Sorting functionality for the items table (by price, category, etc.)
+- Filtering options to show only items with discounts
+- Receipt history and storage for viewing past receipts
+- Charts and visualizations of spending by category
+- Receipt comparison tool to compare prices across different stores
+- Export functionality (PDF, CSV)
+- User authentication and personal receipt storage
+- Mobile-optimized interface with camera integration
+- OCR pre-processing to improve receipt image quality
+- Provide suggestions on recipes that could be prepared with the contents of the receipt
