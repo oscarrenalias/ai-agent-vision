@@ -21,6 +21,9 @@ var/
 *.egg
 .venv/
 
+# Uploaded files
+backend/uploads/
+
 # Node.js
 node_modules/
 npm-debug.log
