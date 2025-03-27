@@ -8,6 +8,7 @@ import os
 import shutil
 from datetime import datetime
 from .receipt_repository import ReceiptRepository
+from common.datastore import SQLiteStore
 
 class ReceiptResponse(BaseModel):
     status: Literal["success", "failed"]
@@ -20,7 +21,8 @@ class ReceiptListResponse(BaseModel):
     receipts: List[Dict[str, Any]] = []
 
 app = FastAPI()
-receipt_repository = ReceiptRepository(db_path="../receipts.db")
+data_store = SQLiteStore(db_path="../receipts.db")
+receipt_repository = ReceiptRepository(data_store=data_store)
 
 @app.post("/process", response_model=ReceiptResponse)
 async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
@@ -50,9 +52,6 @@ async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
         
         # Extract receipt data from the result
         receipt_data = None
-        #if result and hasattr(result, 'receipt') and result.receipt:
-        #    # Convert the receipt object to a dict for JSON serialization
-        #    receipt_data = result.receipt.dict() if hasattr(result.receipt, 'dict') else result.receipt
         receipt_data = result["receipt"]
         
         return ReceiptResponse(

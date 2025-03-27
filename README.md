@@ -5,6 +5,9 @@ This project consists of a backend service for receipt analysis using AI vision 
 ## Project Structure
 
 - `backend/` - Python backend with FastAPI and AI agents
+  - `agents/` - AI agent modules for receipt processing
+  - `common/` - Shared utilities and data storage abstractions
+  - `webapp/` - FastAPI web service implementation
 - `frontend/` - SvelteKit frontend application
 
 ## Features
