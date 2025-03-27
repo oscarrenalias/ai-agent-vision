@@ -1,7 +1,8 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from pydantic import BaseModel
-from typing import Optional, Literal
+from typing import Optional, Literal, Dict, Any
 from agents.orchestrator import Orchestrator
+from agents.receiptstate import Receipt
 import logging
 import os
 import shutil
@@ -10,24 +11,9 @@ from datetime import datetime
 class ReceiptResponse(BaseModel):
     status: Literal["success", "failed"]
     error: Optional[str] = None
+    receipt: Optional[Dict[str, Any]] = None
 
 app = FastAPI()
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-#
-# can be removed later, for now this is useful to trigger the opeartion with a simple GET
-#
-@app.get("/test")
-async def test() -> ReceiptResponse: 
-    orchestrator = Orchestrator()
-    result = orchestrator.run(receipt_image_path="data/samples/receipt_sample_1_small.jpg")        
-    logging.info(f"Receipt processing result: {result}")
-    return ReceiptResponse(
-        status="success"
-    )
 
 @app.post("/process", response_model=ReceiptResponse)
 async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
@@ -55,8 +41,16 @@ async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
 
         logging.info(f"Receipt processing result: {result}")
         
+        # Extract receipt data from the result
+        receipt_data = None
+        #if result and hasattr(result, 'receipt') and result.receipt:
+        #    # Convert the receipt object to a dict for JSON serialization
+        #    receipt_data = result.receipt.dict() if hasattr(result.receipt, 'dict') else result.receipt
+        receipt_data = result["receipt"]
+        
         return ReceiptResponse(
-            status="success"
+            status="success",
+            receipt=receipt_data
         )
         
     except Exception as e:
