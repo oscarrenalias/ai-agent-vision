@@ -136,6 +136,13 @@
           Receipt processed successfully, but no data was returned.
         </div>
       {/if}
+      
+      {#if receiptData}
+        <div class="success-message">
+          Receipt processed successfully! 
+          <a href="/receipts/history" class="view-history-link">View Receipt History</a>
+        </div>
+      {/if}
     </div>
   </div>
   
@@ -329,6 +336,15 @@
     padding: 0.75rem;
     background-color: #e8f5e9;
     border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .view-history-link {
+    color: #2e7d32;
+    font-weight: 600;
+    text-decoration: underline;
   }
   
   .receipt-results {

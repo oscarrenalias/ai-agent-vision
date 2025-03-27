@@ -4,11 +4,18 @@
 
 <div class="app">
   <header>
-    <h1>AI Agent Vision</h1>
-    <nav>
-      <a href="/">Home</a>
-      <a href="/receipts">Receipts</a>
-    </nav>
+    <div class="container">
+      <div class="logo">
+        <a href="/">AI Agent Vision</a>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/receipts">Upload Receipt</a></li>
+          <li><a href="/receipts/history">Receipt History</a></li>
+        </ul>
+      </nav>
+    </div>
   </header>
 
   <main>
@@ -16,7 +23,9 @@
   </main>
 
   <footer>
-    <p>© 2025 AI Agent Vision</p>
+    <div class="container">
+      <p>&copy; 2025 AI Agent Vision</p>
+    </div>
   </footer>
 </div>
 
@@ -28,40 +37,57 @@
   }
 
   header {
-    background-color: #333;
-    color: white;
-    padding: 1rem;
+    background-color: var(--color-bg-1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  header .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
   }
 
-  nav {
-    display: flex;
-    gap: 1rem;
-  }
-
-  nav a {
-    color: white;
+  .logo a {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-accent);
     text-decoration: none;
   }
 
+  nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 1.5rem;
+  }
+
+  nav a {
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
   nav a:hover {
-    text-decoration: underline;
+    color: var(--color-accent);
   }
 
   main {
     flex: 1;
-    padding: 1rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
   }
 
   footer {
-    background-color: #333;
-    color: white;
-    padding: 1rem;
+    background-color: var(--color-bg-1);
+    padding: 1rem 0;
     text-align: center;
+    margin-top: 2rem;
+  }
+
+  footer .container {
+    max-width: 1200px;
+    margin: 0 auto;
   }
 </style>
