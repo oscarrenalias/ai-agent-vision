@@ -72,7 +72,7 @@
         error = result.error || 'Failed to process receipt';
       }
     } catch (err) {
-      error = 'Error uploading file: ' + err.message;
+      error = 'Error uploading file: ' + (err instanceof Error ? err.message : String(err));
     } finally {
       isUploading = false;
     }

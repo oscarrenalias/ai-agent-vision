@@ -56,7 +56,7 @@
         error = result.error || 'Failed to load receipts';
       }
     } catch (err) {
-      error = 'Error loading receipts: ' + err.message;
+      error = 'Error loading receipts: ' + (err instanceof Error ? err.message : String(err));
     } finally {
       isLoading = false;
     }
