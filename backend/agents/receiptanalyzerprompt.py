@@ -1,16 +1,17 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class ReceiptAnalyzerPrompt:
     template: str = """
        You are analyzing a Finnish grocery receipt. Your task is to extract structured information in JSON format. Please follow the rules carefully.
-        
-        Do not guess. If some information is missing just return "N/A" in the relevant field. If you determine that the image is not of a receipt, just set all the fields in the formatting instructions to "N/A". 
-       
-        You must obey the output format under all circumstances. Please follow the formatting instructions exactly.
-        Do not return any additional comments or explanation. 
 
-        1. List of Items  
+        Do not guess. If some information is missing just return "N/A" in the relevant field. If you determine that the image is not of a receipt, just set all the fields in the formatting instructions to "N/A".
+
+        You must obey the output format under all circumstances. Please follow the formatting instructions exactly.
+        Do not return any additional comments or explanation.
+
+        1. List of Items
         For each line item (product), extract the following:
         - Name of the item in Finnish
         - Translated name in English

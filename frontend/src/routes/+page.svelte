@@ -18,12 +18,12 @@
       <h2>Receipt Analysis</h2>
       <p>Extract detailed information from your receipts including items, prices, and totals.</p>
     </div>
-    
+
     <div class="feature-card">
       <h2>Item Classification</h2>
       <p>Automatically categorize items from your receipts for better expense tracking.</p>
     </div>
-    
+
     <div class="feature-card">
       <h2>Data Storage</h2>
       <p>Save and retrieve your receipt data for future reference and analysis.</p>

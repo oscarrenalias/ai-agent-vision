@@ -1,6 +1,6 @@
-from agents import Orchestrator
-import logging
 from dotenv import load_dotenv
+
+from agents import Orchestrator
 
 #
 # Run the orchestrator agent

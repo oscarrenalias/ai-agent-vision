@@ -112,5 +112,5 @@ If Level 1 is Other:
 - Unknown / Miscellaneous
 - Ensure that level_3 is always null if there’s no need for further classification.
 
-Please return the response in correctly formatted JSON. 
+Please return the response in correctly formatted JSON.
 ```

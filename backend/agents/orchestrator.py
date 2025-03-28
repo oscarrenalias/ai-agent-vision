@@ -1,28 +1,29 @@
 import logging
-from langgraph.graph import Graph
-from agents import ItemClassifier, PersistData, ReceiptState, ReceiptAnalyzer
-from langgraph.graph import StateGraph, START, END
+
+from langgraph.graph import END, START, Graph
+
+from agents import ItemClassifier, PersistData, ReceiptAnalyzer, ReceiptState
 from common.datastore import get_data_store
 
 """
 This is the top-level agent that defines the graph and manages the flow of events
 and data between nodes.
 """
+
+
 class Orchestrator:
     def __init__(self):
         # configure logging for everyone
         logging.basicConfig(
             level=logging.INFO,
-            format="%(asctime)s [%(levelname)s] [%(funcName)s] %(message)s"
+            format="%(asctime)s [%(levelname)s] [%(funcName)s] %(message)s",
         )
 
     def run(self, receipt_image_path: str):
-        
         # Initialize nodes
         receipt_analyzer_agent = ReceiptAnalyzer()
         item_classifier_agent = ItemClassifier()
 
-        
         data_store = get_data_store()
         persist_data_agent = PersistData(data_store)
 
@@ -36,9 +37,9 @@ class Orchestrator:
 
         # Set up edges
         workflow.add_edge(START, "analyze_receipt")
-        workflow.add_edge('analyze_receipt', 'classify_items')
-        workflow.add_edge('classify_items', 'persist_data')
-        workflow.add_edge('persist_data', END)
+        workflow.add_edge("analyze_receipt", "classify_items")
+        workflow.add_edge("classify_items", "persist_data")
+        workflow.add_edge("persist_data", END)
 
         # compile the graph
         graph = workflow.compile()
@@ -49,4 +50,4 @@ class Orchestrator:
         )
         response = graph.invoke(receipt_state)
 
-        return(response)
+        return response

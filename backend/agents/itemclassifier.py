@@ -1,20 +1,25 @@
-from .receiptstate import ReceiptState, Receipt
-from .models import Model
 import logging
-from langchain_core.messages import HumanMessage
-from .itemclassifierprompt import ItemClassifierPrompt
+
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
+from .itemclassifierprompt import ItemClassifierPrompt
+from .models import Model
+from .receiptstate import Receipt, ReceiptState
+
+
 class ItemClassifier:
     """
-        Classifies items in the receipt according to their type
+    Classifies items in the receipt according to their type
     """
 
     # Keeps track of the LLM model
     model: None
 
     def __init__(self):
+        """
+        Initialize the ItemClassifier
+        """
         logging.info("ItemClassifier initialized")
         self.model = Model("openai").get_model()
 
@@ -27,7 +32,7 @@ class ItemClassifier:
         prompt = PromptTemplate(
             template=ItemClassifierPrompt.template + "\n{format_instructions}\n{receipt}",
             input_variables=["receipt"],
-            partial_variables={"format_instructions": parser.get_format_instructions()}
+            partial_variables={"format_instructions": parser.get_format_instructions()},
         )
 
         chain = prompt | self.model | parser
@@ -36,4 +41,4 @@ class ItemClassifier:
 
         # update the state with the new information
         state["receipt"] = response
-        return(state)
+        return state

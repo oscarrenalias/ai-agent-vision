@@ -99,6 +99,28 @@ npm run dev
 - Backend API runs on http://localhost:8000
 - Frontend development server runs on http://localhost:5173
 
+### Code Quality Tools
+
+This project uses pre-commit hooks to ensure code quality and consistent formatting:
+
+```bash
+# Install pre-commit
+pip install pre-commit
+
+# Install the git hooks
+pre-commit install
+
+# Run the hooks on all files (optional)
+pre-commit run --all-files
+```
+
+The pre-commit configuration includes:
+- Black for Python code formatting
+- isort for Python import sorting
+- flake8 for Python code quality checks
+- Prettier for frontend code formatting
+- General hooks for trailing whitespace, file endings, etc.
+
 ## Potential Future Features
 
 - Sorting functionality for the items table (by price, category, etc.)
