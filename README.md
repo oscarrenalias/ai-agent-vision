@@ -59,6 +59,21 @@ The following environment variables will be required:
 
 * HUGGINGFACEHUB_API_TOKEN
 
+Database configuration (optional, defaults to PostgreSQL):
+* DATASTORE_TYPE - 'postgres' (default) or 'sqlite'
+* POSTGRES_HOST - PostgreSQL host (default: localhost)
+* POSTGRES_PORT - PostgreSQL port (default: 5432)
+* POSTGRES_DB - PostgreSQL database name (default: receipts)
+* POSTGRES_USER - PostgreSQL username (default: postgres)
+* POSTGRES_PASSWORD - PostgreSQL password (default: postgres)
+
+Copy the `.env.example` file to `.env` and update the values:
+
+```bash
+cp backend/.env.example backend/.env
+# Edit the .env file with your values
+```
+
 ## Running the application
 
 ### Backend

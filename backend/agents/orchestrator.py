@@ -2,6 +2,7 @@ import logging
 from langgraph.graph import Graph
 from agents import ItemClassifier, PersistData, ReceiptState, ReceiptAnalyzer
 from langgraph.graph import StateGraph, START, END
+from common.datastore import get_data_store
 
 """
 This is the top-level agent that defines the graph and manages the flow of events
@@ -20,7 +21,10 @@ class Orchestrator:
         # Initialize nodes
         receipt_analyzer_agent = ReceiptAnalyzer()
         item_classifier_agent = ItemClassifier()
-        persist_data_agent = PersistData()
+
+        
+        data_store = get_data_store()
+        persist_data_agent = PersistData(data_store)
 
         # Define a Langchain graph
         workflow = Graph()
