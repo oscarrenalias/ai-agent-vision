@@ -9,6 +9,9 @@ import shutil
 from datetime import datetime
 from .receipt_repository import ReceiptRepository
 from common.datastore import SQLiteStore
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class ReceiptResponse(BaseModel):
     status: Literal["success", "failed"]
