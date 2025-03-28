@@ -1,17 +1,19 @@
 #!/bin/bash
 
+## Disabling for now as it speeds up the process to provision the Codespace
 # Install backend dependencies
-if [ -f "/workspaces/ai-agent-vision/backend/requirements.txt" ]; then
-  echo "Installing backend dependencies..."
-  pip install -r /workspaces/ai-agent-vision/backend/requirements.txt
-fi
+#if [ -f "/workspaces/ai-agent-vision/backend/requirements.txt" ]; then
+#  echo "Installing backend dependencies..."
+#  pip install -r /workspaces/ai-agent-vision/backend/requirements.txt
+#fi
 
+## Disabling for now as it speeds up the process to provisio the Codespace
 # Install frontend dependencies
-if [ -d "/workspaces/ai-agent-vision/frontend" ]; then
-  echo "Installing frontend dependencies..."
-  cd /workspaces/ai-agent-vision/frontend
-  npm install
-fi
+#if [ -d "/workspaces/ai-agent-vision/frontend" ]; then
+#  echo "Installing frontend dependencies..."
+#  cd /workspaces/ai-agent-vision/frontend
+#  npm install
+#fi
 
 # Configure PostgreSQL
 echo "Waiting for PostgreSQL to start..."

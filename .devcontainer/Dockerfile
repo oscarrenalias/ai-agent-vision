@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/python:3.10
+FROM mcr.microsoft.com/devcontainers/python:3.13
 
 # Install PostgreSQL client tools
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
@@ -6,8 +6,8 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # Set up Python environment
-RUN pip install --upgrade pip \
-    && pip install fastapi uvicorn sqlalchemy psycopg2-binary alembic pytest
+#RUN pip install --upgrade pip \
+#    && pip install fastapi uvicorn sqlalchemy psycopg2-binary alembic pytest
 
 # Install AWS Q CLI
 RUN curl "https://desktop-release.codewhisperer.us-east-1.amazonaws.com/latest/q-x86_64-linux-musl.zip" -o "amazon-q-cli.zip" \

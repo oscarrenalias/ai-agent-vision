@@ -1,8 +1,8 @@
 {
   "name": "AI Agent Vision Development",
+  "workspaceFolder": "/workspaces/ai-agent-vision",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
-  "workspaceFolder": "/workspaces/ai-agent-vision",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -19,11 +19,6 @@
         "amazonwebservices.aws-toolkit-vscode"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.linting.enabled": true,
-        "python.linting.pylintEnabled": true,
-        "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
-        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "[svelte]": {
@@ -44,9 +39,6 @@
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "lts"
-    },
-    "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.10"
     },
     "ghcr.io/devcontainers/features/aws-cli:1": {}
   }
