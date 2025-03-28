@@ -1,19 +1,19 @@
-from .receiptstate import ReceiptState, Receipt
-from .receiptanalyzerprompt import ReceiptAnalyzerPrompt
-from .models import Model
-import logging
-from huggingface_hub import login
-import os
 import base64
-from langchain_core.messages import HumanMessage
-from langchain_core.output_parsers import JsonOutputParser
+import logging
 
 from langchain.chains import TransformChain
+from langchain_core.messages import HumanMessage
+from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import chain
+
+from .models import Model
+from .receiptanalyzerprompt import ReceiptAnalyzerPrompt
+from .receiptstate import Receipt, ReceiptState
+
 
 class ReceiptAnalyzer:
     """
-        Analyzes purchases receipts
+    Analyzes purchases receipts
     """
 
     # Keeps track of the LLM model
@@ -28,14 +28,14 @@ class ReceiptAnalyzer:
 
     def create_llm(self):
         """
-            Get the LLM model
+        Get the LLM model
         """
         self.model = Model("openai").get_model()
-        
+
     def run(self, state: ReceiptState) -> ReceiptState:
         """
-            Analyze the receipt
-        """        
+        Analyze the receipt
+        """
         logging.info("ReceiptAnalyzer run")
 
         chain = self.set_up_chain()
@@ -44,10 +44,10 @@ class ReceiptAnalyzer:
         input_data = {"receipt_file_path": state["receipt_image_path"]}
         response = chain.invoke(input_data)
         logging.info("response = " + str(response))
-        
+
         # update the state with the receipt and return
         state["receipt"] = response
-        return(state)
+        return state
 
     def set_up_chain(self):
         extraction_model = self.model
@@ -72,9 +72,7 @@ class ReceiptAnalyzer:
                             {"type": "text", "text": parser.get_format_instructions()},
                             {
                                 "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{inputs['image']}"
-                                },
+                                "image_url": {"url": f"data:image/jpeg;base64,{inputs['image']}"},  # noqa: E231, E702
                             },
                         ]
                     )
@@ -83,7 +81,7 @@ class ReceiptAnalyzer:
             return msg.content
 
         return load_image_chain | receipt_model_chain | parser
-    
+
     @staticmethod
     def load_image(path: dict) -> dict:
         """Load image and encode it as base64."""

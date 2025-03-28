@@ -9,10 +9,7 @@
     "skipLibCheck": true,
     "sourceMap": true
   },
-  "include": [
-    "src/**/*.js",
-    "src/**/*.svelte"
-  ],
+  "include": ["src/**/*.js", "src/**/*.svelte"],
   "exclude": [
     "node_modules/**",
     "node_modules/**/node_modules",
