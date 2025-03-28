@@ -9,25 +9,14 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 RUN pip install --upgrade pip \
     && pip install fastapi uvicorn sqlalchemy psycopg2-binary alembic pytest
 
-# Install Node.js and npm for frontend development
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install -g npm@latest
-
-# Install global npm packages
-RUN npm install -g svelte-check
-
-# Install AWS CLI v2
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
-    && unzip awscliv2.zip \
-    && ./aws/install \
-    && rm -rf aws awscliv2.zip
-
-# Install Amazon Q CLI
-RUN pip install amazon-q-cli
+# Install AWS Q CLI
+RUN curl "https://desktop-release.codewhisperer.us-east-1.amazonaws.com/latest/q-x86_64-linux-musl.zip" -o "amazon-q-cli.zip" \
+    && unzip amazon-q-cli.zip \
+    && mv q/bin/* /usr/local/bin \
+    && rm -rf amazon-q-cli.zip
 
 # Ensure Amazon Q is in PATH
-RUN echo 'export PATH="$PATH:$HOME/.local/bin"' >> /etc/bash.bashrc
+RUN echo 'export PATH="$PATH:$HOME/bin"' >> /etc/bash.bashrc
 
 # Create a non-root user to use if preferred
 ARG USERNAME=vscode
