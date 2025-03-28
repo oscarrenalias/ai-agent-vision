@@ -8,7 +8,7 @@ import os
 import shutil
 from datetime import datetime
 from .receipt_repository import ReceiptRepository
-from common.datastore import SQLiteStore
+from common.datastore import get_data_store
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,7 +24,7 @@ class ReceiptListResponse(BaseModel):
     receipts: List[Dict[str, Any]] = []
 
 app = FastAPI()
-data_store = SQLiteStore()
+data_store = get_data_store()  # Use the factory function to get the default data store (PostgreSQL)
 receipt_repository = ReceiptRepository(data_store=data_store)
 
 @app.post("/process", response_model=ReceiptResponse)

@@ -12,3 +12,4 @@ typing-extensions>=4.7.1
 starlette>=0.27.0
 uvicorn>=0.13.0
 dotenv
+psycopg2-binary>=2.9.5

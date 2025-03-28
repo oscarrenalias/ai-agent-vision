@@ -7,7 +7,7 @@ import json
 import logging
 from datetime import datetime, UTC
 from typing import List, Dict, Optional, Any
-from common.datastore import DataStore, SQLiteStore
+from common.datastore import DataStore, get_data_store
 
 class ReceiptRepository:
     """
@@ -21,9 +21,8 @@ class ReceiptRepository:
         
         Args:
             data_store: DataStore implementation to use
-            db_path: Path to the database file (used only if data_store is not provided)
         """
-        self.data_store = data_store or SQLiteStore()
+        self.data_store = data_store or get_data_store()
         self.data_store.initialize()
         logging.info("ReceiptRepository initialized")
         
@@ -55,7 +54,7 @@ class ReceiptRepository:
             if not success:
                 raise Exception("Failed to save receipt")
                 
-            # Note: This is a limitation as SQLiteStore doesn't return the ID
+            # Note: This is a limitation as the DataStore interface doesn't return the ID
             # In a real application, we would modify the interface to return the ID
             # For now, we'll return 0 as a placeholder
             return 0

@@ -6,12 +6,12 @@ from .receiptstate import ReceiptState
 import logging
 import json
 from datetime import datetime, UTC
-from common.datastore import DataStore, SQLiteStore
+from common.datastore import DataStore
 
 class PersistData:
     """Persists the receipt data into a data store"""
     def __init__(self, data_store: DataStore = None):
-        self.data_store = data_store or SQLiteStore()
+        self.data_store = data_store
         self.data_store.initialize()
         logging.info("PersistData initialized")
 

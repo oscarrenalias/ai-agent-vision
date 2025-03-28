@@ -1,13 +1,11 @@
 """
 Data storage module for the AI Agent Vision application.
-This module provides abstract and concrete implementations for data storage.
+This module provides abstract base class and factory function for data storage.
 """
 
 from abc import ABC, abstractmethod
-import json
-import sqlite3
 import logging
-from datetime import datetime, UTC
+import os
 from typing import Dict, Any, Optional, List
 
 class DataStore(ABC):
@@ -87,166 +85,38 @@ class DataStore(ABC):
         pass
 
 
-class SQLiteStore(DataStore):
+# Factory function to get the appropriate data store implementation
+def get_data_store(store_type: str = None) -> DataStore:
     """
-    SQLite implementation of the DataStore interface.
-    This class provides methods to store and retrieve data from a SQLite database.
-    """
+    Factory function to get the appropriate data store implementation
     
-    def __init__(self, db_path: str = "receipts.db"):
-        """
-        Initialize the SQLite store with the database path
-        
-        Args:
-            db_path: Path to the SQLite database file
-        """
-        self.db_path = db_path
-
-    def initialize(self):
-        """Create the receipts table if it doesn't exist"""
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS receipts (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        receipt_data TEXT NOT NULL,
-                        created_at TIMESTAMP NOT NULL,
-                        updated_at TIMESTAMP NOT NULL
-                    )
-                ''')
-                conn.commit()
-        except Exception as e:
-            logging.error(f"Error initializing database: {str(e)}")
-            raise
-
-    def save_receipt(self, receipt_data: str, metadata: dict) -> bool:
-        """
-        Save receipt data to SQLite
-        
-        Args:
-            receipt_data: JSON string containing receipt data
-            metadata: Dictionary with additional metadata
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            current_time = datetime.now(UTC).isoformat()
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    'INSERT INTO receipts (receipt_data, created_at, updated_at) VALUES (?, ?, ?)',
-                    (receipt_data, current_time, current_time)
-                )
-                conn.commit()
-            return True
-        except Exception as e:
-            logging.error(f"Error saving receipt to SQLite: {str(e)}")
-            return False
-            
-    def get_all_receipts(self) -> List[Dict[str, Any]]:
-        """
-        Retrieve all receipts from the database
-        
-        Returns:
-            List of receipt dictionaries with id, created_at, updated_at, and data fields
-        """
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.row_factory = sqlite3.Row
-                cursor = conn.cursor()
-                cursor.execute('SELECT id, receipt_data, created_at, updated_at FROM receipts ORDER BY created_at DESC')
-                rows = cursor.fetchall()
-                
-                receipts = []
-                for row in rows:
-                    receipt = {
-                        'id': row['id'],
-                        'created_at': row['created_at'],
-                        'updated_at': row['updated_at'],
-                        'data': json.loads(row['receipt_data'])
-                    }
-                    receipts.append(receipt)
-                
-                return receipts
-        except Exception as e:
-            logging.error(f"Error retrieving receipts: {str(e)}")
-            return []
-            
-    def get_receipt_by_id(self, receipt_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Retrieve a specific receipt by ID
-        
-        Args:
-            receipt_id: The ID of the receipt to retrieve
-            
-        Returns:
-            Receipt dictionary or None if not found
-        """
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.row_factory = sqlite3.Row
-                cursor = conn.cursor()
-                cursor.execute('SELECT id, receipt_data, created_at, updated_at FROM receipts WHERE id = ?', (receipt_id,))
-                row = cursor.fetchone()
-                
-                if row:
-                    receipt = {
-                        'id': row['id'],
-                        'created_at': row['created_at'],
-                        'updated_at': row['updated_at'],
-                        'data': json.loads(row['receipt_data'])
-                    }
-                    return receipt
-                return None
-        except Exception as e:
-            logging.error(f"Error retrieving receipt {receipt_id}: {str(e)}")
-            return None
-            
-    def update_receipt(self, receipt_id: int, receipt_data: str, metadata: dict) -> bool:
-        """
-        Update an existing receipt
-        
-        Args:
-            receipt_id: The ID of the receipt to update
-            receipt_data: JSON string containing updated receipt data
-            metadata: Dictionary with additional metadata
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            current_time = datetime.now(UTC).isoformat()
-            
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    'UPDATE receipts SET receipt_data = ?, updated_at = ? WHERE id = ?',
-                    (receipt_data, current_time, receipt_id)
-                )
-                conn.commit()
-                return cursor.rowcount > 0
-        except Exception as e:
-            logging.error(f"Error updating receipt {receipt_id}: {str(e)}")
-            return False
-            
-    def delete_receipt(self, receipt_id: int) -> bool:
-        """
-        Delete a receipt from the database
-        
-        Args:
-            receipt_id: The ID of the receipt to delete
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute('DELETE FROM receipts WHERE id = ?', (receipt_id,))
-                conn.commit()
-                return cursor.rowcount > 0
-        except Exception as e:
-            logging.error(f"Error deleting receipt {receipt_id}: {str(e)}")
-            return False
+    Args:
+        store_type: Type of data store to use ('postgres', 'sqlite', or None)
+                   If None, will check for DATASTORE_TYPE environment variable
+                   and default to 'postgres' if not set
+    
+    Returns:
+        DataStore implementation
+    """
+    from .postgres_store import PostgresStore
+    from .sqlite_store import SQLiteStore
+    
+    # Determine store type from environment variable if not specified
+    if store_type is None:
+        store_type = os.environ.get('DATASTORE_TYPE', 'postgres').lower()
+    
+    # Create and return the appropriate data store
+    if store_type == 'sqlite':
+        logging.info("Using SQLite data store")
+        return SQLiteStore()
+    else:
+        # Default to PostgreSQL
+        logging.info("Using PostgreSQL data store")
+        connection_params = {
+            'host': os.environ.get('POSTGRES_HOST', 'localhost'),
+            'port': int(os.environ.get('POSTGRES_PORT', 5432)),
+            'dbname': os.environ.get('POSTGRES_DB', 'receipts'),
+            'user': os.environ.get('POSTGRES_USER', 'postgres'),
+            'password': os.environ.get('POSTGRES_PASSWORD', 'postgres')
+        }
+        return PostgresStore(connection_params)
