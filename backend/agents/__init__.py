@@ -7,10 +7,9 @@ from .receiptanalyzerprompt import ReceiptAnalyzerPrompt
 from .receiptstate import ReceiptState
 
 __all__ = [
-    "" "ReceiptAnalyzer",
+    "ReceiptAnalyzer",
     "ReceiptAnalyzerPrompt",
     "ReceiptState",
-    "Receipt",
     "PersistData",
     "ItemClassifier",
     "ItemClassifierPrompt",
