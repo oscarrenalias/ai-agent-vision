@@ -67,4 +67,5 @@ if __name__ == "__main__":
         reload=True,  # Enable auto-reload during development
         log_level="info",
         log_config=logging_config,  # Use the custom logging configuration
+        timeout_keep_alive=300,  # Keep-alive timeout in seconds
     )
