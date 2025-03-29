@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { setReceiptData } from '$lib/stores/chatStore';
 
   let receipts = [];
   let isLoading = true;
@@ -65,11 +66,15 @@
   // View details of a specific receipt
   function viewReceiptDetails(receipt) {
     selectedReceipt = receipt;
+    // Update the global receipt data store when viewing a receipt
+    setReceiptData(receipt);
   }
 
   // Close the receipt details view
   function closeDetails() {
     selectedReceipt = null;
+    // Clear the global receipt data when closing details
+    setReceiptData(null);
   }
 
   onMount(() => {

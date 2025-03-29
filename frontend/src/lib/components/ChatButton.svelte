@@ -1,9 +1,8 @@
 <script>
   export let onClick = () => {};
-  export let disabled = false;
 </script>
 
-<button class="chat-button" on:click={onClick} aria-label="Open chat" {disabled}>
+<button class="chat-button" on:click={onClick} aria-label="Open chat">
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -36,19 +35,13 @@
     font-weight: 500;
     cursor: pointer;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     z-index: 900;
   }
 
-  .chat-button:hover:not(:disabled) {
+  .chat-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  }
-
-  .chat-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    opacity: 0.7;
   }
 
   .chat-button svg {
