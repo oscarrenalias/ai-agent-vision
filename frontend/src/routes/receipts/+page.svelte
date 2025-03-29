@@ -1,6 +1,8 @@
 <script>
   import { onMount } from 'svelte';
   import ProcessingIndicator from '$lib/components/ProcessingIndicator.svelte';
+  import ChatButton from '$lib/components/ChatButton.svelte';
+  import ChatWindow from '$lib/components/ChatWindow.svelte';
 
   let file;
   let previewUrl = '';
@@ -12,6 +14,7 @@
   let discountedItemsCount = 0;
   let processingProgress = 25; // Initial progress value
   let processingInterval; // For simulating progress
+  let isChatOpen = false; // Track if chat window is open
 
   function handleFileChange(event) {
     const selectedFile = event.target.files[0];
@@ -119,6 +122,15 @@
       isUploading = false;
       stopProgressSimulation();
     }
+  }
+
+  // Functions to handle chat window
+  function openChat() {
+    isChatOpen = true;
+  }
+
+  function closeChat() {
+    isChatOpen = false;
   }
 
   onMount(() => {
@@ -307,6 +319,13 @@
       {/if}
     </div>
   {/if}
+  {#if receiptData}
+    <!-- Chat window component (only shown when open) -->
+    <ChatWindow isOpen={isChatOpen} {receiptData} on:close={closeChat} />
+  {/if}
+
+  <!-- Chat button is always visible but disabled when no receipt data -->
+  <ChatButton onClick={openChat} disabled={!receiptData} />
 </div>
 
 <style>
