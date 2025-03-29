@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import ProcessingIndicator from '$lib/components/ProcessingIndicator.svelte';
 
   let file;
   let previewUrl = '';
@@ -9,6 +10,8 @@
   let receiptData = null;
   let totalLoyaltyDiscount = 0;
   let discountedItemsCount = 0;
+  let processingProgress = 25; // Initial progress value
+  let processingInterval; // For simulating progress
 
   function handleFileChange(event) {
     const selectedFile = event.target.files[0];
@@ -41,6 +44,30 @@
     discountedItemsCount = count;
   }
 
+  // Function to simulate progress during processing
+  function startProgressSimulation() {
+    processingProgress = 25; // Start at 25%
+
+    // Clear any existing interval
+    if (processingInterval) clearInterval(processingInterval);
+
+    // Update progress every 10 seconds to simulate the long-running process
+    processingInterval = setInterval(() => {
+      if (processingProgress < 75) {
+        processingProgress += 25;
+      }
+    }, 10000); // 10 seconds between updates
+  }
+
+  // Function to stop progress simulation
+  function stopProgressSimulation() {
+    if (processingInterval) {
+      clearInterval(processingInterval);
+      processingInterval = null;
+    }
+    processingProgress = 100; // Complete the progress
+  }
+
   async function handleSubmit() {
     if (!file) {
       error = 'Please select a file first';
@@ -51,14 +78,25 @@
     isUploading = true;
     receiptData = null;
 
+    // Start simulating progress
+    startProgressSimulation();
+
     try {
       const formData = new FormData();
       formData.append('file', file);
 
+      // Create an AbortController with a 5-minute timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000); // 5 minutes timeout
+
       const response = await fetch('/api/process', {
         method: 'POST',
         body: formData,
+        signal: controller.signal,
       });
+
+      // Clear the timeout since the request completed
+      clearTimeout(timeoutId);
 
       const result = await response.json();
 
@@ -72,9 +110,14 @@
         error = result.error || 'Failed to process receipt';
       }
     } catch (err) {
-      error = 'Error uploading file: ' + (err instanceof Error ? err.message : String(err));
+      if (err.name === 'AbortError') {
+        error = 'Request timed out after 5 minutes. Please try again.';
+      } else {
+        error = 'Error uploading file: ' + (err instanceof Error ? err.message : String(err));
+      }
     } finally {
       isUploading = false;
+      stopProgressSimulation();
     }
   }
 
@@ -83,6 +126,10 @@
       // Clean up object URL when component is destroyed
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
+      }
+      // Clear any running interval
+      if (processingInterval) {
+        clearInterval(processingInterval);
       }
     };
   });
@@ -139,6 +186,14 @@
       {/if}
     </div>
   </div>
+
+  {#if isUploading}
+    <ProcessingIndicator
+      progress={processingProgress}
+      message="Processing your receipt..."
+      submessage="This may take 2-3 minutes to complete. Please don't refresh the page."
+    />
+  {/if}
 
   {#if receiptData}
     <div class="receipt-results">
