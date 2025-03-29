@@ -1,5 +1,8 @@
 <script>
   import '../app.css';
+  import ChatButton from '$lib/components/ChatButton.svelte';
+  import ChatWindow from '$lib/components/ChatWindow.svelte';
+  import { isChatOpen, currentReceiptData, openChat, closeChat } from '$lib/stores/chatStore';
 </script>
 
 <div class="app">
@@ -27,6 +30,10 @@
       <p>&copy; 2025 AI Agent Vision</p>
     </div>
   </footer>
+
+  <!-- Chat components that are available on all pages -->
+  <ChatWindow isOpen={$isChatOpen} receiptData={$currentReceiptData} on:close={closeChat} />
+  <ChatButton onClick={openChat} />
 </div>
 
 <style>

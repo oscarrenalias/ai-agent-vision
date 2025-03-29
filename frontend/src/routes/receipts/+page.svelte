@@ -1,8 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import ProcessingIndicator from '$lib/components/ProcessingIndicator.svelte';
-  import ChatButton from '$lib/components/ChatButton.svelte';
-  import ChatWindow from '$lib/components/ChatWindow.svelte';
+  import { setReceiptData } from '$lib/stores/chatStore';
 
   let file;
   let previewUrl = '';
@@ -14,7 +13,6 @@
   let discountedItemsCount = 0;
   let processingProgress = 25; // Initial progress value
   let processingInterval; // For simulating progress
-  let isChatOpen = false; // Track if chat window is open
 
   function handleFileChange(event) {
     const selectedFile = event.target.files[0];
@@ -27,6 +25,9 @@
       error = null;
       totalLoyaltyDiscount = 0;
       discountedItemsCount = 0;
+
+      // Clear the global receipt data
+      setReceiptData(null);
     }
   }
 
@@ -108,6 +109,9 @@
         if (result.receipt) {
           receiptData = result.receipt;
           calculateDiscountSummary(receiptData.items);
+
+          // Update the global receipt data store
+          setReceiptData(receiptData);
         }
       } else {
         error = result.error || 'Failed to process receipt';
@@ -322,10 +326,10 @@
   {#if receiptData}
     <!-- Chat window component (only shown when open) -->
     <ChatWindow isOpen={isChatOpen} {receiptData} on:close={closeChat} />
+  {:else}
+    <!-- Chat window without receipt data -->
+    <ChatWindow isOpen={isChatOpen} on:close={closeChat} />
   {/if}
-
-  <!-- Chat button is always visible but disabled when no receipt data -->
-  <ChatButton onClick={openChat} disabled={!receiptData} />
 </div>
 
 <style>

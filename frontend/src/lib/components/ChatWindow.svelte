@@ -11,7 +11,7 @@
       role: 'system',
       content: receiptData
         ? 'Hello! I can help you analyze your receipt and provide insights. What would you like to know?'
-        : 'Please upload and process a receipt first to get personalized insights.',
+        : 'Hello! I can help you with questions about your receipts and shopping history. What would you like to know?',
     },
   ];
 
@@ -41,8 +41,7 @@
     // In the future, this is where we'd send the message to the backend
     // For now, just simulate a response after a short delay
     setTimeout(() => {
-      let responseMessage =
-        "I'm just a placeholder response for now. Backend integration will be added later.";
+      let responseMessage;
 
       // If we have receipt data, make the response more contextual
       if (receiptData) {
@@ -51,6 +50,9 @@
         responseMessage = `I see you spent €${total.toFixed(
           2
         )} at ${store}. I'll be able to provide more insights once the backend is connected!`;
+      } else {
+        responseMessage =
+          'I can help you analyze your receipt history once we connect to the backend. You can ask about spending patterns, favorite stores, or common purchases.';
       }
 
       messages = [
@@ -110,10 +112,9 @@
       type="text"
       bind:value={newMessage}
       bind:this={messageInput}
-      placeholder="Ask about your receipt..."
-      disabled={!receiptData}
+      placeholder="Ask about your receipts..."
     />
-    <button type="submit" disabled={!newMessage.trim() || !receiptData}>
+    <button type="submit" disabled={!newMessage.trim()}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="24"
@@ -240,11 +241,6 @@
   .chat-input input:focus {
     border-color: var(--color-accent, #4caf50);
     box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-  }
-
-  .chat-input input:disabled {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
   }
 
   .chat-input button {
