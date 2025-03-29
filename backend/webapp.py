@@ -51,7 +51,7 @@ if __name__ == "__main__":
             "uvicorn": {"handlers": ["default"], "level": "INFO", "propagate": False},
             "uvicorn.error": {"level": "INFO"},
             "uvicorn.access": {"handlers": ["access"], "level": "INFO", "propagate": False},
-            # added this app's own loggers to prevent them from being overridden by uvicorn
+            # added this app's own loggers to prevent them from being overridden byuvicorn
             "webapp": {"handlers": ["default"], "level": "INFO", "propagate": False},
             "agents": {"handlers": ["default"], "level": "INFO", "propagate": False},
             "common": {"handlers": ["default"], "level": "INFO", "propagate": False},
