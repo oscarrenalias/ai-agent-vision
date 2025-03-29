@@ -10,6 +10,8 @@ from common.datastore import DataStore
 
 from .receiptstate import ReceiptState
 
+logger = logging.getLogger(__name__)
+
 
 class PersistData:
     """Persists the receipt data into a data store"""
@@ -17,13 +19,13 @@ class PersistData:
     def __init__(self, data_store: DataStore = None):
         self.data_store = data_store
         self.data_store.initialize()
-        logging.info("PersistData initialized")
+        logger.info("PersistData initialized")
 
     def run(self, state: ReceiptState) -> ReceiptState:
-        logging.info("PersistData run")
+        logger.info("PersistData run")
 
         if "receipt" not in state:
-            logging.warning("No receipt data found in state")
+            logger.warning("No receipt data found in state")
             return state
 
         # Convert receipt data to JSON string

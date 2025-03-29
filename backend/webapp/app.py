@@ -13,6 +13,9 @@ from common.datastore import get_data_store
 
 from .receipt_repository import ReceiptRepository
 
+# Create a module-specific logger
+logger = logging.getLogger("webapp")
+
 load_dotenv()
 
 
@@ -57,7 +60,7 @@ async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
         orchestrator = Orchestrator()
         result = orchestrator.run(receipt_image_path=file_path)
 
-        logging.info(f"Receipt processing result: {result}")
+        logger.info(f"Receipt processing result: {result}")
 
         # Extract receipt data from the result
         receipt_data = None
@@ -66,7 +69,7 @@ async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
         return ReceiptResponse(status="success", receipt=receipt_data)
 
     except Exception as e:
-        logging.error(f"Error processing receipt: {str(e)}")
+        logger.error(f"Error processing receipt: {str(e)}", exc_info=True)
         return ReceiptResponse(status="failed", error=str(e))
 
 
@@ -79,7 +82,7 @@ async def get_all_receipts() -> ReceiptListResponse:
         receipts = receipt_repository.get_all_receipts()
         return ReceiptListResponse(status="success", receipts=receipts)
     except Exception as e:
-        logging.error(f"Error retrieving receipts: {str(e)}")
+        logger.error(f"Error retrieving receipts: {str(e)}", exc_info=True)
         return ReceiptListResponse(status="failed", error=str(e))
 
 
@@ -95,5 +98,5 @@ async def get_receipt_by_id(receipt_id: int = Path(..., title="The ID of the rec
         else:
             return ReceiptResponse(status="failed", error=f"Receipt with ID {receipt_id} not found")
     except Exception as e:
-        logging.error(f"Error retrieving receipt {receipt_id}: {str(e)}")
+        logger.error(f"Error retrieving receipt {receipt_id}: {str(e)}", exc_info=True)
         return ReceiptResponse(status="failed", error=str(e))

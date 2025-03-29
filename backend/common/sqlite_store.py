@@ -11,6 +11,8 @@ from typing import Any, Dict, List, Optional
 
 from .datastore import DataStore
 
+logger = logging.getLogger(__name__)
+
 
 class SQLiteStore(DataStore):
     """
@@ -26,7 +28,7 @@ class SQLiteStore(DataStore):
             db_path: Path to the SQLite database file
         """
         self.db_path = db_path
-        logging.info(f"SQLite store initialized with database: {self.db_path}")
+        logger.info(f"SQLite store initialized with database: {self.db_path}")
 
     def initialize(self):
         """Create the receipts table if it doesn't exist"""
@@ -44,9 +46,9 @@ class SQLiteStore(DataStore):
                 """
                 )
                 conn.commit()
-            logging.info("SQLite database initialized successfully")
+            logger.info("SQLite database initialized successfully")
         except Exception as e:
-            logging.error(f"Error initializing SQLite database: {str(e)}")
+            logger.error(f"Error initializing SQLite database: {str(e)}")
             raise
 
     def save_receipt(self, receipt_data: str, metadata: dict) -> bool:
@@ -69,10 +71,10 @@ class SQLiteStore(DataStore):
                     (receipt_data, current_time, current_time),
                 )
                 conn.commit()
-            logging.info("Receipt saved to SQLite successfully")
+            logger.info("Receipt saved to SQLite successfully")
             return True
         except Exception as e:
-            logging.error(f"Error saving receipt to SQLite: {str(e)}")
+            logger.error(f"Error saving receipt to SQLite: {str(e)}")
             return False
 
     def get_all_receipts(self) -> List[Dict[str, Any]]:
@@ -101,7 +103,7 @@ class SQLiteStore(DataStore):
 
                 return receipts
         except Exception as e:
-            logging.error(f"Error retrieving receipts from SQLite: {str(e)}")
+            logger.error(f"Error retrieving receipts from SQLite: {str(e)}")
             return []
 
     def get_receipt_by_id(self, receipt_id: int) -> Optional[Dict[str, Any]]:
@@ -134,7 +136,7 @@ class SQLiteStore(DataStore):
                     return receipt
                 return None
         except Exception as e:
-            logging.error(f"Error retrieving receipt {receipt_id} from SQLite: {str(e)}")
+            logger.error(f"Error retrieving receipt {receipt_id} from SQLite: {str(e)}")
             return None
 
     def update_receipt(self, receipt_id: int, receipt_data: str, metadata: dict) -> bool:
@@ -161,7 +163,7 @@ class SQLiteStore(DataStore):
                 conn.commit()
                 return cursor.rowcount > 0
         except Exception as e:
-            logging.error(f"Error updating receipt {receipt_id} in SQLite: {str(e)}")
+            logger.error(f"Error updating receipt {receipt_id} in SQLite: {str(e)}")
             return False
 
     def delete_receipt(self, receipt_id: int) -> bool:
@@ -181,5 +183,5 @@ class SQLiteStore(DataStore):
                 conn.commit()
                 return cursor.rowcount > 0
         except Exception as e:
-            logging.error(f"Error deleting receipt {receipt_id} from SQLite: {str(e)}")
+            logger.error(f"Error deleting receipt {receipt_id} from SQLite: {str(e)}")
             return False

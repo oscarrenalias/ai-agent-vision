@@ -12,6 +12,8 @@ from psycopg2.extras import RealDictCursor
 
 from .datastore import DataStore
 
+logger = logging.getLogger(__name__)
+
 
 class PostgresStore(DataStore):
     """
@@ -34,7 +36,7 @@ class PostgresStore(DataStore):
             "user": "postgres",
             "password": "postgres",
         }
-        logging.info(
+        logger.info(
             f"PostgreSQL store initialized with host: {self.connection_params.get('host')}, "
             f"port: {self.connection_params.get('port')}, "
             f"database: {self.connection_params.get('dbname')}"
@@ -50,7 +52,7 @@ class PostgresStore(DataStore):
         try:
             return psycopg2.connect(**self.connection_params)
         except Exception as e:
-            logging.error(f"Error connecting to PostgreSQL: {str(e)}")
+            logger.error(f"Error connecting to PostgreSQL: {str(e)}")
             raise
 
     def initialize(self):
@@ -69,9 +71,9 @@ class PostgresStore(DataStore):
                     """
                     )
                 conn.commit()
-            logging.info("PostgreSQL database initialized successfully")
+            logger.info("PostgreSQL database initialized successfully")
         except Exception as e:
-            logging.error(f"Error initializing PostgreSQL database: {str(e)}")
+            logger.error(f"Error initializing PostgreSQL database: {str(e)}")
             raise
 
     def save_receipt(self, receipt_data: str, metadata: dict) -> bool:
@@ -95,10 +97,10 @@ class PostgresStore(DataStore):
                         (receipt_data, current_time, current_time),
                     )
                 conn.commit()
-            logging.info("Receipt saved to PostgreSQL successfully")
+            logger.info("Receipt saved to PostgreSQL successfully")
             return True
         except Exception as e:
-            logging.error(f"Error saving receipt to PostgreSQL: {str(e)}")
+            logger.error(f"Error saving receipt to PostgreSQL: {str(e)}")
             return False
 
     def get_all_receipts(self) -> List[Dict[str, Any]]:
@@ -126,7 +128,7 @@ class PostgresStore(DataStore):
 
                     return receipts
         except Exception as e:
-            logging.error(f"Error retrieving receipts from PostgreSQL: {str(e)}")
+            logger.error(f"Error retrieving receipts from PostgreSQL: {str(e)}")
             return []
 
     def get_receipt_by_id(self, receipt_id: int) -> Optional[Dict[str, Any]]:
@@ -158,7 +160,7 @@ class PostgresStore(DataStore):
                         return receipt
                     return None
         except Exception as e:
-            logging.error(f"Error retrieving receipt {receipt_id} from PostgreSQL: {str(e)}")
+            logger.error(f"Error retrieving receipt {receipt_id} from PostgreSQL: {str(e)}")
             return None
 
     def update_receipt(self, receipt_id: int, receipt_data: str, metadata: dict) -> bool:
@@ -185,7 +187,7 @@ class PostgresStore(DataStore):
                     conn.commit()
                     return cursor.rowcount > 0
         except Exception as e:
-            logging.error(f"Error updating receipt {receipt_id} in PostgreSQL: {str(e)}")
+            logger.error(f"Error updating receipt {receipt_id} in PostgreSQL: {str(e)}")
             return False
 
     def delete_receipt(self, receipt_id: int) -> bool:
@@ -205,5 +207,5 @@ class PostgresStore(DataStore):
                     conn.commit()
                     return cursor.rowcount > 0
         except Exception as e:
-            logging.error(f"Error deleting receipt {receipt_id} from PostgreSQL: {str(e)}")
+            logger.error(f"Error deleting receipt {receipt_id} from PostgreSQL: {str(e)}")
             return False

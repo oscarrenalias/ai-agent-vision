@@ -13,14 +13,12 @@ This is the top-level agent that defines the graph and manages the flow of event
 and data between nodes.
 """
 
+logger = logging.getLogger(__name__)
+
 
 class Orchestrator:
     def __init__(self):
-        # configure logging for everyone
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s [%(levelname)s] [%(funcName)s] %(message)s",
-        )
+        pass
 
     def run(self, receipt_image_path: str):
         # Initialize nodes
