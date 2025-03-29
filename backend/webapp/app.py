@@ -16,6 +16,9 @@ from .receipt_repository import ReceiptRepository
 # Create a module-specific logger
 logger = logging.getLogger("webapp")
 
+# Add a startup log message to verify logging is working
+logger.info("Webapp module initialized")
+
 load_dotenv()
 
 
@@ -39,7 +42,10 @@ receipt_repository = ReceiptRepository(data_store=data_store)
 @app.post("/process", response_model=ReceiptResponse)
 async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
     try:
+        logger.info(f"Processing receipt file: {file.filename}")
+
         if not file.content_type.startswith("image/"):
+            logger.warning(f"Invalid file type: {file.content_type}")
             raise HTTPException(400, "File must be an image")
 
         # Create uploads directory if it doesn't exist
@@ -56,11 +62,14 @@ async def process_receipt(file: UploadFile = File(...)) -> ReceiptResponse:
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
+        logger.info(f"File saved to {file_path}")
+
         # Process the receipt using the saved file path
         orchestrator = Orchestrator()
+        logger.info("Starting receipt analysis with orchestrator")
         result = orchestrator.run(receipt_image_path=file_path)
 
-        logger.info(f"Receipt processing result: {result}")
+        logger.info(f"Receipt processing complete: {result}")
 
         # Extract receipt data from the result
         receipt_data = None
@@ -92,6 +101,7 @@ async def get_receipt_by_id(receipt_id: int = Path(..., title="The ID of the rec
     Retrieve a specific receipt by ID
     """
     try:
+        logger.info(f"Retrieving receipt with ID: {receipt_id}")
         receipt = receipt_repository.get_receipt_by_id(receipt_id)
         if receipt:
             return ReceiptResponse(status="success", receipt=receipt)
