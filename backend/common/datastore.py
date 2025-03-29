@@ -8,6 +8,8 @@ import os
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
+logger = logging.getLogger(__name__)
+
 
 class DataStore(ABC):
     """
@@ -108,11 +110,11 @@ def get_data_store(store_type: str = None) -> DataStore:
 
     # Create and return the appropriate data store
     if store_type == "sqlite":
-        logging.info("Using SQLite data store")
+        logger.info("Using SQLite data store")
         return SQLiteStore()
     else:
         # Default to PostgreSQL
-        logging.info("Using PostgreSQL data store")
+        logger.info("Using PostgreSQL data store")
         connection_params = {
             "host": os.environ.get("POSTGRES_HOST", "localhost"),
             "port": int(os.environ.get("POSTGRES_PORT", 5432)),

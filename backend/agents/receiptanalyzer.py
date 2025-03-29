@@ -10,6 +10,8 @@ from .models import Model
 from .receiptanalyzerprompt import ReceiptAnalyzerPrompt
 from .receiptstate import Receipt, ReceiptState
 
+logger = logging.getLogger(__name__)
+
 
 class ReceiptAnalyzer:
     """
@@ -23,7 +25,7 @@ class ReceiptAnalyzer:
     receipt_file_path: None
 
     def __init__(self):
-        logging.info("ReceiptAnalyzer initialized")
+        logger.info("ReceiptAnalyzer initialized")
         self.create_llm()
 
     def create_llm(self):
@@ -36,14 +38,14 @@ class ReceiptAnalyzer:
         """
         Analyze the receipt
         """
-        logging.info("ReceiptAnalyzer run")
+        logger.info("ReceiptAnalyzer run")
 
         chain = self.set_up_chain()
-        logging.info("state = " + str(state))
+        logger.info("state = " + str(state))
 
         input_data = {"receipt_file_path": state["receipt_image_path"]}
         response = chain.invoke(input_data)
-        logging.info("response = " + str(response))
+        logger.info("response = " + str(response))
 
         # update the state with the receipt and return
         state["receipt"] = response

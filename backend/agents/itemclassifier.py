@@ -7,6 +7,8 @@ from .itemclassifierprompt import ItemClassifierPrompt
 from .models import Model
 from .receiptstate import Receipt, ReceiptState
 
+logger = logging.getLogger(__name__)
+
 
 class ItemClassifier:
     """
@@ -20,11 +22,11 @@ class ItemClassifier:
         """
         Initialize the ItemClassifier
         """
-        logging.info("ItemClassifier initialized")
+        logger.info("ItemClassifier initialized")
         self.model = Model("openai").get_model()
 
     def run(self, state: ReceiptState) -> ReceiptState:
-        logging.info("ItemClassifier run")
+        logger.info("ItemClassifier run")
 
         # call the LLM model to classify the items and map the response to the JSON object accordingly
         # Create prompt template with output format instructions
@@ -37,7 +39,7 @@ class ItemClassifier:
 
         chain = prompt | self.model | parser
         response = chain.invoke({"receipt": state["receipt"]})
-        logging.info("Response from classifier = " + str(response))
+        logger.info("Response from classifier = " + str(response))
 
         # update the state with the new information
         state["receipt"] = response
