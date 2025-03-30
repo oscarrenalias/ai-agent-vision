@@ -66,7 +66,9 @@ class OpenAIModel:
 
     use_cache: bool = True
 
-    def __init__(self):
+    def __init__(self, openai_model: str = "gpt-4o", use_cache: bool = True):
+        self.openai_model = openai_model
+        self.use_cache = use_cache
         self.initialize_model()
 
     def initialize_model(self):
