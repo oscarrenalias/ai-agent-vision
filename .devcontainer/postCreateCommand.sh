@@ -7,6 +7,15 @@
 #  pip install -r /workspaces/ai-agent-vision/backend/requirements.txt
 #fi
 
+# Install development dependencies including pre-commit
+if [ -f "/workspaces/ai-agent-vision/backend/requirements-dev.txt" ]; then
+  echo "Installing development dependencies..."
+  pip install -r /workspaces/ai-agent-vision/backend/requirements-dev.txt
+  echo "Setting up pre-commit hooks..."
+  cd /workspaces/ai-agent-vision
+  pre-commit install
+fi
+
 ## Disabling for now as it speeds up the process to provisio the Codespace
 # Install frontend dependencies
 #if [ -d "/workspaces/ai-agent-vision/frontend" ]; then
