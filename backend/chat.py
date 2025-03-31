@@ -18,10 +18,10 @@ def configure_logging():
         logger.setLevel(logging.INFO)
 
 
-logger = logging.getLogger(__name__)
-
+# set things up
 load_dotenv()
-
+configure_logging()
+logger = logging.getLogger(__name__)
 chat_manager = ChatManager()
 
 
@@ -82,5 +82,4 @@ def main():
 
 
 if __name__ == "__main__":
-    configure_logging()
     main()
