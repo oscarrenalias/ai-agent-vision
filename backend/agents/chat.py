@@ -1,9 +1,12 @@
 import logging
+import uuid
 from datetime import datetime
+from typing import Dict
 
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
-from langgraph.graph import START, Graph, MessagesState
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.prebuilt import tools_condition
 
 from agents.tools import receipttools, simpletools
@@ -56,7 +59,7 @@ class CustomToolNode:
     """Custom tool executor that preserves message history."""
 
     def __init__(self, tools):
-        logging.info(f"CustomToolNod initialized with tools: {tools}")
+        logger.info(f"CustomToolNod initialized with tools: {tools}")
         self.tools = tools
 
     def run(self, state: ChatState) -> ChatState:
@@ -79,19 +82,39 @@ class CustomToolNode:
 
 class ChatManager:
     """
-    Manages the chat session and handles the conversation flow.
+    Manages the chat session and handles the conversation flow. Based on StateGraph, uses MemorySaver to save the state.
     """
 
-    def __init__(self):
-        pass
+    graph: StateGraph
 
-    def run(self, message: str):
+    """
+    The configuration dict for the ChatManager. It is passed as is to the StateGraph when invoking.
+    """
+    config: Dict
+
+    def __init__(self, config: Dict = None):
+        self.initialize()
+
+        # Create a default config if none is provided
+        if config is None:
+            config = {"configurable": {"thread_id": uuid.uuid4()}}
+            logger.info(f"Using default ChatManager configuration: {config}")
+
+        self.config = config
+
+    def initialize(self):
         """
-        Run the chat session with the provided message.
+        Initialize all instance objects
         """
+        logger.info("ChatManager initialized")
+
+        # memory checkpointer
+        memory = MemorySaver()
+
         # build graph and edges
         chat_agent = ChatAgent()
-        workflow = Graph()
+        # needs to be StateGraph so that the chatbot remembers previous interactions
+        workflow = StateGraph(state_schema=ChatState)
         workflow.add_node("chat_agent", chat_agent.run)
 
         tool_node = CustomToolNode(tools=simpletools.get_tools() + receipttools.get_tools())
@@ -101,10 +124,13 @@ class ChatManager:
         workflow.add_edge("tools", "chat_agent")
         workflow.add_conditional_edges("chat_agent", tools_condition)
 
-        graph = workflow.compile()
+        self.graph = workflow.compile(checkpointer=memory)
 
-        # Create an initial chat state and call the graph
+    def run(self, message: str):
+        """
+        Add the message to the state, and invoke
+        """
         initial_state = ChatState(messages=[HumanMessage(content=message)])
-        response = graph.invoke(initial_state)
-        logger.info(f"Response: {response}")
+        response = self.graph.invoke(initial_state, config=self.config)
+        logger.debug(f"Response: {response}")
         return response
