@@ -3,44 +3,14 @@ from datetime import datetime
 
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
-from langchain_core.tools import tool
 from langgraph.graph import START, Graph, MessagesState
 from langgraph.prebuilt import tools_condition
+
+from agents.tools import receipttools, simpletools
 
 from .models import OpenAIModel
 
 logger = logging.getLogger(__name__)
-
-
-@tool
-def multiply(a: int, y: int) -> int:
-    """
-    Multiplies two numbers.
-
-    Args:
-        a (int): The first number to multiply.
-        y (int): The second number to multiply.
-    """
-    logger.info(f"a={a}, y={y}")
-    return a * y
-
-
-@tool
-def get_weather(city: str) -> str:
-    """
-    Gets the weather for a given city.
-
-    Args:
-        city (str): The name of the city to get the weather for.
-    """
-    logger.info(f"Getting weather for {city}")
-    # Simulate a weather API call
-    result = "it's very cold" if city.lower() == "helsinki" else "sunny and 25C"
-    return result
-
-
-# List of tools that can be utilized
-tools = [multiply, get_weather]
 
 
 class ChatState(MessagesState):
@@ -51,23 +21,12 @@ class ChatAgent:
     # Keeps track of the LLM model
     model: None
 
-    system_message: str = """
-    You are a helpful assistant that can use tools to perform requests.
-
-    IMPORTANT INSTRUCTIONS FOR TOOL USAGE:
-    1. Only use tools when necessary to answer the user's question
-    2. After you get the tool results, provide a final answer to the user
-    3. DO NOT call the same tool repeatedly with the same parameters
-    4. Once you have the information needed, respond directly to the user without calling more tools
-    5. If you've already called a tool and received results, use those results instead of calling the tool again
-    """
-
     def __init__(self):
         logger.info("Chat initialized")
         model = OpenAIModel(use_cache=False).get_model()
 
         # bind with tools and keep in the class
-        self.model = model.bind_tools(tools)
+        self.model = model.bind_tools(simpletools.get_tools() + receipttools.get_tools())
 
     def get_primary_assistant_prompt(self) -> ChatPromptTemplate:
         return ChatPromptTemplate.from_messages(
@@ -135,7 +94,7 @@ class ChatManager:
         workflow = Graph()
         workflow.add_node("chat_agent", chat_agent.run)
 
-        tool_node = CustomToolNode(tools=tools)
+        tool_node = CustomToolNode(tools=simpletools.get_tools() + receipttools.get_tools())
         workflow.add_node("tools", tool_node.run)
 
         workflow.add_edge(START, "chat_agent")

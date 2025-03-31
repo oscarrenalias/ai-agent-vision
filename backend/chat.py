@@ -75,8 +75,9 @@ def main():
         interactive_chat_mode()
     else:
         # Run with a predefined question
-        result = chat_manager.run(message="What is 3 times 2?")
-        logger.info(f"Chat complete. Result: {result}")
+        result = chat_manager.run(message="How much chicken have we bought recently?")
+        last_message = result["messages"][-1]
+        logger.info(f"Chat complete. Result: {last_message}")
         return result
 
 
