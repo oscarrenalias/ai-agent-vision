@@ -22,6 +22,18 @@
   let isLoading = false;
   let error = null;
 
+  // Function to scroll to bottom of chat
+  function scrollToBottom() {
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  }
+
+  onMount(() => {
+    // Initial scroll to bottom when component mounts
+    scrollToBottom();
+  });
+
   function handleClose() {
     dispatch('close');
   }
@@ -42,6 +54,9 @@
     newMessage = ''; // Clear input
     isLoading = true;
     error = null;
+
+    // Scroll to bottom after adding user message
+    setTimeout(scrollToBottom, 50);
 
     try {
       // Prepare request data
@@ -92,21 +107,22 @@
       ];
     } finally {
       isLoading = false;
+      // Scroll to bottom after receiving response
+      setTimeout(scrollToBottom, 50);
     }
   }
 
-  // Auto-scroll to bottom when messages change
-  $: if (chatContainer && messages) {
-    setTimeout(() => {
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }, 0);
+  // Auto-scroll to bottom when messages change or loading state changes
+  $: if (messages || isLoading) {
+    setTimeout(scrollToBottom, 100); // Increased timeout to ensure DOM updates
   }
 
-  // Focus input when chat opens
-  $: if (isOpen && messageInput) {
+  // Focus input and scroll to bottom when chat opens
+  $: if (isOpen) {
     setTimeout(() => {
-      messageInput.focus();
-    }, 100);
+      if (messageInput) messageInput.focus();
+      scrollToBottom();
+    }, 300); // Longer timeout to ensure animation completes
   }
 
   // Update welcome message when receipt data changes
@@ -239,6 +255,8 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    scroll-behavior: smooth;
+    max-height: calc(100% - 120px); /* Account for header and input area */
   }
 
   .message {
