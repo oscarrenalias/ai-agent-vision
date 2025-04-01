@@ -133,15 +133,10 @@
     }
   }
 
-  // Functions to handle chat window
-  // Using the imported functions from the store instead of trying to modify the store directly
-  // function openChat() {
-  //   isChatOpen = true;
-  // }
-
-  // function closeChat() {
-  //   isChatOpen = false;
-  // }
+  // When receipt data is available, set it in the store for the chat component to use
+  $: if (receiptData) {
+    setReceiptData(receiptData);
+  }
 
   onMount(() => {
     return () => {
