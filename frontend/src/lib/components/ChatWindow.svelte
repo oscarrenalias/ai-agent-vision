@@ -29,10 +29,48 @@
     }
   }
 
+  // Load chat history when session ID changes or component mounts
+  async function loadChatHistory() {
+    if (!$chatSessionId) return;
+
+    try {
+      const response = await fetch(`/api/chat/history/${$chatSessionId}`);
+      if (response.ok) {
+        const history = await response.json();
+
+        // Start with welcome message
+        const welcomeMessage = {
+          role: 'system',
+          content: receiptData
+            ? 'Hello! I can help you analyze your receipt and provide insights. What would you like to know?'
+            : 'Hello! I can help you with questions about your receipts and shopping history. What would you like to know?',
+        };
+
+        // Add all messages from history
+        messages = [welcomeMessage, ...history];
+
+        // Scroll to bottom after loading history
+        setTimeout(scrollToBottom, 100);
+      }
+    } catch (e) {
+      console.error('Error loading chat history:', e);
+    }
+  }
+
   onMount(() => {
     // Initial scroll to bottom when component mounts
     scrollToBottom();
+
+    // Load chat history if we have a session ID
+    if ($chatSessionId) {
+      loadChatHistory();
+    }
   });
+
+  // Watch for changes to chatSessionId
+  $: if ($chatSessionId) {
+    loadChatHistory();
+  }
 
   function handleClose() {
     dispatch('close');
@@ -87,7 +125,7 @@
 
       // Update messages with the response
       messages = [
-        ...messages.filter((m) => m.role !== 'assistant'), // Remove any previous assistant messages
+        ...messages, // Keep all previous messages
         {
           role: 'assistant',
           content: data.message,
