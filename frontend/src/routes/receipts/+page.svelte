@@ -1,7 +1,12 @@
 <script>
   import { onMount } from 'svelte';
   import ProcessingIndicator from '$lib/components/ProcessingIndicator.svelte';
-  import { setReceiptData } from '$lib/stores/chatStore';
+  import ChatButton from '$lib/components/ChatButton.svelte';
+  import ChatWindow from '$lib/components/ChatWindow.svelte';
+  //import { isChatOpen, currentReceiptData, openChat, closeChat } from '$lib/stores/chatStore';
+  import { setReceiptData, openChat, closeChat, isChatOpen } from '$lib/stores/chatStore';
+
+  //import { isChatOpen } from '$lib/stores/chatStore';
 
   let file;
   let previewUrl = '';
@@ -129,13 +134,14 @@
   }
 
   // Functions to handle chat window
-  function openChat() {
-    isChatOpen = true;
-  }
+  // Using the imported functions from the store instead of trying to modify the store directly
+  // function openChat() {
+  //   isChatOpen = true;
+  // }
 
-  function closeChat() {
-    isChatOpen = false;
-  }
+  // function closeChat() {
+  //   isChatOpen = false;
+  // }
 
   onMount(() => {
     return () => {
@@ -325,10 +331,10 @@
   {/if}
   {#if receiptData}
     <!-- Chat window component (only shown when open) -->
-    <ChatWindow isOpen={isChatOpen} {receiptData} on:close={closeChat} />
+    <ChatWindow isOpen={$isChatOpen} {receiptData} on:close={closeChat} />
   {:else}
     <!-- Chat window without receipt data -->
-    <ChatWindow isOpen={isChatOpen} on:close={closeChat} />
+    <ChatWindow isOpen={$isChatOpen} on:close={closeChat} />
   {/if}
 </div>
 
