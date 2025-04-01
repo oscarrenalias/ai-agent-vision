@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
@@ -33,11 +33,8 @@ class ChatResponse(BaseModel):
 # Create a router for chat endpoints
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
-# Store active chat sessions with their configurations
-chat_sessions = {}
-
-# Initialize the ChatManager (singleton for now)
-chat_manager = ChatManager()
+# Store active chat sessions with their configurations and ChatManager instances
+chat_sessions: Dict[str, Dict] = {}
 
 
 @router.post("/send", response_model=ChatResponse)
@@ -49,8 +46,19 @@ async def send_message(request: ChatRequest):
     # Get or create chat ID and configuration
     chat_id = request.chat_id
     if not chat_id:
+        # Create a new chat session with a unique ID
         chat_id = str(uuid.uuid4())
-        chat_sessions[chat_id] = {"config": {"configurable": {"thread_id": chat_id}}, "history": []}
+
+        # Create configuration for the new chat session
+        config = {"configurable": {"thread_id": chat_id}}
+
+        # Create a new ChatManager instance for this session
+        chat_manager = ChatManager(config=config)
+
+        # Store the session data
+        chat_sessions[chat_id] = {"config": config, "history": [], "chat_manager": chat_manager}
+
+        logger.info(f"Created new chat session with ID: {chat_id}")
     elif chat_id not in chat_sessions:
         raise HTTPException(status_code=404, detail="Chat session not found")
 
@@ -59,7 +67,10 @@ async def send_message(request: ChatRequest):
     chat_sessions[chat_id]["history"].append(user_message)
 
     try:
-        # Process the message with ChatManager
+        # Get the ChatManager instance for this session
+        chat_manager = chat_sessions[chat_id]["chat_manager"]
+
+        # Process the message with the session's ChatManager
         response = chat_manager.run(message=request.message)
 
         # Extract the assistant's response from the last message
