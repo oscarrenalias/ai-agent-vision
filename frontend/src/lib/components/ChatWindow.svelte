@@ -1,6 +1,7 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
   import { chatSessionId, setChatSessionId } from '$lib/stores/chatStore';
+  import { renderMarkdown } from '$lib/utils/markdown';
 
   export let receiptData = null;
   export let isOpen = false;
@@ -185,7 +186,11 @@
     {#each messages as message}
       <div class="message {message.role}">
         <div class="message-content">
-          {message.content}
+          {#if message.role === 'assistant' || message.role === 'system'}
+            {@html renderMarkdown(message.content)}
+          {:else}
+            {message.content}
+          {/if}
         </div>
       </div>
     {/each}
@@ -322,6 +327,106 @@
 
   .message.loading {
     padding: 10px;
+  }
+
+  /* Markdown styling */
+  .message-content :global(p) {
+    margin: 0 0 0.75em 0;
+  }
+
+  .message-content :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .message-content :global(pre) {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0.5em;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0.5em 0;
+  }
+
+  .message-content :global(code) {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+
+  .message-content :global(pre code) {
+    background-color: transparent;
+    padding: 0;
+  }
+
+  .message-content :global(ul),
+  .message-content :global(ol) {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+  }
+
+  .message-content :global(li) {
+    margin-bottom: 0.25em;
+  }
+
+  .message-content :global(h1),
+  .message-content :global(h2),
+  .message-content :global(h3),
+  .message-content :global(h4),
+  .message-content :global(h5),
+  .message-content :global(h6) {
+    margin: 0.5em 0 0.25em 0;
+    font-weight: 600;
+  }
+
+  .message-content :global(h1) {
+    font-size: 1.4em;
+  }
+  .message-content :global(h2) {
+    font-size: 1.3em;
+  }
+  .message-content :global(h3) {
+    font-size: 1.2em;
+  }
+  .message-content :global(h4) {
+    font-size: 1.1em;
+  }
+  .message-content :global(h5),
+  .message-content :global(h6) {
+    font-size: 1em;
+  }
+
+  .message-content :global(table) {
+    border-collapse: collapse;
+    margin: 0.5em 0;
+    width: 100%;
+  }
+
+  .message-content :global(th),
+  .message-content :global(td) {
+    border: 1px solid #ddd;
+    padding: 0.3em 0.5em;
+    text-align: left;
+  }
+
+  .message-content :global(th) {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .message-content :global(a) {
+    color: #2563eb;
+    text-decoration: none;
+  }
+
+  .message-content :global(a:hover) {
+    text-decoration: underline;
+  }
+
+  .message-content :global(blockquote) {
+    border-left: 3px solid #ddd;
+    margin: 0.5em 0;
+    padding-left: 1em;
+    color: #555;
   }
 
   .typing-indicator {
