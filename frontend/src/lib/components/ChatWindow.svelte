@@ -1,5 +1,6 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
+  import { chatSessionId, setChatSessionId } from '$lib/stores/chatStore';
 
   export let receiptData = null;
   export let isOpen = false;
@@ -18,15 +19,17 @@
   let newMessage = '';
   let chatContainer;
   let messageInput;
+  let isLoading = false;
+  let error = null;
 
   function handleClose() {
     dispatch('close');
   }
 
-  function handleSubmit() {
-    if (!newMessage.trim()) return;
+  async function handleSubmit() {
+    if (!newMessage.trim() || isLoading) return;
 
-    // Add user message
+    // Add user message to UI immediately
     messages = [
       ...messages,
       {
@@ -35,34 +38,61 @@
       },
     ];
 
-    // Clear input
-    newMessage = '';
+    const messageToSend = newMessage;
+    newMessage = ''; // Clear input
+    isLoading = true;
+    error = null;
 
-    // In the future, this is where we'd send the message to the backend
-    // For now, just simulate a response after a short delay
-    setTimeout(() => {
-      let responseMessage;
+    try {
+      // Prepare request data
+      const requestData = {
+        message: messageToSend,
+        chat_id: $chatSessionId,
+      };
 
-      // If we have receipt data, make the response more contextual
-      if (receiptData) {
-        const store = receiptData.receipt_data?.place || 'the store';
-        const total = receiptData.receipt_data?.total || 0;
-        responseMessage = `I see you spent €${total.toFixed(
-          2
-        )} at ${store}. I'll be able to provide more insights once the backend is connected!`;
-      } else {
-        responseMessage =
-          'I can help you analyze your receipt history once we connect to the backend. You can ask about spending patterns, favorite stores, or common purchases.';
+      // Send message to backend
+      const response = await fetch('/api/chat/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
       }
 
+      const data = await response.json();
+
+      // Store the chat session ID if this is a new session
+      if (!$chatSessionId) {
+        setChatSessionId(data.chat_id);
+      }
+
+      // Update messages with the response
+      messages = [
+        ...messages.filter((m) => m.role !== 'assistant'), // Remove any previous assistant messages
+        {
+          role: 'assistant',
+          content: data.message,
+        },
+      ];
+    } catch (e) {
+      console.error('Error sending message:', e);
+      error = e.message;
+
+      // Add error message to chat
       messages = [
         ...messages,
         {
           role: 'system',
-          content: responseMessage,
+          content: `Error: ${error}. Please try again.`,
         },
       ];
-    }, 1000);
+    } finally {
+      isLoading = false;
+    }
   }
 
   // Auto-scroll to bottom when messages change
@@ -105,6 +135,15 @@
         </div>
       </div>
     {/each}
+    {#if isLoading}
+      <div class="message system loading">
+        <div class="typing-indicator">
+          <span />
+          <span />
+          <span />
+        </div>
+      </div>
+    {/if}
   </div>
 
   <form class="chat-input" on:submit|preventDefault={handleSubmit}>
@@ -113,8 +152,9 @@
       bind:value={newMessage}
       bind:this={messageInput}
       placeholder="Ask about your receipts..."
+      disabled={isLoading}
     />
-    <button type="submit" disabled={!newMessage.trim()}>
+    <button type="submit" disabled={!newMessage.trim() || isLoading}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="24"
@@ -216,11 +256,54 @@
     border-bottom-right-radius: 5px;
   }
 
-  .message.system {
+  .message.system,
+  .message.assistant {
     align-self: flex-start;
     background-color: #f0f0f0;
     color: #333;
     border-bottom-left-radius: 5px;
+  }
+
+  .message.loading {
+    padding: 10px;
+  }
+
+  .typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background-color: #999;
+    border-radius: 50%;
+    display: inline-block;
+    animation: bounce 1.5s infinite ease-in-out;
+  }
+
+  .typing-indicator span:nth-child(1) {
+    animation-delay: 0s;
+  }
+
+  .typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes bounce {
+    0%,
+    60%,
+    100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-5px);
+    }
   }
 
   .chat-input {
@@ -236,6 +319,11 @@
     border-radius: 25px;
     outline: none;
     font-size: 1rem;
+  }
+
+  .chat-input input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
   }
 
   .chat-input input:focus {
