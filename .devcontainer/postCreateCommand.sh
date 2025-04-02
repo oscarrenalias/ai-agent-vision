@@ -24,19 +24,17 @@ fi
 #  npm install
 #fi
 
-# Configure PostgreSQL
-echo "Waiting for PostgreSQL to start..."
-until pg_isready -h localhost -U postgres; do
-  sleep 1
+# Configure MongoDB
+echo "Waiting for MongoDB to start..."
+until mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+  echo "Waiting for MongoDB to be ready..."
+  sleep 2
 done
-echo "PostgreSQL is ready!"
+echo "MongoDB is ready!"
 
-# Create database schema if needed
-echo "Setting up database..."
-cd /workspaces/ai-agent-vision/backend
-if [ -f "alembic.ini" ]; then
-  alembic upgrade head
-fi
+# Create initial database setup if needed
+echo "Setting up MongoDB database..."
+mongosh --eval "use receipts"
 
 # Configure Amazon Q if AWS credentials exist
 if [ -f "/home/vscode/.aws/credentials" ]; then
