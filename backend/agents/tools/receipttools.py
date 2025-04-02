@@ -4,6 +4,8 @@ from typing import List, Optional
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 
+from common.datastore import get_data_store
+
 logger = logging.getLogger(__name__)
 
 
@@ -11,7 +13,7 @@ def get_tools() -> List:
     """
     Returns a list of tools that can be used in the chat.
     """
-    return [get_groceries_per_period, get_data_per_item_type]
+    return [get_receipts_by_date, get_items_per_item_type]
 
 
 class ReceiptItemData(BaseModel):
@@ -57,12 +59,12 @@ class ReceiptData(BaseModel):
 
 
 @tool
-def get_groceries_per_period(start_date: str, end_date: str, store: None) -> str:
+def get_receipts_by_date(start_date: str, end_date: str, store: None) -> str:
     """
-    Get the receipts and their associated items for a given period of time, including all metadata.
+    Get the receipts and their associated items for a given period of time, including all receipt data.
 
     Example prompts:
-    - how much did we spend on groceries in the last year?
+    - how much did we spend on groceries in 2025 so far?
     - how much did we pay for the last groceries?
     - how much do we usually spend on groceries in store K-Citymarket?
 
@@ -87,46 +89,20 @@ def get_groceries_per_period(start_date: str, end_date: str, store: None) -> str
     """
     logger.info(f"Getting groceries from {start_date} to {end_date}")
 
-    receipt_list = [
-        ReceiptData(
-            items=[
-                ReceiptItemData(
-                    date="2025-02-01",
-                    description="Frozen Chicken",
-                    price=10.0,
-                    store="K-Citymarket",
-                    price_per_unit=2.0,
-                    quantity=5.0,
-                    item_type_level1="food",
-                    item_type_level2="meats",
-                    item_type_level3="chicken",
-                ),
-                ReceiptItemData(
-                    date="2025-02-01",
-                    description="Fresh Chicken",
-                    price=20.0,
-                    store="K-Citymarket",
-                    price_per_unit=4.0,
-                    quantity=10.0,
-                    item_type_level1="food",
-                    item_type_level2="meats",
-                    item_type_level3="chicken",
-                ),
-            ],
-            total_price=30.0,
-            date="2025-02-01",
-            store="K-Citymarket",
+    data_store = get_data_store()
+    receipts = data_store.get_receipts_by_date(start_date, end_date)
+    response_data = []
+
+    for receipt in receipts:
+        response_data.append(
+            f"{receipt['receipt_data']['place']} on {receipt['receipt_data']['date'].isoformat()}. Total Price: {receipt['receipt_data']['total']}."
         )
-    ]
 
-    results = "\n".join([str(receipt) for receipt in receipt_list])
-
-    logger.info("Returning receipt data {results}")
-    return results
+    return "\n".join(response_data)
 
 
 @tool
-def get_data_per_item_type(item_type: str) -> str:
+def get_items_per_item_type(item_type: str) -> str:
     """
     Retrieves a list of items based on their item type based on existing categorization in receipts.
     For each item, it will provide the date when it was purchased, the price, the store, price per unit and the quantity.

@@ -96,7 +96,28 @@ class MongoStore(DataStore):
             if isinstance(receipt_data, str):
                 receipt_data = json.loads(receipt_data)
 
-            document = {"receipt_data": receipt_data, "created_at": current_time, "updated_at": current_time}
+            # Convert date string to MongoDB Date object if it exists
+            if "receipt_data" in receipt_data and "date" in receipt_data["receipt_data"]:
+                date_str = receipt_data["receipt_data"]["date"]
+                if date_str and isinstance(date_str, str):
+                    try:
+                        # Try to parse date in DD.MM.YYYY format
+                        if "." in date_str:
+                            day, month, year = date_str.split(".")
+                            receipt_data["receipt_data"]["date"] = datetime(int(year), int(month), int(day))
+                        # Try to parse date in YYYY-MM-DD format
+                        elif "-" in date_str:
+                            receipt_data["receipt_data"]["date"] = datetime.strptime(date_str, "%Y-%m-%d")
+                    except (ValueError, TypeError):
+                        # Keep original string if parsing fails
+                        logger.warning(f"Could not parse date: {date_str}, keeping as string")
+
+            document = {
+                "receipt_data": receipt_data["receipt_data"],
+                "items": receipt_data["items"],
+                "created_at": current_time,
+                "updated_at": current_time,
+            }
 
             result = db.receipts.insert_one(document)
             logger.info(f"Receipt saved to MongoDB successfully with ID: {result.inserted_id}")
@@ -118,11 +139,19 @@ class MongoStore(DataStore):
 
             receipts = []
             for document in cursor:
+                # Convert MongoDB date objects to ISO format strings for JSON serialization
+                receipt_data = document.get("receipt_data", {})
+                items = document.get("items", [])
+
+                # Convert MongoDB date to string if it's a datetime object
+                if "date" in receipt_data and isinstance(receipt_data["date"], datetime):
+                    receipt_data["date"] = receipt_data["date"].strftime("%d.%m.%Y")
+
                 receipt = {
                     "id": str(document["_id"]),
                     "created_at": document["created_at"].isoformat(),
                     "updated_at": document["updated_at"].isoformat(),
-                    "data": document["receipt_data"],
+                    "data": {"receipt_data": receipt_data, "items": items},
                 }
                 receipts.append(receipt)
 
@@ -146,11 +175,19 @@ class MongoStore(DataStore):
             document = db.receipts.find_one({"_id": ObjectId(receipt_id)})
 
             if document:
+                # Convert MongoDB date objects to ISO format strings for JSON serialization
+                receipt_data = document.get("receipt_data", {})
+                items = document.get("items", [])
+
+                # Convert MongoDB date to string if it's a datetime object
+                if "date" in receipt_data and isinstance(receipt_data["date"], datetime):
+                    receipt_data["date"] = receipt_data["date"].strftime("%d.%m.%Y")
+
                 receipt = {
                     "id": str(document["_id"]),
                     "created_at": document["created_at"].isoformat(),
                     "updated_at": document["updated_at"].isoformat(),
-                    "data": document["receipt_data"],
+                    "data": {"receipt_data": receipt_data, "items": items},
                 }
                 return receipt
             return None
@@ -180,9 +217,29 @@ class MongoStore(DataStore):
             if isinstance(receipt_data, str):
                 receipt_data = json.loads(receipt_data)
 
-            result = db.receipts.update_one(
-                {"_id": ObjectId(receipt_id)}, {"$set": {"receipt_data": receipt_data, "updated_at": current_time}}
-            )
+            # Convert date string to MongoDB Date object if it exists
+            if "receipt_data" in receipt_data and "date" in receipt_data["receipt_data"]:
+                date_str = receipt_data["receipt_data"]["date"]
+                if date_str and isinstance(date_str, str):
+                    try:
+                        # Try to parse date in DD.MM.YYYY format
+                        if "." in date_str:
+                            day, month, year = date_str.split(".")
+                            receipt_data["receipt_data"]["date"] = datetime(int(year), int(month), int(day))
+                        # Try to parse date in YYYY-MM-DD format
+                        elif "-" in date_str:
+                            receipt_data["receipt_data"]["date"] = datetime.strptime(date_str, "%Y-%m-%d")
+                    except (ValueError, TypeError):
+                        # Keep original string if parsing fails
+                        logger.warning(f"Could not parse date: {date_str}, keeping as string")
+
+            update_data = {
+                "receipt_data": receipt_data["receipt_data"],
+                "items": receipt_data["items"],
+                "updated_at": current_time,
+            }
+
+            result = db.receipts.update_one({"_id": ObjectId(receipt_id)}, {"$set": update_data})
 
             return result.modified_count > 0
         except Exception as e:
@@ -206,3 +263,62 @@ class MongoStore(DataStore):
         except Exception as e:
             logger.error(f"Error deleting receipt {receipt_id} from MongoDB: {str(e)}")
             return False
+
+    def get_receipts_by_date(self, start_date: str, end_date: str) -> Optional[List[Dict[str, Any]]]:
+        """
+        Get the receipts and their associated items for a given period of time, including all metadata.
+
+        Args:
+            start_date (str): The start date of the period as YYYY-MM-DD.
+            end_date (str): The end date of the period as YYYY-MM-DD.
+
+        Returns:
+            List of dictionaries containing receipt data for the specified period.
+        """
+        try:
+            db = self._get_connection()
+            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date = datetime.strptime(end_date, "%Y-%m-%d")
+
+            cursor = db.receipts.find({"created_at": {"$gte": start_date, "$lte": end_date}}).sort(
+                "created_at", pymongo.DESCENDING
+            )
+
+            receipts = []
+            for document in cursor:
+                receipt = {
+                    "id": str(document["_id"]),
+                    "created_at": document["created_at"].isoformat(),
+                    "updated_at": document["updated_at"].isoformat(),
+                    "receipt_data": document["receipt_data"],
+                    "items": document["items"],
+                }
+                receipts.append(receipt)
+
+            return receipts
+        except Exception as e:
+            logger.error(f"Error retrieving receipts from MongoDB: {str(e)}")
+            return None
+
+    def get_items_per_item_type(self, item_type: str) -> Optional[List[Dict[str, Any]]]:
+        """
+        Get items per item type from the database.
+
+        Args:
+            item_type (str): The item type to filter by.
+
+        Returns:
+            List of dictionaries containing items of the specified type.
+        """
+        try:
+            db = self._get_connection()
+            cursor = db.receipts.find({"items.item_type": item_type})
+
+            items = []
+            for document in cursor:
+                items.extend(document["items"])
+
+            return items
+        except Exception as e:
+            logger.error(f"Error retrieving items from MongoDB: {str(e)}")
+            return None
