@@ -87,6 +87,34 @@ class DataStore(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_receipts_by_date(self, start_date: str, end_date: str) -> List[Dict[str, Any]]:
+        """
+        Retrieve receipts within a specific date range
+
+        Args:
+            start_date: Start date in YYYY-MM-DD format
+            end_date: End date in YYYY-MM-DD format
+
+        Returns:
+            List of receipt dictionaries within the specified date range
+        """
+        pass
+
+    @abstractmethod
+    def get_items_per_item_type(self, item_type: str) -> List[Dict[str, Any]]:
+        """
+        Retrieve items based on their item type based on existing categorization in receipts,
+        in level 1, level 2 or level 3.
+
+        Args:
+            item_type: The type of item to retrieve
+
+        Returns:
+            List of item dictionaries matching the specified type
+        """
+        pass
+
 
 # Factory function to get the appropriate data store implementation
 def get_data_store(store_type: str = None) -> DataStore:
