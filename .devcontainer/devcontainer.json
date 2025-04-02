@@ -16,6 +16,7 @@
         "csstools.postcss",
         "ms-azuretools.vscode-docker",
         "github.copilot",
+        "github.vscode-github-actions",
         "amazonwebservices.aws-toolkit-vscode"
       ],
       "settings": {
