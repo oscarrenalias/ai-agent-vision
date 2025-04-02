@@ -11,7 +11,7 @@
         "svelte.svelte-vscode",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "ckolkman.vscode-postgres",
+        "mongodb.mongodb-vscode",
         "bradlc.vscode-tailwindcss",
         "csstools.postcss",
         "ms-azuretools.vscode-docker",
@@ -33,7 +33,7 @@
       }
     }
   },
-  "forwardPorts": [5173, 8000, 5432],
+  "forwardPorts": [5173, 8000, 27017],
   "postCreateCommand": "./.devcontainer/postCreateCommand.sh",
   "remoteUser": "vscode",
   "features": {

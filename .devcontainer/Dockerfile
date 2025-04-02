@@ -1,13 +1,20 @@
 FROM mcr.microsoft.com/devcontainers/python:3.13
 
-# Install PostgreSQL client tools
+# Install MongoDB client tools
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends postgresql-client \
+    && apt-get -y install --no-install-recommends gnupg curl \
+    && curl -fsSL https://pgp.mongodb.com/server-7.0.asc | \
+       gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg \
+       --dearmor \
+    && echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] http://repo.mongodb.org/apt/debian bookworm/mongodb-org/7.0 main" | \
+       tee /etc/apt/sources.list.d/mongodb-org-7.0.list \
+    && apt-get update \
+    && apt-get install -y mongodb-mongosh \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # Set up Python environment
 #RUN pip install --upgrade pip \
-#    && pip install fastapi uvicorn sqlalchemy psycopg2-binary alembic pytest
+#    && pip install fastapi uvicorn pymongo pytest
 
 # Install AWS Q CLI
 RUN curl "https://desktop-release.codewhisperer.us-east-1.amazonaws.com/latest/q-x86_64-linux-musl.zip" -o "amazon-q-cli.zip" \

@@ -9,29 +9,26 @@ services:
       - ..:/workspaces/ai-agent-vision:cached
       - ~/.aws:/home/vscode/.aws:cached  # Mount AWS credentials for Amazon Q
     command: sleep infinity
-    network_mode: service:postgres
+    network_mode: service:mongodb
     environment:
-      - POSTGRES_HOST=localhost
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=receipts
+      - MONGODB_URI=mongodb://localhost:27017
+      - MONGODB_DATABASE=receipts
       - HUGGINGFACEHUB_API_TOKEN=${HUGGINGFACEHUB_API_TOKEN}
 
-  postgres:
-    image: postgres:15
+  mongodb:
+    image: mongo:latest
     restart: unless-stopped
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - mongodb-data:/data/db
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=receipts
-    # Ensure PostgreSQL starts automatically
+      - MONGO_INITDB_DATABASE=receipts
+    # Ensure MongoDB starts automatically
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
 volumes:
-  postgres-data:
+  mongodb-data:
