@@ -30,7 +30,7 @@ class ReceiptListResponse(BaseModel):
 # Create a router for receipt endpoints
 router = APIRouter(prefix="/api", tags=["receipts"])
 
-data_store = get_data_store()  # Use the factory function to get the default data store (PostgreSQL)
+data_store = get_data_store()  # Use the factory function to get the default data store (MongoDB)
 receipt_repository = ReceiptRepository(data_store=data_store)
 
 
@@ -91,7 +91,7 @@ async def get_all_receipts() -> ReceiptListResponse:
 
 
 @router.get("/receipts/{receipt_id}", response_model=ReceiptResponse)
-async def get_receipt_by_id(receipt_id: int = Path(..., title="The ID of the receipt to retrieve")) -> ReceiptResponse:
+async def get_receipt_by_id(receipt_id: str = Path(..., title="The ID of the receipt to retrieve")) -> ReceiptResponse:
     """
     Retrieve a specific receipt by ID
     """

@@ -13,6 +13,7 @@ This project consists of a backend service for receipt analysis using AI vision 
 ## Features
 
 ### Current Features
+
 - Receipt image upload and processing
 - AI-powered receipt analysis that extracts:
   - Receipt metadata (date, place, total)
@@ -57,15 +58,13 @@ npm install
 
 The following environment variables will be required:
 
-* HUGGINGFACEHUB_API_TOKEN
+- HUGGINGFACEHUB_API_TOKEN
 
-Database configuration (optional, defaults to PostgreSQL):
-* DATASTORE_TYPE - 'postgres' (default) or 'sqlite'
-* POSTGRES_HOST - PostgreSQL host (default: localhost)
-* POSTGRES_PORT - PostgreSQL port (default: 5432)
-* POSTGRES_DB - PostgreSQL database name (default: receipts)
-* POSTGRES_USER - PostgreSQL username (default: postgres)
-* POSTGRES_PASSWORD - PostgreSQL password (default: postgres)
+Database configuration (defaults to MongoDB):
+
+- DATASTORE_TYPE - 'mongodb' (default)
+- MONGODB_URI - MongoDB connection URI (default: mongodb://localhost:27017)
+- MONGODB_DATABASE - MongoDB database name (default: receipts)
 
 Copy the `.env.example` file to `.env` and update the values:
 
@@ -115,6 +114,7 @@ pre-commit run --all-files
 ```
 
 The pre-commit configuration includes:
+
 - Black for Python code formatting
 - isort for Python import sorting
 - flake8 for Python code quality checks

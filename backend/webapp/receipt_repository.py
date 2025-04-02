@@ -28,7 +28,7 @@ class ReceiptRepository:
         self.data_store.initialize()
         logging.info("ReceiptRepository initialized")
 
-    def create_receipt(self, receipt_data: Dict[str, Any]) -> int:
+    def create_receipt(self, receipt_data: Dict[str, Any]) -> str:
         """
         Save a new receipt to the database.
 
@@ -36,7 +36,7 @@ class ReceiptRepository:
             receipt_data: Dictionary containing receipt data
 
         Returns:
-            The ID of the newly created receipt
+            The ID of the newly created receipt (string for MongoDB, int for SQL)
 
         Raises:
             Exception: If there's an error saving the receipt
@@ -56,8 +56,8 @@ class ReceiptRepository:
 
             # Note: This is a limitation as the DataStore interface doesn't return the ID
             # In a real application, we would modify the interface to return the ID
-            # For now, we'll return 0 as a placeholder
-            return 0
+            # For now, we'll return a placeholder
+            return "new_receipt_id"
         except Exception as e:
             logging.error(f"Error creating receipt: {str(e)}")
             raise
@@ -71,24 +71,24 @@ class ReceiptRepository:
         """
         return self.data_store.get_all_receipts()
 
-    def get_receipt_by_id(self, receipt_id: int) -> Optional[Dict[str, Any]]:
+    def get_receipt_by_id(self, receipt_id: str) -> Optional[Dict[str, Any]]:
         """
         Retrieve a specific receipt by ID.
 
         Args:
-            receipt_id: The ID of the receipt to retrieve
+            receipt_id: The ID of the receipt to retrieve (string for MongoDB, int for SQL)
 
         Returns:
             Receipt dictionary or None if not found
         """
         return self.data_store.get_receipt_by_id(receipt_id)
 
-    def update_receipt(self, receipt_id: int, receipt_data: Dict[str, Any]) -> bool:
+    def update_receipt(self, receipt_id: str, receipt_data: Dict[str, Any]) -> bool:
         """
         Update an existing receipt.
 
         Args:
-            receipt_id: The ID of the receipt to update
+            receipt_id: The ID of the receipt to update (string for MongoDB, int for SQL)
             receipt_data: New receipt data
 
         Returns:
@@ -107,12 +107,12 @@ class ReceiptRepository:
             logging.error(f"Error updating receipt {receipt_id}: {str(e)}")
             return False
 
-    def delete_receipt(self, receipt_id: int) -> bool:
+    def delete_receipt(self, receipt_id: str) -> bool:
         """
         Delete a receipt from the database.
 
         Args:
-            receipt_id: The ID of the receipt to delete
+            receipt_id: The ID of the receipt to delete (string for MongoDB, int for SQL)
 
         Returns:
             True if successful, False otherwise
