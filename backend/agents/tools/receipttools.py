@@ -1,8 +1,7 @@
 import logging
-from typing import List, Optional
+from typing import List
 
 from langchain_core.tools import tool
-from pydantic import BaseModel, Field
 
 from common.datastore import get_data_store
 
@@ -14,48 +13,6 @@ def get_tools() -> List:
     Returns a list of tools that can be used in the chat.
     """
     return [get_receipts_by_date, get_items_per_item_type]
-
-
-class ReceiptItemData(BaseModel):
-    """
-    Schema class for some of the tools
-    """
-
-    date: str = Field(description="Date when the item was purchased")
-    description: str = Field(description="Description of the item")
-    price: float = Field(description="Price of the item")
-    store: str = Field(description="Store where the item was purchased")
-    price_per_unit: float = Field(description="Price per unit of the item")
-    quantity: float = Field(description="Quantity of the item purchased")
-    item_type_level1: str = Field(description="Level 1 item type")
-    item_type_level2: Optional[str] = Field(description="Level 2 item type", default=None)
-    item_type_level3: Optional[str] = Field(description="Level 3 item type", default=None)
-
-    def __str__(self):
-        """
-        Returns a string representation of the ReceiptItemData object. Used for the LLM to process the data.
-        """
-        return f"item: {self.description}, quantity: {self.quantity}, price: ({self.price}), location: {self.store}, date: {self.date}"
-
-
-class ReceiptData(BaseModel):
-    """
-    Schema class for the receipt data.
-
-    TODO: might want to include the total discount
-    """
-
-    items: List[ReceiptItemData] = Field(description="List of items in the receipt")
-    total_price: float = Field(description="Total price of the receipt")
-    date: str = Field(description="Date of the receipt")
-    store: str = Field(description="Store where the receipt was issued")
-
-    def __str__(self):
-        """
-        Returns a string representation of the ReceiptData object. Used for the LLM to process the data.
-        """
-        items_str = "\n".join([str(item) for item in self.items])
-        return f"Receipt from {self.store} on {self.date}: \nTotal Price: {self.total_price}\nItems: \n{items_str}"
 
 
 @tool
