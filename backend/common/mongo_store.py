@@ -4,6 +4,7 @@ This module provides a MongoDB implementation of the DataStore interface.
 """
 
 import logging
+import re
 from datetime import UTC, datetime
 from typing import Any, Dict, List, Optional
 
@@ -23,6 +24,8 @@ class MongoStore(DataStore):
     This class provides methods to store and retrieve data from a MongoDB database.
     """
 
+    receipts_collection: None
+
     def __init__(self, connection_params: Dict[str, Any] = None):
         """
         Initialize the MongoDB store with connection parameters
@@ -41,6 +44,8 @@ class MongoStore(DataStore):
             f"MongoDB store initialized with URI: {self.connection_params.get('uri')}, "
             f"database: {self.connection_params.get('database')}"
         )
+
+        self.receipts_collection = self._get_connection().receipts
 
     def _get_connection(self):
         """
@@ -88,7 +93,6 @@ class MongoStore(DataStore):
         """
         try:
             current_time = datetime.now(UTC)
-            db = self._get_connection()
 
             # Convert string to dict if it's a JSON string
             import json
@@ -119,7 +123,7 @@ class MongoStore(DataStore):
                 "updated_at": current_time,
             }
 
-            result = db.receipts.insert_one(document)
+            result = self.receipts_collection.insert_one(document)
             logger.info(f"Receipt saved to MongoDB successfully with ID: {result.inserted_id}")
             return True
         except Exception as e:
@@ -134,8 +138,7 @@ class MongoStore(DataStore):
             List of receipt dictionaries with id, created_at, updated_at, and data fields
         """
         try:
-            db = self._get_connection()
-            cursor = db.receipts.find().sort("created_at", pymongo.DESCENDING)
+            cursor = self.receipts_collection.find().sort("created_at", pymongo.DESCENDING)
 
             receipts = []
             for document in cursor:
@@ -171,8 +174,7 @@ class MongoStore(DataStore):
             Receipt dictionary or None if not found
         """
         try:
-            db = self._get_connection()
-            document = db.receipts.find_one({"_id": ObjectId(receipt_id)})
+            document = self.receipts_collection.find_one({"_id": ObjectId(receipt_id)})
 
             if document:
                 # Convert MongoDB date objects to ISO format strings for JSON serialization
@@ -209,7 +211,6 @@ class MongoStore(DataStore):
         """
         try:
             current_time = datetime.now(UTC)
-            db = self._get_connection()
 
             # Convert string to dict if it's a JSON string
             import json
@@ -239,7 +240,7 @@ class MongoStore(DataStore):
                 "updated_at": current_time,
             }
 
-            result = db.receipts.update_one({"_id": ObjectId(receipt_id)}, {"$set": update_data})
+            result = self.receipts_collection.update_one({"_id": ObjectId(receipt_id)}, {"$set": update_data})
 
             return result.modified_count > 0
         except Exception as e:
@@ -257,8 +258,7 @@ class MongoStore(DataStore):
             True if successful, False otherwise
         """
         try:
-            db = self._get_connection()
-            result = db.receipts.delete_one({"_id": ObjectId(receipt_id)})
+            result = self.receipts_collection.delete_one({"_id": ObjectId(receipt_id)})
             return result.deleted_count > 0
         except Exception as e:
             logger.error(f"Error deleting receipt {receipt_id} from MongoDB: {str(e)}")
@@ -276,11 +276,10 @@ class MongoStore(DataStore):
             List of dictionaries containing receipt data for the specified period.
         """
         try:
-            db = self._get_connection()
             start_date = datetime.strptime(start_date, "%Y-%m-%d")
             end_date = datetime.strptime(end_date, "%Y-%m-%d")
 
-            cursor = db.receipts.find({"created_at": {"$gte": start_date, "$lte": end_date}}).sort(
+            cursor = self.receipts_collection.find({"created_at": {"$gte": start_date, "$lte": end_date}}).sort(
                 "created_at", pymongo.DESCENDING
             )
 
@@ -300,7 +299,7 @@ class MongoStore(DataStore):
             logger.error(f"Error retrieving receipts from MongoDB: {str(e)}")
             return None
 
-    def get_items_per_item_type(self, item_type: str) -> Optional[List[Dict[str, Any]]]:
+    def get_items_per_item_type(self, item_type: str) -> List[Dict[str, Any]]:
         """
         Get items per item type from the database.
 
@@ -309,16 +308,37 @@ class MongoStore(DataStore):
 
         Returns:
             List of dictionaries containing items of the specified type.
+
+        Mongosh query:
+            db.receipts.find({
+                "$or": [
+                    {"items.item_category.level_1": /poultry/i},
+                    {"items.item_category.level_2": /poultry/i},
+                    {"items.item_category.level_3": /poultry/i}
+                ]
+            })
+
+            db.receipts.find({
+                "$or": [
+                    {"items.item_category.level_1": /pasta/i},
+                    {"items.item_category.level_2": /pasta/i},
+                    {"items.item_category.level_3": /pasta/i}
+                ]
+            }).count()
         """
         try:
-            db = self._get_connection()
-            cursor = db.receipts.find({"items.item_type": item_type})
+            pattern = re.compile(item_type, re.IGNORECASE)
+            query = {
+                "$or": [
+                    {"items.item_category.level_1": pattern},
+                    {"items.item_category.level_2": pattern},
+                    {"items.item_category.level_3": pattern},
+                ]
+            }
 
-            items = []
-            for document in cursor:
-                items.extend(document["items"])
+            result = self.receipts_collection.find(query)
+            return list(result)
 
-            return items
         except Exception as e:
-            logger.error(f"Error retrieving items from MongoDB: {str(e)}")
-            return None
+            logging.error(f"Error searching items by category value: {str(e)}")
+            return []
