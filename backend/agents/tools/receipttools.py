@@ -101,6 +101,24 @@ def get_receipts_by_date(start_date: str, end_date: str, store: None) -> str:
     return "\n".join(response_data)
 
 
+def is_correct_item_type(item, item_type):
+    category = item["item_category"]
+    if not category:
+        return False
+
+    if not isinstance(category, dict):
+        return False
+
+    if item_type.lower() in (category.get("level_1") or "__not_defined__").lower():
+        return True
+    if item_type.lower() in (category.get("level_2") or "__not_defined__").lower():
+        return True
+    if item_type.lower() in (category.get("level_3") or "__not_defined__").lower():
+        return True
+
+    return False
+
+
 @tool
 def get_items_per_item_type(item_type: str) -> str:
     """
@@ -111,7 +129,8 @@ def get_items_per_item_type(item_type: str) -> str:
     "An item of an unexpected type was included", or something along those lines.
 
     Example prompts:
-    - how much chicken have we bought?
+    - how much poultry have we bought?
+    - how much pasta have we bought?
     - how much meat did we buy last week?
     - how much vegetables did we buy in Store A?
 
@@ -131,50 +150,23 @@ def get_items_per_item_type(item_type: str) -> str:
     """
     logger.info(f"Getting groceries for {item_type}")
 
-    # Simulate a call to the database
-    receipt_item_list = [
-        # first two items are always generated to be the requested type
-        ReceiptItemData(
-            date="2023-10-01",
-            description=f"Frozen {item_type}",
-            price=10.0,
-            store="Store A",
-            price_per_unit=2.0,
-            quantity=5.0,
-            item_type_level1="food",
-            item_type_level2="meats",
-            item_type_level3=item_type,
-        ),
-        ReceiptItemData(
-            date="2023-11-01",
-            price=20.0,
-            description=f"Fresh {item_type}",
-            store="Store B",
-            price_per_unit=4.0,
-            quantity=10.0,
-            item_type_level1="food",
-            item_type_level2="meats",
-            item_type_level3=item_type,
-        ),
-        # Last item is always lettuce-vegetables
-        ReceiptItemData(
-            date="2023-11-01",
-            price=20.0,
-            description="Eco Lettuce",
-            store="Store A",
-            price_per_unit=2.5,
-            quantity=1.0,
-            item_type_level1="food",
-            item_type_level2="vegetables",
-            item_type_level3=None,
-        ),
-    ]
+    data_store = get_data_store()
+    receipts = data_store.get_items_per_item_type(item_type)
+    logger.info(f"Found {len(receipts)} receipts for {item_type}")
+    response_data = []
 
-    # process the list into a format that is suitable for the LLM; uses the object's __str__ method to generate a
-    # readable description that the LLM can process
-    results = [str(receipt_item) for receipt_item in receipt_item_list]
-    response = "\n".join(results)
+    for receipt in receipts:
+        for item in receipt["items"]:
+            if is_correct_item_type(item, item_type):
+                response_data.append(
+                    f"Name: {item['name_fi']}, \
+                    Quantity: {item['quantity']}, \
+                    Total price: {item['total_price']}, \
+                    Price per unit: {item['unit_price']}, \
+                    Store: {receipt['receipt_data']['place']}, \
+                    Purchased on: {receipt['receipt_data']['date'].isoformat()}"
+                )
 
-    logger.info(f"Returning receipt data {response}")
-    # return [receipt_item.model_dump() for receipt_item in results]
-    return response
+    logger.info(f"{'\n'.join(response_data)}")
+
+    return "\n".join(response_data)
