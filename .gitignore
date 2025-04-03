@@ -44,9 +44,11 @@ yarn-error.log
 
 # IDE
 .idea/
-.vscode/
 *.swp
 *.swo
+
+# Q
+.aws/
 
 # OS
 .DS_Store

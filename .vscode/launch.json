@@ -1,0 +1,19 @@
+{
+  "configurations": [
+    {
+      "type": "debugpy",
+      "request": "launch",
+      "name": "Launch Python Program",
+      "program": "${workspaceFolder}/${input:pythonFile}",
+      "console": "integratedTerminal"
+    }
+  ],
+  "inputs": [
+    {
+      "type": "pickString",
+      "id": "pythonFile",
+      "description": "Select the Python file to debug",
+      "options": ["backend/main.py", "backend/webapp.py", "backend/chat.py"]
+    }
+  ]
+}
