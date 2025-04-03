@@ -121,6 +121,14 @@ The pre-commit configuration includes:
 - Prettier for frontend code formatting
 - General hooks for trailing whitespace, file endings, etc.
 
+### Unit tests
+
+Run with pytest from the backend folder:
+
+```
+pytest -v
+```
+
 ## Potential Future Features
 
 - Sorting functionality for the items table (by price, category, etc.)
