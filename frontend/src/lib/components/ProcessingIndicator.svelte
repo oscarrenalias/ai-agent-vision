@@ -1,117 +1,94 @@
 <script>
-  import LoadingSpinner from './LoadingSpinner.svelte';
-
-  export let progress = 0; // 0-100
-  export let message = 'Processing your receipt...';
-  export let submessage = 'This may take 2-3 minutes to complete.';
+  export let progress = 0;
+  export let message = 'Processing...';
+  export let submessage = '';
 </script>
 
-<div class="processing-indicator">
-  <LoadingSpinner size="80px" {message} />
-
-  <div class="progress-container">
-    <div class="progress-bar">
-      <div class="progress-fill" style="width: {progress}%" />
+<div class="processing-overlay">
+  <div class="processing-container">
+    <div class="spinner" />
+    <h3>{message}</h3>
+    {#if submessage}
+      <p>{submessage}</p>
+    {/if}
+    <div class="progress-container">
+      <div class="progress-bar" style="width: {progress}%" />
     </div>
-    <p class="submessage">{submessage}</p>
-  </div>
-
-  <div class="processing-steps">
-    <div class="step {progress >= 25 ? 'active' : ''}">
-      <div class="step-icon">1</div>
-      <div class="step-label">Analyzing receipt</div>
-    </div>
-    <div class="step {progress >= 50 ? 'active' : ''}">
-      <div class="step-icon">2</div>
-      <div class="step-label">Extracting items</div>
-    </div>
-    <div class="step {progress >= 75 ? 'active' : ''}">
-      <div class="step-icon">3</div>
-      <div class="step-label">Classifying items</div>
-    </div>
-    <div class="step {progress >= 100 ? 'active' : ''}">
-      <div class="step-icon">4</div>
-      <div class="step-label">Saving results</div>
-    </div>
+    <div class="progress-text">{progress}%</div>
   </div>
 </div>
 
 <style>
-  .processing-indicator {
+  .processing-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .processing-container {
     background-color: white;
-    border-radius: 8px;
     padding: 2rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    margin: 2rem 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     text-align: center;
+    max-width: 90%;
+    width: 400px;
+  }
+
+  h3 {
+    margin: 1rem 0;
+    color: #333;
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    color: #666;
+    font-size: 0.9rem;
+  }
+
+  .spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 2s linear infinite;
+    margin: 0 auto 1rem;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   .progress-container {
-    margin: 1.5rem 0;
+    height: 8px;
+    background-color: #f3f3f3;
+    border-radius: 4px;
+    margin: 1rem 0 0.5rem;
+    overflow: hidden;
   }
 
   .progress-bar {
-    height: 10px;
-    background-color: #f0f0f0;
-    border-radius: 5px;
-    overflow: hidden;
-    margin-bottom: 0.5rem;
-  }
-
-  .progress-fill {
     height: 100%;
     background-color: #4caf50;
-    border-radius: 5px;
     transition: width 0.5s ease;
   }
 
-  .submessage {
-    color: #666;
+  .progress-text {
     font-size: 0.9rem;
-    margin: 0.5rem 0;
-  }
-
-  .processing-steps {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2rem;
-    flex-wrap: wrap;
-  }
-
-  .step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex: 1;
-    min-width: 100px;
-    margin: 0.5rem;
-    opacity: 0.5;
-    transition: opacity 0.3s ease;
-  }
-
-  .step.active {
-    opacity: 1;
-  }
-
-  .step-icon {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background-color: #ddd;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-  }
-
-  .step.active .step-icon {
-    background-color: #4caf50;
-  }
-
-  .step-label {
-    font-size: 0.85rem;
-    color: #555;
+    color: #666;
+    font-weight: 600;
   }
 </style>

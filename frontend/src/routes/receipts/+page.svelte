@@ -55,17 +55,17 @@
 
   // Function to simulate progress during processing
   function startProgressSimulation() {
-    processingProgress = 25; // Start at 25%
+    processingProgress = 10; // Start at 10%
 
     // Clear any existing interval
     if (processingInterval) clearInterval(processingInterval);
 
     // Update progress every 10 seconds to simulate the long-running process
     processingInterval = setInterval(() => {
-      if (processingProgress < 75) {
-        processingProgress += 25;
+      if (processingProgress < 40) {
+        processingProgress += 10;
       }
-    }, 10000); // 10 seconds between updates
+    }, 5000); // 5 seconds between updates
   }
 
   // Function to stop progress simulation
@@ -77,6 +77,9 @@
     processingProgress = 100; // Complete the progress
   }
 
+  let jobId = null;
+  let pollingInterval = null;
+
   async function handleSubmit() {
     if (!file) {
       error = 'Please select a file first';
@@ -86,6 +89,7 @@
     error = null;
     isUploading = true;
     receiptData = null;
+    jobId = null;
 
     // Start simulating progress
     startProgressSimulation();
@@ -94,44 +98,89 @@
       const formData = new FormData();
       formData.append('file', file);
 
-      // Create an AbortController with a 5-minute timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000); // 5 minutes timeout
-
+      // Submit the file and get a job ID
       const response = await fetch('/api/process', {
         method: 'POST',
         body: formData,
-        signal: controller.signal,
       });
-
-      // Clear the timeout since the request completed
-      clearTimeout(timeoutId);
 
       const result = await response.json();
 
-      if (result.status === 'success') {
-        uploadResult = result;
-        if (result.receipt) {
-          receiptData = result.receipt;
-          calculateDiscountSummary(receiptData.items);
+      if (response.ok && result.job_id) {
+        jobId = result.job_id;
+        console.log(`Job started with ID: ${jobId}`);
 
-          // Update the global receipt data store
-          setReceiptData(receiptData);
-        }
+        // Start polling for job status
+        startPolling(jobId);
       } else {
-        error = result.error || 'Failed to process receipt';
+        error = result.message || 'Failed to start receipt processing';
+        isUploading = false;
+        stopProgressSimulation();
       }
     } catch (err) {
-      if (err.name === 'AbortError') {
-        error = 'Request timed out after 5 minutes. Please try again.';
-      } else {
-        error = 'Error uploading file: ' + (err instanceof Error ? err.message : String(err));
-      }
-    } finally {
+      error = 'Error uploading file: ' + (err instanceof Error ? err.message : String(err));
       isUploading = false;
       stopProgressSimulation();
     }
   }
+
+  function startPolling(jobId) {
+    // Clear any existing polling
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+    }
+
+    // Poll every 5 seconds
+    pollingInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/jobs/${jobId}`);
+        const jobStatus = await response.json();
+
+        console.log('Job status:', jobStatus);
+
+        if (jobStatus.status === 'completed') {
+          // Job completed successfully
+          clearInterval(pollingInterval);
+          isUploading = false;
+          stopProgressSimulation();
+
+          // Set the receipt data
+          receiptData = jobStatus.result;
+          calculateDiscountSummary(receiptData.items);
+          setReceiptData(receiptData);
+          uploadResult = { status: 'success' };
+        } else if (jobStatus.status === 'failed') {
+          // Job failed
+          clearInterval(pollingInterval);
+          isUploading = false;
+          stopProgressSimulation();
+          error = jobStatus.error || 'Receipt processing failed';
+        } else if (jobStatus.status === 'processing') {
+          // Job is still processing, update progress
+          processingProgress = 50; // Set to middle progress while processing
+        }
+      } catch (err) {
+        console.error('Error polling job status:', err);
+      }
+    }, 5000); // Check every 5 seconds
+  }
+
+  // Clean up polling on component unmount
+  onMount(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+      // Clean up object URL when component is destroyed
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      // Clear any running interval
+      if (processingInterval) {
+        clearInterval(processingInterval);
+      }
+    };
+  });
 
   // When receipt data is available, set it in the store for the chat component to use
   $: if (receiptData) {
