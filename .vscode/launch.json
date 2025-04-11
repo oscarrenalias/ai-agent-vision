@@ -1,19 +1,20 @@
 {
   "configurations": [
     {
+      "name": "Python Debugger: Current File with Arguments",
       "type": "debugpy",
       "request": "launch",
-      "name": "Launch Python Program",
-      "program": "${workspaceFolder}/${input:pythonFile}",
-      "console": "integratedTerminal"
-    }
-  ],
-  "inputs": [
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "args": "${command:pickArgs}"
+    },
     {
-      "type": "pickString",
-      "id": "pythonFile",
-      "description": "Select the Python file to debug",
-      "options": ["backend/main.py", "backend/webapp.py", "backend/chat.py"]
+      "type": "debugpy",
+      "request": "launch",
+      "name": "Debug test_scrapers.py",
+      "program": "${workspaceFolder}/backend/test_scrapers.py",
+      "args": ["--site", "s-kaupat", "jauheliha"],
+      "console": "integratedTerminal"
     }
   ]
 }
