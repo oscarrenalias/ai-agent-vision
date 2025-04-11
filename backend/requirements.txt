@@ -15,3 +15,7 @@ dotenv
 pymongo>=4.5.0
 # Legacy database support
 psycopg2-binary>=2.9.5
+# For the scraper
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+lxml>=4.9.0
