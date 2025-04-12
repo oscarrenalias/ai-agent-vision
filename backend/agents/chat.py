@@ -9,7 +9,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.prebuilt import tools_condition
 
-from agents.tools import receipttools, simpletools
+from agents.tools import price_lookup_tools, receipttools, simpletools
 
 from .models import OpenAIModel
 
@@ -29,7 +29,7 @@ class ChatAgent:
         model = OpenAIModel(use_cache=False).get_model()
 
         # bind with tools and keep in the class
-        self.model = model.bind_tools(simpletools.get_tools() + receipttools.get_tools())
+        self.model = model.bind_tools(simpletools.get_tools() + receipttools.get_tools() + price_lookup_tools.get_tools())
 
     def get_primary_assistant_prompt(self) -> ChatPromptTemplate:
         return ChatPromptTemplate.from_messages(
@@ -117,7 +117,7 @@ class ChatManager:
         workflow = StateGraph(state_schema=ChatState)
         workflow.add_node("chat_agent", chat_agent.run)
 
-        tool_node = CustomToolNode(tools=simpletools.get_tools() + receipttools.get_tools())
+        tool_node = CustomToolNode(tools=simpletools.get_tools() + receipttools.get_tools() + price_lookup_tools.get_tools())
         workflow.add_node("tools", tool_node.run)
 
         workflow.add_edge(START, "chat_agent")
