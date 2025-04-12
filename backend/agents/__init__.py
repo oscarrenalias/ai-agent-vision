@@ -2,6 +2,7 @@ from .itemclassifier import ItemClassifier
 from .itemclassifierprompt import ItemClassifierPrompt
 from .orchestrator import Orchestrator
 from .persistdata import PersistData
+from .pricecomparison import PriceComparisonManager
 from .receiptanalyzer import ReceiptAnalyzer
 from .receiptanalyzerprompt import ReceiptAnalyzerPrompt
 from .receiptstate import ReceiptState
@@ -14,4 +15,5 @@ __all__ = [
     "ItemClassifier",
     "ItemClassifierPrompt",
     "Orchestrator",
+    "PriceComparisonManager",
 ]
