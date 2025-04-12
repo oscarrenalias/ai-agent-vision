@@ -3,6 +3,7 @@
   import ProcessingIndicator from '$lib/components/ProcessingIndicator.svelte';
   import ChatButton from '$lib/components/ChatButton.svelte';
   import ChatWindow from '$lib/components/ChatWindow.svelte';
+  import PriceComparison from '$lib/components/PriceComparison.svelte';
   //import { isChatOpen, currentReceiptData, openChat, closeChat } from '$lib/stores/chatStore';
   import { setReceiptData, openChat, closeChat, isChatOpen } from '$lib/stores/chatStore';
 
@@ -18,6 +19,7 @@
   let discountedItemsCount = 0;
   let processingProgress = 25; // Initial progress value
   let processingInterval; // For simulating progress
+  let selectedItemForComparison = null; // Track which item is selected for price comparison
 
   function handleFileChange(event) {
     const selectedFile = event.target.files[0];
@@ -334,6 +336,7 @@
                 <th>Total Price</th>
                 <th>Loyalty Discount</th>
                 <th>Category</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -363,7 +366,24 @@
                       N/A
                     {/if}
                   </td>
+                  <td>
+                    <button
+                      class="compare-button"
+                      on:click={() =>
+                        (selectedItemForComparison =
+                          selectedItemForComparison === item ? null : item)}
+                    >
+                      {selectedItemForComparison === item ? 'Hide Comparison' : 'Compare Prices'}
+                    </button>
+                  </td>
                 </tr>
+                {#if selectedItemForComparison === item}
+                  <tr class="comparison-row">
+                    <td colspan="7">
+                      <PriceComparison {item} onClose={() => (selectedItemForComparison = null)} />
+                    </td>
+                  </tr>
+                {/if}
               {/each}
             </tbody>
           </table>
@@ -574,5 +594,34 @@
   .summary-label {
     font-size: 0.9rem;
     color: #666;
+  }
+
+  /* Price comparison styles */
+  .compare-button {
+    background-color: #2196f3;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .compare-button:hover {
+    background-color: #1976d2;
+  }
+
+  tr.comparison-row {
+    background-color: transparent !important;
+  }
+
+  tr.comparison-row:hover {
+    background-color: transparent !important;
+  }
+
+  tr.comparison-row td {
+    padding: 0;
+    border-bottom: none;
   }
 </style>
