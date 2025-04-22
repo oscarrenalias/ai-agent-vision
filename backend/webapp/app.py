@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from .routers import chat, receipts
+from .routers import chat, price_comparison, receipts
 
 # --- Logging configuration moved from webapp.py ---
 logging_config = {
@@ -73,6 +73,7 @@ frontend_build_path = os.path.join(os.path.dirname(__file__), "../frontend/build
 # Include routers (API endpoints) with /api prefix
 app.include_router(chat.router)
 app.include_router(receipts.router)
+app.include_router(price_comparison.router)
 
 # Serve static files (must be last)
 app.mount("/", StaticFiles(directory=frontend_build_path, html=True), name="static")
@@ -87,5 +88,10 @@ async def root():
         "name": "AI Agent Vision API",
         "version": "1.0.0",
         "description": "Backend API for receipt analysis with AI vision capabilities",
-        "endpoints": {"receipts": "/api/receipts", "process": "/api/process", "chat": "/api/chat/send"},
+        "endpoints": {
+            "receipts": "/api/receipts",
+            "process": "/api/process",
+            "chat": "/api/chat/send",
+            "price_comparison": "/api/price-comparison",
+        },
     }
