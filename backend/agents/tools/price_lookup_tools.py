@@ -1,8 +1,10 @@
+import json
 import logging
 from typing import List
 
 from langchain_core.tools import tool
 
+from agents.common.logging_utils import llm_response_to_log
 from common.price_sources import SKaupatPriceSource
 
 logger = logging.getLogger(__name__)
@@ -33,7 +35,7 @@ def s_kaupat_price_lookup(item: str) -> str:
     logger.info(f"Executing S-Kauppa price lookup for item: {item}")
     price_source = SKaupatPriceSource()
     results = price_source.search_product(item)
-    logger.info(f"Price lookup results: {results}")
+    logger.info(f"Price lookup results: {json.dumps(llm_response_to_log(results))}")
 
     if not results:
         logger.info("No results found for the given item.")
