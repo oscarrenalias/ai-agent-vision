@@ -72,10 +72,13 @@ class OpenAIModel:
         self.initialize_model()
 
     def initialize_model(self):
+        # set temperature to 1 if the model has "mini" in its name since the parameter is not supported
+        temperature = 1.0 if "mini" in self.openai_model else 0.0
+
         self.model = ChatOpenAI(
             api_key=os.getenv("OPENAI_API_KEY"),
             model=self.openai_model,
-            temperature=0,
+            temperature=temperature,
             verbose=True,
         )
 
