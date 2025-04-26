@@ -3,7 +3,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from agents import Orchestrator
+from agents.receiptanalyzer import ReceiptAnalyzerFlow
 
 
 # Configure logging
@@ -30,8 +30,8 @@ def main():
 
     # Run the orchestrator agent
     load_dotenv()
-    orchestrator = Orchestrator()
-    result = orchestrator.run(receipt_image_path=receipt_image_path)
+    receipt_analyzer_flow = ReceiptAnalyzerFlow()
+    result = receipt_analyzer_flow.run(receipt_image_path=receipt_image_path)
 
     logger.info(f"Processing complete. Receipt data: {result}")
     return result

@@ -1,17 +1,12 @@
 import logging
-import uuid
 from datetime import datetime
-from typing import Dict
 
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import HumanMessage, SystemMessage
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph import START, MessagesState, StateGraph
-from langgraph.prebuilt import tools_condition
+from langchain_core.messages import SystemMessage
+from langgraph.graph import MessagesState
 
-from agents.common import CustomToolNode
 from agents.models import OpenAIModel
-from agents.tools import price_lookup_tools
+from agents.pricecomparison.price_lookup_tools import get_tools
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +38,7 @@ class PriceComparisonAgent:
         model = OpenAIModel(use_cache=False).get_model()
 
         # bind with tools and keep in the class
-        self.model = model.bind_tools(price_lookup_tools.get_tools())
+        self.model = model.bind_tools(get_tools())
 
     def get_primary_assistant_prompt(self) -> ChatPromptTemplate:
         return ChatPromptTemplate.from_messages(
@@ -71,59 +66,3 @@ class PriceComparisonAgent:
 
         logger.info(f"PriceComparisonState result returned: {state}")
         return state
-
-
-class PriceComparisonManager:
-    """
-    Manages the chat session and handles the conversation flow. Based on StateGraph, uses MemorySaver to save the state.
-    """
-
-    graph: StateGraph
-
-    """
-    The configuration dict for the ChatManager. It is passed as is to the StateGraph when invoking.
-    """
-    config: Dict
-
-    def __init__(self, config: Dict = None):
-        self.initialize()
-
-        # Create a default config if none is provided
-        if config is None:
-            config = {"configurable": {"thread_id": uuid.uuid4()}}
-            logger.info(f"Using default PriceComparisonManager configuration: {config}")
-
-        self.config = config
-
-    def initialize(self):
-        """
-        Initialize all instance objects
-        """
-        logger.info("PriceComparisonManager initialized")
-
-        # memory checkpointer
-        memory = MemorySaver()
-
-        # build graph and edges
-        chat_agent = PriceComparisonAgent()
-        # needs to be StateGraph so that the chatbot remembers previous interactions
-        workflow = StateGraph(state_schema=PriceComparisonState)
-        workflow.add_node("lookup_agent", chat_agent.run)
-
-        tool_node = CustomToolNode(tools=price_lookup_tools.get_tools())
-        workflow.add_node("tools", tool_node.run)
-
-        workflow.add_edge(START, "lookup_agent")
-        workflow.add_edge("tools", "lookup_agent")
-        workflow.add_conditional_edges("lookup_agent", tools_condition)
-
-        self.graph = workflow.compile(checkpointer=memory)
-
-    def run(self, item: str):
-        """
-        Add the message to the state, and invoke
-        """
-        initial_state = PriceComparisonState(messages=[HumanMessage(content=f"Look up the price of {item}")])
-        response = self.graph.invoke(initial_state, config=self.config)
-        logger.debug(f"Response: {response}")
-        return response

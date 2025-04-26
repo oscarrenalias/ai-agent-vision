@@ -8,7 +8,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from agents import PriceComparisonManager
+from agents.pricecomparison import PriceComparisonFlow
 
 
 # Configure logging
@@ -38,7 +38,7 @@ def main():
 
     # Run the orchestrator agent
     load_dotenv()
-    price_comparison_manager = PriceComparisonManager()
+    price_comparison_manager = PriceComparisonFlow()
     result = price_comparison_manager.run(item=item)
 
     logger.info(f"Price comparison complete. Results: {result}")

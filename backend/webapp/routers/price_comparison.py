@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from langchain_core.messages import AIMessage
 from pydantic import BaseModel
 
-from agents.pricecomparison import PriceComparisonManager
+from agents.pricecomparison.agent import PriceComparisonFlow
 
 # Create a module-specific logger
 logger = logging.getLogger("webapp.routers.price_comparison")
@@ -31,8 +31,8 @@ async def compare_prices(request: PriceComparisonRequest) -> Dict[str, Any]:
     try:
         logger.info(f"Received price comparison request for item: {request.item}")
 
-        # Initialize the price comparison manager
-        price_comparison_manager = PriceComparisonManager()
+        # Initialize the price comparison flow
+        price_comparison_manager = PriceComparisonFlow()
 
         # Run the price comparison
         result = price_comparison_manager.run(request.item)

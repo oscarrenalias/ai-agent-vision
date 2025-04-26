@@ -3,8 +3,9 @@ import logging
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
+from agents.models import Model
+
 from .itemclassifierprompt import ItemClassifierPrompt
-from .models import Model
 from .receiptstate import Receipt, ReceiptState
 
 logger = logging.getLogger(__name__)

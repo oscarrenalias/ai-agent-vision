@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Literal, Optional
 from fastapi import APIRouter, File, HTTPException, Path, UploadFile
 from pydantic import BaseModel
 
-from agents.orchestrator import Orchestrator
+from agents.receiptanalyzer import ReceiptAnalyzerFlow
 from common.datastore import get_data_store
 from common.job_store import JobStatus, JobStore
 from webapp.receipt_repository import ReceiptRepository
@@ -57,9 +57,9 @@ def process_receipt_task(file_path: str, job_id: str):
         job_store.update_job_status(job_id, JobStatus.PROCESSING)
 
         # Process the receipt using the saved file path
-        orchestrator = Orchestrator()
+        receipt_analyzer = ReceiptAnalyzerFlow()
         logger.info(f"Starting receipt analysis with orchestrator for job {job_id}")
-        result = orchestrator.run(receipt_image_path=file_path)
+        result = receipt_analyzer.run(receipt_image_path=file_path)
 
         logger.info(f"Receipt processing complete for job {job_id}")
 

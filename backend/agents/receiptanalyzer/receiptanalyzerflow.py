@@ -2,10 +2,10 @@ import logging
 
 from langgraph.graph import END, START, Graph
 
-from agents.itemclassifier import ItemClassifier
-from agents.persistdata import PersistData
-from agents.receiptanalyzer import ReceiptAnalyzer
-from agents.receiptstate import ReceiptState
+from agents.receiptanalyzer.itemclassifier import ItemClassifier
+from agents.receiptanalyzer.persistdata import PersistData
+from agents.receiptanalyzer.receiptanalyzer import ReceiptAnalyzer
+from agents.receiptanalyzer.receiptstate import ReceiptState
 from common.datastore import get_data_store
 
 """
@@ -16,7 +16,7 @@ and data between nodes.
 logger = logging.getLogger(__name__)
 
 
-class Orchestrator:
+class ReceiptAnalyzerFlow:
     def __init__(self):
         pass
 

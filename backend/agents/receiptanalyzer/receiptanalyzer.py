@@ -6,7 +6,8 @@ from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import chain
 
-from .models import Model
+from agents.models import Model
+
 from .receiptanalyzerprompt import ReceiptAnalyzerPrompt
 from .receiptstate import Receipt, ReceiptState
 
