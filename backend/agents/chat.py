@@ -10,7 +10,10 @@ from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.prebuilt import tools_condition
 
 from agents.common import CustomToolNode
+from agents.common.logging_utils import llm_response_to_log, log_llm_response
+from agents.mealplanner import MealPlannerFlow
 from agents.models import OpenAIModel
+from agents.receiptanalyzer import ReceiptAnalyzerFlow
 from agents.tools import price_lookup_tools, receipttools
 
 logger = logging.getLogger(__name__)
@@ -43,15 +46,15 @@ class ChatAgent:
 
     def run(self, state: ChatState) -> ChatState:
         # todo: check if this will scale during repeated invocations
-        logger.info(f"ChatAgent run invoked with state: {state}")
+        logger.info(f"ChatAgent run invoked with state: {llm_response_to_log(state)}")
 
         model_executor = self.get_primary_assistant_prompt() | self.model
 
         result = model_executor.invoke(state["messages"])
-        logger.info(f"LLM invoke result: {result}")
+        log_llm_response(result, logger)
         state["messages"].append(result)
 
-        logger.info(f"ChatState result returned: {state}")
+        logger.info(f"ChatState result returned: {llm_response_to_log(state)}")
         return state
 
 
@@ -64,7 +67,7 @@ class NotDefinedNode:
         logger.info("NotDefinedNode initialized")
 
     def run(self, state: ChatState) -> ChatState:
-        logger.info(f"NotDefinedNode run invoked with state: {state}")
+        logger.info(f"NotDefinedNode run invoked with state: {llm_response_to_log(state)}")
         return state
 
 
@@ -76,7 +79,7 @@ class MessageClassifier:
     model_executor: None
 
     def __init__(self):
-        model = OpenAIModel(use_cache=False).get_model()
+        model = OpenAIModel(use_cache=False, openai_model="o4-mini").get_model()
         prompt = ChatPromptTemplate.from_messages(
             [
                 SystemMessage(
@@ -101,6 +104,7 @@ class MessageClassifier:
     def classify(self, message: str) -> str:
         logger.info(f"MessageClassifier classify invoked with message: {message}")
         result = self.model_executor.invoke({"messages": [HumanMessage(content=message)]})
+        log_llm_response(result, logger)
         value = result.content.strip().lower()
         logger.info(f"MessageClassifier result: {result}")
         return value
@@ -161,9 +165,16 @@ class ChatManager:
         tool_node = CustomToolNode(tools=receipttools.get_tools() + price_lookup_tools.get_tools())
         workflow.add_node("tools", tool_node.run)
 
-        # Add placeholder nodes for receipt and planner
-        workflow.add_node("receipt", NotDefinedNode().run)
-        workflow.add_node("planner", NotDefinedNode().run)
+        # Wire in ReceiptAnalyzerFlow as subgraph, thouhgh it will not work in text mode
+        # since the image needs to be attached to the state
+        receipt_analyzer_flow = ReceiptAnalyzerFlow()
+        receipt_analyzer_subgraph = receipt_analyzer_flow.as_subgraph().compile()
+        workflow.add_node("receipt", receipt_analyzer_subgraph)
+
+        # Wire in MealPlannerFlow as a subgraph for planner node
+        meal_planner_flow = MealPlannerFlow()
+        meal_planner_subgraph = meal_planner_flow.as_subgraph().compile()
+        workflow.add_node("planner", meal_planner_subgraph)
 
         # Conditional routing at START
         workflow.add_conditional_edges(START, self.classify_message)
@@ -180,5 +191,5 @@ class ChatManager:
         """
         initial_state = ChatState(messages=[HumanMessage(content=message)])
         response = self.graph.invoke(initial_state, config=self.config)
-        logger.debug(f"Response: {response}")
+        logger.debug(f"Response: {llm_response_to_log(response)}")
         return response

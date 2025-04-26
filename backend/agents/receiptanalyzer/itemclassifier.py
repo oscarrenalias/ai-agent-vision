@@ -3,7 +3,7 @@ import logging
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
-from agents.models import Model
+from agents.models import OpenAIModel
 
 from .itemclassifierprompt import ItemClassifierPrompt
 from .receiptstate import Receipt, ReceiptState
@@ -24,7 +24,8 @@ class ItemClassifier:
         Initialize the ItemClassifier
         """
         logger.info("ItemClassifier initialized")
-        self.model = Model("openai").get_model()
+        # self.model = Model("openai", ).get_model()
+        self.model = OpenAIModel(openai_model="o4-mini").get_model()
 
     def run(self, state: ReceiptState) -> ReceiptState:
         logger.info("ItemClassifier run")

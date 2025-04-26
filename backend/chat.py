@@ -1,4 +1,3 @@
-import argparse
 import logging
 
 from dotenv import load_dotenv
@@ -62,23 +61,11 @@ def interactive_chat_mode():
 
 
 def main():
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description="AI Agent Vision Chat")
-    parser.add_argument("-i", action="store_true", help="Run in interactive chatbot mode")
-    args = parser.parse_args()
-
     # Load environment variables
     load_dotenv()
 
-    if args.i:
-        # Run in interactive mode
-        interactive_chat_mode()
-    else:
-        # Run with a predefined question
-        result = chat_manager.run(message="How much pasta have we bought recently?")
-        last_message = result["messages"][-1]
-        logger.info(f"Chat complete. Result: {last_message}")
-        return result
+    # Run in interactive mode
+    interactive_chat_mode()
 
 
 if __name__ == "__main__":
