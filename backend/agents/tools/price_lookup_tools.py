@@ -2,6 +2,7 @@ import json
 import logging
 from typing import List
 
+from cachetools import TTLCache, cached
 from langchain_core.tools import tool
 
 from agents.common.logging_utils import llm_response_to_log
@@ -17,10 +18,15 @@ def get_tools() -> List:
     return [s_kaupat_price_lookup]
 
 
+# Module-level cache for S-Kaupat price lookups
+_s_kaupat_cache = TTLCache(maxsize=128, ttl=600)
+
+
 @tool
 def s_kaupat_price_lookup(item: str) -> str:
     """
-    Can be used to perform a product lookup in the S-Kaupat grocer site. The result is a list of items that match the query. Input parameter must
+    Can be used to perform a product lookup in the S-Kaupat grocer site. The result is a list of items that match the query including
+    data such as product description, price and store where the product can be found. Input parameter must
     always be in Finnish since the S-Ruoka site does not support other languages.
 
     Args:
@@ -33,6 +39,11 @@ def s_kaupat_price_lookup(item: str) -> str:
             - Store where the product was found
     """
     logger.info(f"Executing S-Kauppa price lookup for item: {item}")
+    return _s_kaupat_price_lookup_cached(item)
+
+
+@cached(_s_kaupat_cache)
+def _s_kaupat_price_lookup_cached(item: str) -> str:
     price_source = SKaupatPriceSource()
     results = price_source.search_product(item)
     logger.info(f"Price lookup results: {json.dumps(llm_response_to_log(results))}")
