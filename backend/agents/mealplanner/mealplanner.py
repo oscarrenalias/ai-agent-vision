@@ -34,7 +34,7 @@ class MealPlannerFlow:
     """
 
     def __init__(self, llm_model=None):
-        self.llm_model = llm_model or OpenAIModel(use_cache=False, openai_model="o4-mini").get_model()
+        self.llm_model = llm_model or OpenAIModel(use_cache=False).get_model()
 
     def extract_preferences(self, state: MealPlannerState) -> MealPlannerState:
         # extract user input from most recent message if not set yet
