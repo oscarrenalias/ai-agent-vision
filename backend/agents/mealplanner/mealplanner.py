@@ -203,6 +203,20 @@ Return the extracted information as a string including the data above, as well a
         state.messages.append(AIMessage(content=response))
         return state
 
+    # TODO: this could be generalized and then moved to a better place
+    def pricing_tools_condition(self, state, messages_key="messages"):
+        if isinstance(state, list):
+            ai_message = state[-1]
+        elif isinstance(state, dict) and (messages := state.get(messages_key, [])):
+            ai_message = messages[-1]
+        elif messages := getattr(state, messages_key, []):
+            ai_message = messages[-1]
+        else:
+            raise ValueError(f"No messages found in input state to tool_edge: {state}")
+        if hasattr(ai_message, "tool_calls") and len(ai_message.tool_calls) > 0:
+            return "tools"
+        return "format_response"
+
     def as_subgraph(self):
         workflow = StateGraph(state_schema=MealPlannerState)
 
@@ -218,21 +232,8 @@ Return the extracted information as a string including the data above, as well a
         # Edges
         workflow.add_edge("extract_preferences", "ask_for_missing")
 
-        def pricing_tools_condition(state, messages_key="messages"):
-            if isinstance(state, list):
-                ai_message = state[-1]
-            elif isinstance(state, dict) and (messages := state.get(messages_key, [])):
-                ai_message = messages[-1]
-            elif messages := getattr(state, messages_key, []):
-                ai_message = messages[-1]
-            else:
-                raise ValueError(f"No messages found in input state to tool_edge: {state}")
-            if hasattr(ai_message, "tool_calls") and len(ai_message.tool_calls) > 0:
-                return "tools"
-            return "format_response"
-
         workflow.add_edge("tools", "generate_shopping_list")
-        workflow.add_conditional_edges("generate_shopping_list", pricing_tools_condition)
+        workflow.add_conditional_edges("generate_shopping_list", self.pricing_tools_condition)
 
         def ready_cond(state):
             return "build_plan" if self.is_ready(state) else "extract_preferences"
