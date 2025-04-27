@@ -81,17 +81,18 @@ def main():
 
     def run_automatic_mode():
         # initialize the state and push the first message
-        state.messages = [(HumanMessage(content="I'd like to plan meals for 4 people."))]
+        state.messages = [(HumanMessage(content="I'd like to plan meals for 2 people."))]
 
         inputs = [
             # 1st round of conversation,
             state,
             # Since we're using `interrupt`, we'll need to resume using the Command primitive.
             # 2nd round of conversation,
-            Command(resume="I need to plan just for the week."),
+            Command(resume="I need to plan just for two days, only dinner meals."),
             Command(resume="I like fish, as well as indian food"),
             Command(resume="I am only interested in dinner meals."),
             Command(resume="My budget is between 50 and 100 euros."),
+            Command(resume="We have no dietary restrictions, or allergies of any kind."),
         ]
 
         for idx, user_input in enumerate(inputs):
