@@ -1,19 +1,27 @@
+import logging
+
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_core.pydantic_v1 import BaseModel, Field
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import interrupt
+from pydantic import BaseModel, Field
 
 from agents.models import OpenAIModel
 
+logger = logging.getLogger(__name__)
+
 
 class MealPlannerState(BaseModel):
-    messages: list = Field(default_factory=list)
-    budget: str = None
-    num_meals: int = None
-    num_people: int = None
-    preferences: str = None
-    plan: list = None
-    shopping_list: dict = None
+    messages: list = Field(default=[], description="List of messages exchanged with the user.")
+    preferences: str = Field(
+        default=None, description="User preferences for meal planning. Populated by the LLM during the process."
+    )
+    user_input: str = Field(default=None, description="User input")
+    budget: str = Field(default=None, description="User's budget")
+    plan: list = Field(default=None, description="Generated meal plan")
+    shopping_list: dict = Field(default=None, description="Generated shopping list with prices")
+    ready_to_plan: bool = Field(default=False, description="Flag indicating if the meal planner is ready to generate a plan")
+    additional_input_required: str = Field(default=None, description="Additional user input, as required by the LLM")
 
 
 class MealPlannerFlow:
@@ -26,91 +34,112 @@ class MealPlannerFlow:
     """
 
     def __init__(self, llm_model=None):
-        self.llm_model = llm_model or OpenAIModel(use_cache=False).get_model()
-        self.state = {
-            "budget": None,
-            "num_meals": None,
-            "preferences": None,
-            "num_people": None,
-            "plan": None,
-            "shopping_list": None,
-        }
+        self.llm_model = llm_model or OpenAIModel(use_cache=False, openai_model="o4-mini").get_model()
 
     def extract_preferences(self, state: MealPlannerState) -> MealPlannerState:
-        user_input = state.messages[-1].content if state.messages else ""
-        prompt = ChatPromptTemplate.from_messages(
+        # extract user input from most recent message if not set yet
+        if state.user_input is None:
+            state.user_input = state.messages[-1].content
+
+        prompt_template = ChatPromptTemplate.from_messages(
             [
                 SystemMessage(
                     content="""
 You are a meal planning assistant. Extract the following information from the user's message if present:
-- budget (in dollars or a range)
-- number of meals (integer)
-- number of people (in order to plan the amounts)
-- preferences (ingredients, dietary restrictions, or recipe types)
-Return a JSON object with keys: budget, num_meals, preferences. If a value is missing, use null.
+- budget: in euros or a range)
+- number of meals: usually provided as an integer, or converted to an integer from an expreession such as "a week's worth of meals" or "a meal for tonight"
+- number of people: in order to plan the amounts
+- preferences: ingredients, dietary restrictions, recipe types, e.g., "italian food", "indian" or "vegetarian"
+Return the extracted information as a string including the data above, as well as anything else you can infer from the message.
 """
                 ),
-                HumanMessage(content=user_input),
+                ("human", "User input: {user_input}\nPreferences gathered so far: {preferences}\n"),
+                ("human", "{messages}"),
             ]
         )
-        result = self.llm_model.invoke(prompt.format_prompt().to_messages())
-        import json
 
-        try:
-            data = json.loads(result.content)
-            state.budget = data.get("budget") or state.budget
-            state.num_meals = data.get("num_meals") or state.num_meals
-            state.preferences = data.get("preferences") or state.preferences
-            state.num_people = data.get("num_people") or state.num_people
-        except Exception:
-            pass
+        # add logic for calling the llm_model
+        prompt = prompt_template.invoke(
+            {"user_input": state.user_input, "preferences": state.preferences, "messages": state.messages}
+        )
+
+        logger.debug(f"Extraction prompt: {prompt}")
+
+        result = self.llm_model.invoke(prompt)
+        preferences = result.content.strip()
+        logger.debug(f"Extracted preferences: {preferences}")
+
+        # store the preferences so far in the state
+        state.messages.append(result)
+        state.preferences = preferences
+
         return state
 
     def ask_for_missing(self, state: MealPlannerState) -> MealPlannerState:
-        from langchain_core.messages import AIMessage
-
-        if not state.budget:
-            state.messages.append(AIMessage(content="What is your budget for the week?"))
-        elif not state.num_meals:
-            state.messages.append(AIMessage(content="How many meals do you want to plan for?"))
-        elif not state.preferences:
-            state.messages.append(AIMessage(content="Do you have any preferred ingredients or recipes?"))
-        return state
-
-    def is_ready(self, state: MealPlannerState) -> bool:
-        return all([state.budget, state.num_meals, state.preferences])
-
-    def build_plan(self, state: MealPlannerState) -> MealPlannerState:
-        prompt = ChatPromptTemplate.from_messages(
+        prompt_template = ChatPromptTemplate.from_messages(
             [
                 SystemMessage(
                     content="""
-You are a meal planner. Given the following preferences, generate a meal plan for the week. For each meal, list the meal name and 3-5 ingredients. Return a JSON array of objects with keys: meal, ingredients (list).
-Preferences:
-- Budget: {budget}
-- Number of meals: {num_meals}
-- Number of people: {num_people}
-- Preferences: {preferences}
-"""
+                    You are a meal planning assistant. Given the following preferences extracted so far as well as the user's original request,
+                    determine if all required information for meal planning has been provided.
+                    If everything is present, reply only with 'ready'. If something is missing, reply with a single message that should be shown
+                    to the user to collect the missing information. Be as specific as possible when requesting additional information.
+
+                    Do not explain your reasoning, just reply with the message for the user or 'ready'.
+                """
                 ),
-                HumanMessage(content="Generate the meal plan."),
+                ("human", "User input: {user_input}\nPreferences gathered so far: {preferences}"),
             ]
         )
-        formatted = (
-            prompt.partial(budget=state.budget, num_meals=state.num_meals, preferences=state.preferences)
-            .format_prompt()
-            .to_messages()
+
+        prompt = prompt_template.invoke({"user_input": state.user_input, "preferences": state.preferences})
+
+        result = self.llm_model.invoke(prompt)
+        state.messages.append(result)
+        response = result.content.strip()
+        if response.lower() == "ready":
+            state.ready_to_plan = True
+            return state
+        else:
+            # state.messages.append(AIMessage(content=response))
+            # trigger an interrupt to ask the user for more information, which will depend
+            # on what the LLM thinks it needs
+
+            # response is what the LLM replied, with additional context around what is still missing
+            state.additional_input_required = response
+
+            # When the graph restarts, interrupt(...) no longer causes an exception but returns the
+            # value that the user provided via a Command object
+            additional_input = interrupt(response)
+            if additional_input is not None:
+                state.messages.append(HumanMessage(content=additional_input))
+
+        return state
+
+    def is_ready(self, state: MealPlannerState) -> bool:
+        return state.ready_to_plan
+
+    def build_plan(self, state: MealPlannerState) -> MealPlannerState:
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                SystemMessage(
+                    content="""
+                    You are a meal planner. Given the following preferences, generate a meal plan for the week. For each meal, list the meal name and 3-5 ingredients. Return a JSON array of objects with keys: meal, ingredients (list).
+                    Do not wrap your response in markdown, just sent JSON as a plain string with no formatting at all."""
+                ),
+                ("human", "User input: {user_input}\nPreferences gathered so far: {preferences}\n"),
+            ]
         )
-        result = self.llm_model.invoke(formatted)
+        prompt = prompt_template.invoke({"user_input": state.user_input, "preferences": state.preferences})
+        result = self.llm_model.invoke(prompt)
         import json
 
         try:
             state.plan = json.loads(result.content)
-        except Exception:
-            state.plan = [
-                {"meal": f"Meal {i+1} ({state.preferences})", "ingredients": [f"Ingredient {j+1}" for j in range(3)]}
-                for i in range(int(state.num_meals or 3))
-            ]
+            logger.debug(f"Generated meal plan: {state.plan}")
+        except Exception as e:
+            logger.error(f"This should not happen! There was an error parsing the JSON response with the meal plan: {e}")
+            state.plan = []
         return state
 
     def generate_shopping_list(self, state: MealPlannerState) -> MealPlannerState:
@@ -151,7 +180,7 @@ Preferences:
         workflow.add_edge("extract_preferences", "ask_for_missing")
 
         def ready_cond(state):
-            return "build_plan" if self.is_ready(state) else END
+            return "build_plan" if self.is_ready(state) else "extract_preferences"
 
         workflow.add_conditional_edges("ask_for_missing", ready_cond)
         workflow.add_edge("build_plan", "generate_shopping_list")
@@ -164,21 +193,4 @@ Preferences:
 class DummyPriceLookupTool:
     def lookup(self, ingredient: str) -> str:
         # Dummy price lookup
-        return "$2.00"
-
-
-class MealPlanner:
-    def __init__(self, llm_model=None):
-        self.flow = MealPlannerFlow(DummyPriceLookupTool(), llm_model=llm_model)
-
-    def handle(self, user_input: str) -> str:
-        # Collect preferences
-        ask = self.flow.collect_preferences(user_input)
-        if ask != "OK":
-            return ask
-        # All info collected
-        if not self.flow.state["plan"]:
-            self.flow.build_plan()
-        if not self.flow.state["shopping_list"]:
-            self.flow.generate_shopping_list()
-        return self.flow.get_response()
+        return "2.00"
