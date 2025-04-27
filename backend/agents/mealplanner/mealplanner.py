@@ -6,7 +6,9 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 from pydantic import BaseModel, Field
 
+from agents.common import CustomToolNode
 from agents.models import OpenAIModel
+from agents.tools import price_lookup_tools
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,9 @@ class MealPlannerFlow:
     """
 
     def __init__(self, llm_model=None):
-        self.llm_model = llm_model or OpenAIModel(use_cache=False).get_model()
+        llm_model = llm_model or OpenAIModel(use_cache=False).get_model()
+        # allow the model to do price lookups
+        self.llm_model = llm_model.bind_tools(price_lookup_tools.get_tools())
 
     def extract_preferences(self, state: MealPlannerState) -> MealPlannerState:
         # extract user input from most recent message if not set yet
@@ -49,7 +53,7 @@ You are a meal planning assistant. Extract the following information from the us
 - budget: in euros or a range)
 - number of meals: usually provided as an integer, or converted to an integer from an expreession such as "a week's worth of meals" or "a meal for tonight"
 - number of people: in order to plan the amounts
-- preferences: ingredients, dietary restrictions, recipe types, e.g., "italian food", "indian" or "vegetarian"
+- preferences: ingredients, dietary restrictions (optional, user may have no restrictions), recipe types, e.g., "italian food", "indian" or "vegetarian"
 Return the extracted information as a string including the data above, as well as anything else you can infer from the message.
 """
                 ),
@@ -101,7 +105,6 @@ Return the extracted information as a string including the data above, as well a
             state.ready_to_plan = True
             return state
         else:
-            # state.messages.append(AIMessage(content=response))
             # trigger an interrupt to ask the user for more information, which will depend
             # on what the LLM thinks it needs
 
@@ -124,17 +127,19 @@ Return the extracted information as a string including the data above, as well a
             [
                 SystemMessage(
                     content="""
-                    You are a meal planner. Given the following preferences, generate a meal plan for the week. For each meal, list the meal name and 3-5 ingredients. Return a JSON array of objects with keys: meal, ingredients (list).
-                    Do not wrap your response in markdown, just sent JSON as a plain string with no formatting at all."""
+                    You are a meal planner. Given the following preferences, generate a meal plan for the week. For each meal, list the meal name and the key ingredients.
+                    Return a JSON array of objects with keys: meal, ingredients (list). Do not look up any pricess, just provide the meal plan.
+                    Do not wrap your response in markdown, just send JSON as a plain string with no formatting at all."""
                 ),
                 ("human", "User input: {user_input}\nPreferences gathered so far: {preferences}\n"),
             ]
         )
         prompt = prompt_template.invoke({"user_input": state.user_input, "preferences": state.preferences})
         result = self.llm_model.invoke(prompt)
-        import json
 
         try:
+            import json
+
             state.plan = json.loads(result.content)
             logger.debug(f"Generated meal plan: {state.plan}")
         except Exception as e:
@@ -143,12 +148,45 @@ Return the extracted information as a string including the data above, as well a
         return state
 
     def generate_shopping_list(self, state: MealPlannerState) -> MealPlannerState:
-        shopping_list = {}
-        for meal in state.plan or []:
-            for ingredient in meal["ingredients"]:
-                # price = self.price_lookup_tool.lookup(ingredient)
-                shopping_list[ingredient] = 3.0
-        state.shopping_list = shopping_list
+        """
+        Calls the LLM to generate a shopping list with approximate prices using the s_kaupat_price_source tool.
+        """
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                SystemMessage(
+                    content="""
+                You are a meal planning assistant.
+                Given the following meal plan and user preferences, generate a shopping list with approximate prices for each ingredient provided in the meal plan.
+
+                - description of the item
+                - matched product name; from tool calling, so that the user can identify the product in the shelves
+                - quantity needed
+                - unit of measurement
+                - price of the item; use the price lookup tool provided to you to get the price
+
+                Use the tools available to you to look up the prices of ingredients.
+                Return the result as a JSON object.
+                Do not wrap your response in markdown, just send JSON as a plain string with no formatting at all.
+            """
+                ),
+                ("human", "Meal plan: {plan}\nPreferences: {preferences}"),
+                ("human", "{messages}"),
+            ]
+        )
+
+        import json
+
+        plan = state.plan or []
+        preferences = state.preferences or ""
+        prompt = prompt_template.invoke({"plan": plan, "preferences": preferences, "messages": state.messages})
+        result = self.llm_model.invoke(prompt)
+        state.messages.append(result)
+        try:
+            state.shopping_list = json.loads(result.content)
+            logger.debug(f"Generated shopping list with prices: {state.shopping_list}")
+        except Exception as e:
+            logger.error(f"Error parsing shopping list JSON: {e}")
+            state.shopping_list = {}
         return state
 
     def format_response(self, state: MealPlannerState) -> MealPlannerState:
@@ -173,24 +211,35 @@ Return the extracted information as a string including the data above, as well a
         workflow.add_node("ask_for_missing", self.ask_for_missing)
         workflow.add_node("build_plan", self.build_plan)
         workflow.add_node("generate_shopping_list", self.generate_shopping_list)
+        workflow.add_node("tools", CustomToolNode(tools=price_lookup_tools.get_tools()).run)
         workflow.add_node("format_response", self.format_response)
         workflow.add_edge(START, "extract_preferences")
 
         # Edges
         workflow.add_edge("extract_preferences", "ask_for_missing")
 
+        def pricing_tools_condition(state, messages_key="messages"):
+            if isinstance(state, list):
+                ai_message = state[-1]
+            elif isinstance(state, dict) and (messages := state.get(messages_key, [])):
+                ai_message = messages[-1]
+            elif messages := getattr(state, messages_key, []):
+                ai_message = messages[-1]
+            else:
+                raise ValueError(f"No messages found in input state to tool_edge: {state}")
+            if hasattr(ai_message, "tool_calls") and len(ai_message.tool_calls) > 0:
+                return "tools"
+            return "format_response"
+
+        workflow.add_edge("tools", "generate_shopping_list")
+        workflow.add_conditional_edges("generate_shopping_list", pricing_tools_condition)
+
         def ready_cond(state):
             return "build_plan" if self.is_ready(state) else "extract_preferences"
 
         workflow.add_conditional_edges("ask_for_missing", ready_cond)
         workflow.add_edge("build_plan", "generate_shopping_list")
-        workflow.add_edge("generate_shopping_list", "format_response")
+        # workflow.add_edge("generate_shopping_list", "format_response")
         workflow.add_edge("format_response", END)
 
         return workflow
-
-
-class DummyPriceLookupTool:
-    def lookup(self, ingredient: str) -> str:
-        # Dummy price lookup
-        return "2.00"
