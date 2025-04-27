@@ -6,8 +6,9 @@ from typing import Dict
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph import START, MessagesState, StateGraph
+from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import tools_condition
+from pydantic import BaseModel, Field
 
 from agents.common import CustomToolNode
 from agents.common.logging_utils import llm_response_to_log, log_llm_response
@@ -19,8 +20,8 @@ from agents.tools import price_lookup_tools, receipttools
 logger = logging.getLogger(__name__)
 
 
-class ChatState(MessagesState):
-    pass
+class ChatState(BaseModel):
+    messages: list = Field(default=[], description="List of messages exchanged with the user.")
 
 
 class ChatAgent:
@@ -50,9 +51,9 @@ class ChatAgent:
 
         model_executor = self.get_primary_assistant_prompt() | self.model
 
-        result = model_executor.invoke(state["messages"])
+        result = model_executor.invoke(state.messages)
         log_llm_response(result, logger)
-        state["messages"].append(result)
+        state.messages.append(result)
 
         logger.info(f"ChatState result returned: {llm_response_to_log(state)}")
         return state
@@ -135,7 +136,7 @@ class ChatManager:
 
     def classify_message(self, state: ChatState) -> str:
         logger.info("classify_message called with state: %s", state)
-        message = state["messages"][-1].content
+        message = state.messages[-1].content
         value = self.classifier.classify(message)
         logger.info(f"Classified message '{message}' as '{value}'")
         if value == "upload":
