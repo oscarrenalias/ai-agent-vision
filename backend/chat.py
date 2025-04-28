@@ -14,7 +14,7 @@ configure_logging()
 logger = logging.getLogger(__name__)
 
 
-def interactive_chat_mode():
+def main():
     # build the graph and setup the checkpointer
     chat_flow = ChatFlow()
     memory = MemorySaver()
@@ -71,14 +71,6 @@ def interactive_chat_mode():
         except KeyboardInterrupt:
             print("\nGoodbye!")
             break
-
-
-def main():
-    # Load environment variables
-    load_dotenv()
-
-    # Run in interactive mode
-    interactive_chat_mode()
 
 
 if __name__ == "__main__":

@@ -1,3 +1,3 @@
-from .customtoolnode import CustomToolNode
+from .toolnode import CustomToolNode, make_tool_node
 
-__all__ = ["CustomToolNode"]
+__all__ = ["make_tool_node", "CustomToolNode"]
