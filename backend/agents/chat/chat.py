@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 class ChatState(MessagesState):
     input: HumanMessage = None
-    pass
 
 
 class ChatFlow:

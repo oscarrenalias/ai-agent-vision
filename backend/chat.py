@@ -26,7 +26,6 @@ def main():
     # create the state
     state = ChatState()
 
-    """Run the chat in interactive mode, reading input from keyboard."""
     print("\n=== AI Agent Vision Chat ===")
     print("Type 'exit' or 'quit' to end the conversation.\n")
 

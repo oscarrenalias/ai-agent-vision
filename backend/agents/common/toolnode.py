@@ -32,7 +32,7 @@ class CustomToolNode:
         return state
 
 
-def make_tool_node(messages_key: str, tools: list):
+def make_tool_node(tools: list, messages_key: str = "messages"):
     def tool_node(state: MessagesState) -> dict:
         """Execute tools while preserving all messages in state."""
         # Get the last message which should contain tool calls

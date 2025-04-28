@@ -27,7 +27,7 @@ def main():
     config = {"configurable": {"thread_id": "1"}}
 
     # create the state
-    state = MealPlannerState()
+    state = MealPlannerState.make_instance()
 
     def run_interactive_mode():
         idx = 0
@@ -37,7 +37,7 @@ def main():
 
             # generate the right type of input for the graph
             if step_type == "message":
-                state.messages = [HumanMessage(content=user_input_str)]
+                state["messages"] = [HumanMessage(content=user_input_str)]
                 user_input = state
             elif step_type == "interrupt":
                 user_input = Command(resume=user_input_str)
@@ -69,18 +69,19 @@ def main():
 
     def run_automatic_mode():
         # initialize the state and push the first message
-        state.messages = [(HumanMessage(content="I'd like to plan meals for 2 people."))]
+        state["messages"].append(
+            HumanMessage(
+                content="I'd like to plan dinners for the weekend, 2 people. We like italian food, mostly pasta and pizza. No dietary restrinctions of any kind."
+            )
+        )
 
         inputs = [
             # 1st round of conversation,
             state,
             # Since we're using `interrupt`, we'll need to resume using the Command primitive.
             # 2nd round of conversation,
-            Command(resume="I need to plan just for two days, only dinner meals."),
-            Command(resume="I like fish, as well as indian food"),
-            Command(resume="I am only interested in dinner meals."),
             Command(resume="My budget is between 50 and 100 euros."),
-            Command(resume="We have no dietary restrictions, or allergies of any kind."),
+            Command(resume="You can go ahead and suggest something"),
         ]
 
         for idx, user_input in enumerate(inputs):
