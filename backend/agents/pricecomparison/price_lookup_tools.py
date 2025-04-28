@@ -33,7 +33,8 @@ def s_kaupat_price_lookup(item: str) -> str:
     logger.info(f"Executing S-Kauppa price lookup for item: {item}")
     price_source = SKaupatPriceSource()
     results = price_source.search_product(item)
-    logger.info(f"Price lookup results: {results}")
+    logger.info(f"Query returned {len(results)} results.")
+    logger.debug(f"Price lookup results: {results}")
 
     if not results:
         logger.info("No results found for the given item.")

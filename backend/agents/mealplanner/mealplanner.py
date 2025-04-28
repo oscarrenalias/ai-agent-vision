@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from agents.common import CustomToolNode
 from agents.models import OpenAIModel
-from agents.tools import price_lookup_tools
+from agents.pricecomparison import price_lookup_tools
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,8 @@ class MealPlannerFlow:
     3. Builds a menu for the week
     4. Generates a shopping list with price lookup
     """
+
+    llm_model: None
 
     def __init__(self, llm_model=None):
         llm_model = llm_model or OpenAIModel(use_cache=False).get_model()

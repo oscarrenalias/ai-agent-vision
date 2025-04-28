@@ -7,19 +7,7 @@ from langgraph.types import Command
 
 from agents.mealplanner import MealPlannerFlow
 from agents.mealplanner.mealplanner import MealPlannerState
-
-
-# Configure logging
-def configure_logging():
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(module)s:%(funcName)s:%(lineno)d - %(message)s"
-    )
-
-    # Configure specific loggers
-    for logger_name in ["agents", "common"]:
-        logger = logging.getLogger(logger_name)
-        logger.setLevel(logging.INFO)
-
+from common.logging import configure_logging
 
 # set things up
 load_dotenv()
