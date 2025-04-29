@@ -17,6 +17,12 @@ logger = logging.getLogger(__name__)
 class ChatState(MessagesState):
     input: HumanMessage = None
 
+    def make_instance():
+        return ChatState(
+            messages=[],
+            input=None,
+        )
+
 
 class ChatFlow:
     llm_model: None
