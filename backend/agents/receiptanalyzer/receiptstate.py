@@ -1,5 +1,6 @@
+from langgraph.graph import MessagesState
 from pydantic import BaseModel, Field
-from typing_extensions import Any, Dict, List, Literal, Optional, TypedDict
+from typing_extensions import Any, List, Literal, Optional
 
 
 class ReceiptItemCategory(BaseModel):
@@ -68,7 +69,7 @@ class Receipt(BaseModel):
     receipt_data: ReceiptData = Field(description="metadata about the receipt", default=None)
 
 
-class ReceiptState(TypedDict):
+class ReceiptState(MessagesState):
     # image being processed
     receipt_image: Optional[Any] = None
 
@@ -76,9 +77,6 @@ class ReceiptState(TypedDict):
 
     # receipt
     receipt: Optional[Receipt] = None
-
-    # Processing metadata
-    messages: List[Dict[str, Any]] = None
 
     # Tracks status of the persistence operation
     persistence_status: Literal["success", "failed"] = None
@@ -91,8 +89,15 @@ class ReceiptState(TypedDict):
         self.receipt_image_path = receipt_image_path
         self.receipt_image = receipt_image
 
-    def __str__(self):
+    def make_instance():
         """
-        Generate a string representation from this object but represent the image field as "..."
+        Create a new instance of the ReceiptState object. Needed because this class
+        is a TypedDict and constructor is not automatically generated.
         """
-        return str({k: v if k != "receipt_image" else "..." for k, v in self.items()})
+        return ReceiptState(
+            receipt_image_path=None,
+            receipt_image=None,
+            receipt={},
+            messages=[],
+            persistence_status=None,
+        )

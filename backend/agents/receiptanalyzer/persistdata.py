@@ -14,15 +14,12 @@ logger = logging.getLogger(__name__)
 
 
 class PersistData:
-    """Persists the receipt data into a data store"""
-
     def __init__(self, data_store: DataStore = None):
         self.data_store = data_store
         self.data_store.initialize()
-        logger.info("PersistData initialized")
 
     def run(self, state: ReceiptState) -> ReceiptState:
-        logger.info("PersistData run")
+        logger.debug("PersistData run")
 
         if "receipt" not in state:
             logger.warning("No receipt data found in state")
@@ -30,13 +27,8 @@ class PersistData:
 
         # Convert receipt data to JSON string
         receipt_json = json.dumps(state["receipt"])
-
-        # Create metadata (you can expand this as needed)
         metadata = {"timestamp": datetime.now(UTC).isoformat()}
-
-        # Persist the data
         success = self.data_store.save_receipt(receipt_json, metadata)
-
         state["persistence_status"] = "success" if success else "failed"
 
         return state

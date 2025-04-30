@@ -3,15 +3,20 @@ from langgraph.graph import START, MessagesState, StateGraph
 from agents.chat import ChatFlow, ChatState
 from agents.common import make_classifier
 from agents.mealplanner import MealPlannerFlow, MealPlannerState
+from agents.receiptanalyzer import ReceiptAnalyzerFlow, ReceiptState
 
 
 # overall global state
 class GlobalState(MessagesState):
+    last_receipt: None
+    last_meal_plan: None
+    last_shopping_list: None
+
     def make_instance():
         return GlobalState(messages=[])
 
 
-class Graph:
+class MainGraph:
     def __init__(self, config=None):
         self.config = config
 
@@ -23,6 +28,10 @@ class Graph:
         # meal planner graph
         meal_planner_flow = MealPlannerFlow()
         meal_planner_graph = meal_planner_flow.as_subgraph().compile()
+
+        # receipt processing graph
+        receipt_processing_flow = ReceiptAnalyzerFlow()
+        receipt_processing_graph = receipt_processing_flow.as_subgraph().compile()
 
         main_flow = StateGraph(state_schema=GlobalState)
 
@@ -48,6 +57,17 @@ class Graph:
 
             # let langgraph update the state with the new messages
             return {"messages": meal_planner_result["messages"]}
+
+        def receipt_processing_graph_node(global_state: GlobalState) -> dict:
+            # initialize the new state
+            receipt_processing_state = ReceiptState.make_instance()
+            receipt_processing_state["messages"] = global_state["messages"].copy()
+
+            # Run the meal_planner with the converted state
+            receipt_processing_result = receipt_processing_graph.invoke(receipt_processing_state, config=self.config)
+
+            # let langgraph update the state with the new messages
+            return {"messages": receipt_processing_result["messages"]}
 
         # main_flow.add_node("chat", chat_graph)
         main_flow.add_node("chat", chat_graph_node)

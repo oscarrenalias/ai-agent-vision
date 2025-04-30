@@ -5,7 +5,7 @@ from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import Command
 
-from agents.graph import GlobalState, Graph
+from agents.maingraph import GlobalState, MainGraph
 from common.logging import configure_logging
 
 # set things up
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 memory = MemorySaver()
 config = {"configurable": {"thread_id": "1"}}
-main_graph = Graph(config=config).as_subgraph().compile(checkpointer=memory)
+main_graph = MainGraph(config=config).as_subgraph().compile(checkpointer=memory)
 state = GlobalState.make_instance()
 
 print("\n=== AI Agent Vision Chat ===")

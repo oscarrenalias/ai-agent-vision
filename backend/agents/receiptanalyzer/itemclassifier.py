@@ -23,8 +23,6 @@ class ItemClassifier:
         """
         Initialize the ItemClassifier
         """
-        logger.info("ItemClassifier initialized")
-        # self.model = Model("openai", ).get_model()
         self.model = OpenAIModel(openai_model="o4-mini").get_model()
 
     def run(self, state: ReceiptState) -> ReceiptState:
