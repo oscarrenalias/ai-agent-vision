@@ -59,9 +59,9 @@ class MainGraph:
             return {"messages": meal_planner_result["messages"]}
 
         def receipt_processing_graph_node(global_state: GlobalState) -> dict:
-            # initialize the new state
+            # initialize the new state and harcode the image path for now
             receipt_processing_state = ReceiptState.make_instance()
-            receipt_processing_state["messages"] = global_state["messages"].copy()
+            receipt_processing_state["receipt_image_path"] = "../data/samples/receipt_sample_1_small.jpg"
 
             # Run the meal_planner with the converted state
             receipt_processing_result = receipt_processing_graph.invoke(receipt_processing_state, config=self.config)
@@ -72,15 +72,15 @@ class MainGraph:
         # main_flow.add_node("chat", chat_graph)
         main_flow.add_node("chat", chat_graph_node)
         main_flow.add_node("meal_planner", meal_planner_graph_node)
+        main_flow.add_node("receipt_processing", receipt_processing_graph_node)
 
-        # add routing
+        # Routing configuration for the decider, as a dictionary:
+        # { "target node": "routing description, gets appended to the prompt for the LLM to decide." }
         classifier_routes = {
             "meal_planner": "If the message is about meal planning. Example: I want to plan my meals for the week.",
             "chat": "Everything else. Example: I want to chat with you.",
+            "receipt_processing": "If the message is about receipts. Example: I want to upload a receipt.",
         }
         main_flow.add_conditional_edges(START, make_classifier(routing_map=classifier_routes, default_node="chat"))
-
-        # Configure and compile the graph
-        # main_graph = main_flow.compile(checkpointer=memory)
 
         return main_flow
