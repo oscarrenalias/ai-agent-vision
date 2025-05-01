@@ -25,4 +25,5 @@ from common.logging import configure_logging
 configure_logging(logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-main_graph = MainGraph().as_subgraph().compile()
+graph = MainGraph().as_subgraph()
+# main_graph = MainGraph().as_subgraph().compile()
