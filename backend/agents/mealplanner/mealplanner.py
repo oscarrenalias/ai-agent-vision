@@ -1,9 +1,10 @@
 import logging
 
+from copilotkit.langgraph import copilotkit_interrupt
+from copilotkit.state import CopilotKitState
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage
-from langgraph.graph import END, START, MessagesState, StateGraph
-from langgraph.types import interrupt
+from langgraph.graph import END, START, StateGraph
 
 from agents.common import make_tool_node
 from agents.models import OpenAIModel
@@ -12,7 +13,7 @@ from agents.pricecomparison import price_lookup_tools
 logger = logging.getLogger(__name__)
 
 
-class MealPlannerState(MessagesState):
+class MealPlannerState(CopilotKitState):
     preferences: str
     user_input: str
     plan: list
@@ -142,9 +143,10 @@ Do not ask for more than 4 pieces of information all together, otherwise the use
 
             # When the graph restarts, interrupt(...) no longer causes an exception but returns the
             # value that the user provided via a Command object
-            additional_input = interrupt(response)
+            # additional_input = interrupt(response)
+            additional_input = copilotkit_interrupt(response)
             if additional_input is not None:
-                messages.append(HumanMessage(content=additional_input))
+                messages.append(HumanMessage(content=additional_input[0]))
                 response_state["messages"] = messages
 
         return response_state

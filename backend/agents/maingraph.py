@@ -1,4 +1,5 @@
-from langgraph.graph import START, MessagesState, StateGraph
+from copilotkit.state import CopilotKitState
+from langgraph.graph import START, StateGraph
 
 from agents.chat import ChatFlow, ChatState
 from agents.common import make_classifier
@@ -7,13 +8,13 @@ from agents.receiptanalyzer import ReceiptAnalyzerFlow, ReceiptState
 
 
 # overall global state
-class GlobalState(MessagesState):
+class GlobalState(CopilotKitState):
     last_receipt: None
     last_meal_plan: None
     last_shopping_list: None
 
     def make_instance():
-        return GlobalState(messages=[])
+        return GlobalState(messages=[], last_meal_plan=None, last_shopping_list=None, last_receipt=None)
 
 
 class MainGraph:

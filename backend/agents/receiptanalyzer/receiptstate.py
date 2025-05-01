@@ -1,4 +1,4 @@
-from langgraph.graph import MessagesState
+from copilotkit.state import CopilotKitState
 from pydantic import BaseModel, Field
 from typing_extensions import Any, List, Literal, Optional
 
@@ -69,7 +69,7 @@ class Receipt(BaseModel):
     receipt_data: ReceiptData = Field(description="metadata about the receipt", default=None)
 
 
-class ReceiptState(MessagesState):
+class ReceiptState(CopilotKitState):
     # image being processed
     receipt_image: Optional[Any] = None
 

@@ -1,9 +1,10 @@
 import logging
 from datetime import datetime
 
+from copilotkit.state import CopilotKitState
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage
-from langgraph.graph import START, MessagesState, StateGraph
+from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import tools_condition
 
 from agents.common.logging_utils import llm_response_to_log
@@ -14,7 +15,7 @@ from agents.pricecomparison import price_lookup_tools
 logger = logging.getLogger(__name__)
 
 
-class ChatState(MessagesState):
+class ChatState(CopilotKitState):
     input: HumanMessage = None
 
     def make_instance():
