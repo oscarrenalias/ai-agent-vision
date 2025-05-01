@@ -1,3 +1,5 @@
+from langgraph.checkpoint.memory import MemorySaver
+
 from agents.maingraph import MainGraph
 
 """
@@ -25,4 +27,4 @@ from common.logging import configure_logging
 configure_logging(logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-main_graph = MainGraph().as_subgraph().compile()
+main_graph = MainGraph().as_subgraph().compile(checkpointer=MemorySaver())
