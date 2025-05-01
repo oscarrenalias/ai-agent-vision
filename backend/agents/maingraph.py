@@ -56,7 +56,11 @@ class MainGraph:
             meal_planner_result = meal_planner_graph.invoke(meal_planner_state, config=self.config)
 
             # let langgraph update the state with the new messages
-            return {"messages": meal_planner_result["messages"]}
+            return {
+                "last_meal_plan": meal_planner_result["plan"],
+                "last_shopping_list": meal_planner_result["shopping_list"],
+                "messages": meal_planner_result["messages"],
+            }
 
         def receipt_processing_graph_node(global_state: GlobalState) -> dict:
             # initialize the new state and harcode the image path for now
@@ -67,7 +71,10 @@ class MainGraph:
             receipt_processing_result = receipt_processing_graph.invoke(receipt_processing_state, config=self.config)
 
             # let langgraph update the state with the new messages
-            return {"messages": receipt_processing_result["messages"]}
+            return {
+                "messages": receipt_processing_result["messages"],
+                "last_receipt": receipt_processing_result["receipt"],
+            }
 
         # main_flow.add_node("chat", chat_graph)
         main_flow.add_node("chat", chat_graph_node)
