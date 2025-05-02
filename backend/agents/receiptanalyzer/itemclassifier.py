@@ -1,7 +1,9 @@
 import logging
 
+from copilotkit.langgraph import copilotkit_emit_message
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.runnables import RunnableConfig
 
 from agents.models import OpenAIModel
 
@@ -25,7 +27,7 @@ class ItemClassifier:
         """
         self.model = OpenAIModel(openai_model="o4-mini").get_model()
 
-    def run(self, state: ReceiptState) -> ReceiptState:
+    async def run(self, state: ReceiptState, config: RunnableConfig) -> ReceiptState:
         logger.info("ItemClassifier run")
 
         # call the LLM model to classify the items and map the response to the JSON object accordingly
@@ -38,7 +40,8 @@ class ItemClassifier:
         )
 
         chain = prompt | self.model | parser
-        response = chain.invoke({"receipt": state["receipt"]})
+        await copilotkit_emit_message(config, "Classifying items in the receipt...")
+        response = await chain.ainvoke({"receipt": state["receipt"]})
         logger.info("Response from classifier = " + str(response))
 
         # update the state with the new information

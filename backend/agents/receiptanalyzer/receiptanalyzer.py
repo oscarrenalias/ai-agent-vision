@@ -2,10 +2,11 @@ import base64
 import logging
 from pprint import pformat
 
+from copilotkit.langgraph import copilotkit_emit_message
 from langchain.chains import TransformChain
 from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import JsonOutputParser
-from langchain_core.runnables import chain
+from langchain_core.runnables import RunnableConfig, chain
 
 from agents.models import OpenAIModel
 
@@ -35,11 +36,14 @@ class ReceiptAnalyzer:
     def __init__(self):
         self.model = OpenAIModel(openai_model="o4-mini").get_model()
 
-    def run(self, state: ReceiptState) -> dict:
+    async def run(self, state: ReceiptState, config: RunnableConfig) -> dict:
         chain = self.set_up_chain()
         logger.debug("state = " + str(state))
 
-        response = chain.invoke({"receipt_image_path": state["receipt_image_path"]})
+        # emit a message to the UI to indicate that the receipt is being processed
+        await copilotkit_emit_message(config, "Receipt is being processed...")
+
+        response = await chain.ainvoke({"receipt_image_path": state["receipt_image_path"]})
         logger.debug("response = " + pformat(response, indent=2))
 
         return {"receipt": response}
