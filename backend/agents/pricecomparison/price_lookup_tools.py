@@ -44,4 +44,8 @@ def s_kaupat_price_lookup(item: str) -> str:
     formatted_results = []
     for result in results:
         formatted_results.append(f"{result['name']}: {result['price']} at {result['store_id']}")
-    return "\n".join(formatted_results)
+
+    return {
+        "message": "\n".join(formatted_results),
+        "items": results,
+    }

@@ -1,3 +1,5 @@
+from typing import List
+
 from copilotkit.state import CopilotKitState
 from langgraph.graph import START, StateGraph
 
@@ -12,6 +14,7 @@ class GlobalState(CopilotKitState):
     last_receipt: None
     last_meal_plan: None
     last_shopping_list: None
+    items_lookup: List[dict] = None
 
     def make_instance():
         return GlobalState(messages=[], last_meal_plan=None, last_shopping_list=None, last_receipt=None)
@@ -46,7 +49,10 @@ class MainGraph:
             chat_result = chat_graph.invoke(chat_state, config=self.config)
 
             # let langgraph update the state with the new messages
-            return {"messages": chat_result["messages"]}
+            return {
+                "messages": chat_result["messages"],
+                "items_lookup": chat_result["items"],
+            }
 
         def meal_planner_graph_node(global_state: GlobalState) -> dict:
             # initialize the new state
@@ -86,8 +92,8 @@ class MainGraph:
         # { "target node": "routing description, gets appended to the prompt for the LLM to decide." }
         classifier_routes = {
             "meal_planner": "If the message is about meal planning. Example: I want to plan my meals for the week.",
-            "chat": "Everything else. Example: I want to chat with you.",
-            "receipt_processing": "If the message is about receipts. Example: I want to upload a receipt.",
+            "receipt_processing": "If the message is a request to upload, scan or process a new receipt file, and only about that. Examples: I want to upload a receipt or can you help me process a receipt?",
+            "chat": "Everything else, including questions about prices, or past receipts. Example: I want to chat with you.",
         }
         main_flow.add_conditional_edges(START, make_classifier(routing_map=classifier_routes, default_node="chat"))
 
