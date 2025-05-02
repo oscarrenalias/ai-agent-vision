@@ -8,6 +8,7 @@ import "@copilotkit/react-ui/styles.css";
 import { Main } from "next/document";
 import ShoppingListCard from "./components/ShoppingListCard";
 import MealPlanCard from "./components/MealPlanCard";
+import ReceiptCard from "./components/ReceiptCard";
 import "./copilotchat-custom.css";
 
 const AGENT_NAME = "mighty_assistant";
@@ -54,6 +55,12 @@ function MainContent() {
     Array.isArray(state.last_shopping_list.shopping_list) &&
     state.last_shopping_list.shopping_list.length > 0;
 
+  const hasReceipt =
+    state.last_receipt &&
+    state.last_receipt.items &&
+    Array.isArray(state.last_receipt.items) &&
+    state.last_receipt.items.length > 0;
+
   return (
     <div>
       {hasMealPlan && (
@@ -65,6 +72,7 @@ function MainContent() {
           height={400}
         />
       )}
+      {hasReceipt && <ReceiptCard receipt={state.last_receipt} height={400} />}
     </div>
   );
 }
