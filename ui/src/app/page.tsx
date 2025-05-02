@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { CopilotKit } from "@copilotkit/react-core";
 import { CopilotChat } from "@copilotkit/react-ui";
-import { useCoAgent } from "@copilotkit/react-core";
+import { useCoAgent, useCopilotAction } from "@copilotkit/react-core";
 import { v4 as uuidv4 } from "uuid";
 import "@copilotkit/react-ui/styles.css";
 import { Main } from "next/document";
@@ -15,6 +15,7 @@ import {
 import { MealPlanCard, MealPlanProps } from "./components/MealPlanCard";
 import ReceiptCard from "./components/ReceiptCard";
 import "./copilotchat-custom.css";
+import React from "react";
 
 const AGENT_NAME = "mighty_assistant";
 
@@ -36,6 +37,7 @@ function MainContent() {
     },
   });
 
+  // visibility checks
   const hasMealPlan =
     state.last_meal_plan &&
     Array.isArray(state.last_meal_plan) &&
@@ -52,6 +54,32 @@ function MainContent() {
     Array.isArray(state.last_receipt.items) &&
     state.last_receipt.items.length > 0;
 
+  // Render actions for the agent
+  useCopilotAction({
+    name: "*",
+    available: "disabled", // Don't allow the agent or UI to call this tool as its only for rendering
+    render: ({ name, args, status, result, handler, respond }) => {
+      // show a progress message while status="executing", render the result when status="complete"
+      console.log(
+        "Rendering action: name=",
+        name,
+        "args=",
+        args,
+        "status=",
+        status
+      );
+      if (status === "executing") {
+        if (name.includes("price_lookup")) {
+          return (
+            <ToolProcessingIndicator message="Processing price lookup..." />
+          );
+        } else {
+          return <ToolProcessingIndicator />;
+        }
+      }
+    },
+  });
+
   return (
     <div>
       {hasMealPlan && (
@@ -67,6 +95,41 @@ function MainContent() {
     </div>
   );
 }
+
+type ToolProcessingIndicatorProps = {
+  message?: string;
+};
+
+const ToolProcessingIndicator: React.FC<ToolProcessingIndicatorProps> = ({
+  message = "Processing, please wait...",
+}) => {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        fontSize: "0.85em", // smaller font
+        color: "#666",
+        margin: "8px 0",
+      }}
+    >
+      <span
+        style={{
+          width: 16,
+          height: 16,
+          marginRight: 8,
+          border: "2px solid #ccc",
+          borderTop: "2px solid #333",
+          borderRadius: "50%",
+          display: "inline-block",
+          animation: "spin 1s linear infinite",
+        }}
+      />
+      <span>{message}</span>
+      <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+};
 
 export default function Home() {
   // generate a new unique threadId for each user
