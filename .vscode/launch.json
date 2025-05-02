@@ -9,12 +9,10 @@
       "args": "${command:pickArgs}"
     },
     {
-      "type": "debugpy",
+      "type": "msedge",
       "request": "launch",
-      "name": "Debug test_scrapers.py",
-      "program": "${workspaceFolder}/backend/test_scrapers.py",
-      "args": ["--site", "s-kaupat", "jauheliha"],
-      "console": "integratedTerminal"
+      "name": "Debug UI app",
+      "url": "http://localhost:3000"
     }
   ]
 }
