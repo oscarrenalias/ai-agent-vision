@@ -149,12 +149,13 @@ export default function Home() {
         <div
           style={{
             flex: 4,
-            borderLeft: "1px solid #eee",
             height: "100vh",
             minWidth: 320,
             display: "flex",
             flexDirection: "column",
             overflowY: "auto",
+            background: "#181a1b", // Match chat window background
+            boxShadow: "-4px 0 12px -4px rgba(0,0,0,0.15)", // Subtle shadow to the left
           }}
         >
           {/* threadId here should change depending on the user */}
