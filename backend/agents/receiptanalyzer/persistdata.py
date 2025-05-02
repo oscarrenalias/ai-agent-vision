@@ -6,6 +6,8 @@ import json
 import logging
 from datetime import UTC, datetime
 
+from langchain.schema import AIMessage
+
 from common.datastore import DataStore
 
 from .receiptstate import ReceiptState
@@ -30,5 +32,8 @@ class PersistData:
         metadata = {"timestamp": datetime.now(UTC).isoformat()}
         success = self.data_store.save_receipt(receipt_json, metadata)
         state["persistence_status"] = "success" if success else "failed"
+        state["messages"].append(
+            AIMessage("Receipt data persisted successfully." if success else "Failed to persist receipt data.")
+        )
 
         return state
