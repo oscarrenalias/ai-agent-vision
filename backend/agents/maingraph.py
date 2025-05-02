@@ -39,14 +39,14 @@ class MainGraph:
 
         main_flow = StateGraph(state_schema=GlobalState)
 
-        def chat_graph_node(global_state: GlobalState) -> dict:
+        async def chat_graph_node(global_state: GlobalState) -> dict:
             # initialize the new state
             chat_state = ChatState.make_instance()
             chat_state["messages"] = global_state["messages"].copy()
             chat_state["input"] = global_state["messages"][-1]
 
             # Run the chat_graph with the converted state
-            chat_result = chat_graph.invoke(chat_state, config=self.config)
+            chat_result = await chat_graph.ainvoke(chat_state, config=self.config)
 
             # let langgraph update the state with the new messages
             return {
@@ -54,13 +54,13 @@ class MainGraph:
                 "items_lookup": chat_result["items"],
             }
 
-        def meal_planner_graph_node(global_state: GlobalState) -> dict:
+        async def meal_planner_graph_node(global_state: GlobalState) -> dict:
             # initialize the new state
             meal_planner_state = MealPlannerState.make_instance()
             meal_planner_state["messages"] = global_state["messages"].copy()
 
             # Run the meal_planner with the converted state
-            meal_planner_result = meal_planner_graph.invoke(meal_planner_state, config=self.config)
+            meal_planner_result = await meal_planner_graph.ainvoke(meal_planner_state, config=self.config)
 
             # let langgraph update the state with the new messages
             return {
@@ -69,13 +69,13 @@ class MainGraph:
                 "messages": meal_planner_result["messages"],
             }
 
-        def receipt_processing_graph_node(global_state: GlobalState) -> dict:
+        async def receipt_processing_graph_node(global_state: GlobalState) -> dict:
             # initialize the new state and harcode the image path for now
             receipt_processing_state = ReceiptState.make_instance()
             receipt_processing_state["receipt_image_path"] = "./data/samples/receipt_sample_1_small.jpg"
 
             # Run the meal_planner with the converted state
-            receipt_processing_result = receipt_processing_graph.invoke(receipt_processing_state, config=self.config)
+            receipt_processing_result = await receipt_processing_graph.ainvoke(receipt_processing_state, config=self.config)
 
             # let langgraph update the state with the new messages
             return {

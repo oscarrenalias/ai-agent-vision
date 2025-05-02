@@ -5,6 +5,7 @@ from typing import List
 from copilotkit.state import CopilotKitState
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+from langchain_core.runnables import RunnableConfig
 from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import tools_condition
 
@@ -53,7 +54,7 @@ class ChatFlow:
             ]
         ).partial(time=datetime.now)
 
-    def chat_agent(self, state: ChatState) -> dict:
+    async def chat_agent(self, state: ChatState, config: RunnableConfig) -> dict:
         logger.debug(f"run invoked with state: {llm_response_to_log(state)}")
 
         # store the latest human input
@@ -61,7 +62,7 @@ class ChatFlow:
         messages.append(state["input"])
 
         prompt = self.get_primary_assistant_prompt().invoke({"messages": messages, "input": state["input"]})
-        result = self.llm_model.invoke(prompt)
+        result = await self.llm_model.ainvoke(prompt)
 
         logger.debug(f"Result returned: {llm_response_to_log(result)}")
 
