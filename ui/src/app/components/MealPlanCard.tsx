@@ -7,7 +7,10 @@ export type MealPlanProps = {
   height?: string | number;
 };
 
-const MealPlanCard: React.FC<MealPlanProps> = ({ meals, height = 400 }) => {
+export const MealPlanCard: React.FC<MealPlanProps> = ({
+  meals,
+  height = 400,
+}) => {
   const mealArray = Array.isArray(meals) ? meals : Object.values(meals || {});
   if (!mealArray || mealArray.length === 0) return null;
 
@@ -65,5 +68,3 @@ const MealPlanCard: React.FC<MealPlanProps> = ({ meals, height = 400 }) => {
     </div>
   );
 };
-
-export default MealPlanCard;

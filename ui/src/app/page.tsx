@@ -4,34 +4,25 @@ import Image from "next/image";
 import { CopilotKit } from "@copilotkit/react-core";
 import { CopilotChat } from "@copilotkit/react-ui";
 import { useCoAgent } from "@copilotkit/react-core";
+import { v4 as uuidv4 } from "uuid";
 import "@copilotkit/react-ui/styles.css";
 import { Main } from "next/document";
-import ShoppingListCard from "./components/ShoppingListCard";
-import MealPlanCard from "./components/MealPlanCard";
+import {
+  ShoppingListCard,
+  ShoppingListItem,
+  ShoppingListProps,
+} from "./components/ShoppingListCard";
+import { MealPlanCard, MealPlanProps } from "./components/MealPlanCard";
 import ReceiptCard from "./components/ReceiptCard";
 import "./copilotchat-custom.css";
 
 const AGENT_NAME = "mighty_assistant";
 
 // Define the AgentState type
-type MealListProps = {
-  meals: Record<string, any>[];
-};
-
-type ShoppingListItem = {
-  description: string;
-  matched_product_name: string;
-  price: number;
-  quantity_needed: number;
-  unit_of_measurement: string;
-};
-type ShoppingListProps = {
-  shopping_list: ShoppingListItem[];
-};
 
 type AgentState = {
   last_receipt: {} | null;
-  last_meal_plan: MealListProps | null;
+  last_meal_plan: MealPlanProps | null;
   last_shopping_list: {} | null;
 };
 
@@ -78,8 +69,15 @@ function MainContent() {
 }
 
 export default function Home() {
+  // generate a new unique threadId for each user
+  const threadId = uuidv4();
+
   return (
-    <CopilotKit runtimeUrl="/api/copilotkit" agent={AGENT_NAME} threadId="123">
+    <CopilotKit
+      runtimeUrl="/api/copilotkit"
+      agent={AGENT_NAME}
+      threadId={threadId}
+    >
       <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
         <div style={{ flex: 6, overflowY: "auto", padding: 24 }}>
           <MainContent />

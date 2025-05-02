@@ -16,7 +16,7 @@ interface ShoppingListCardProps extends ShoppingListProps {
   height?: string | number; // e.g., '400px' or 400
 }
 
-const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
+export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   shopping_list,
   height = 400,
 }) => {
@@ -64,5 +64,3 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
     </div>
   );
 };
-
-export default ShoppingListCard;
