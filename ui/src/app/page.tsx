@@ -77,6 +77,10 @@ function MainContent() {
           return <ToolProcessingIndicator />;
         }
       }
+
+      if (status === "complete") {
+        console.log("result", result);
+      }
     },
   });
 
@@ -142,14 +146,15 @@ export default function Home() {
       threadId={threadId}
     >
       <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
-        <div style={{ flex: 6, overflowY: "auto", padding: 24 }}>
+        <div
+          style={{ flex: 6, overflowY: "auto", padding: 24, height: "100%" }}
+        >
           <MainContent />
-          <div style={{ height: 1200 }} />
         </div>
         <div
           style={{
             flex: 4,
-            height: "100vh",
+            height: "100%",
             minWidth: 320,
             display: "flex",
             flexDirection: "column",
