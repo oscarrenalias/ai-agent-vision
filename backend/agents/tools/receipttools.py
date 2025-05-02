@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import List
 
@@ -13,6 +14,18 @@ def get_tools() -> List:
     Returns a list of tools that can be used in the chat.
     """
     return [get_receipts_by_date, get_items_per_item_type]
+
+
+def mongo_json_default(obj):
+    from datetime import datetime
+
+    from bson import ObjectId
+
+    if isinstance(obj, ObjectId):
+        return str(obj)
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError(f"Type {type(obj)} not serializable")
 
 
 @tool
@@ -48,14 +61,8 @@ def get_receipts_by_date(start_date: str, end_date: str, store: None) -> str:
 
     data_store = get_data_store()
     receipts = data_store.get_receipts_by_date(start_date, end_date)
-    response_data = []
 
-    for receipt in receipts:
-        response_data.append(
-            f"{receipt['receipt_data']['place']} on {receipt['receipt_data']['date'].isoformat()}. Total Price: {receipt['receipt_data']['total']}."
-        )
-
-    return "\n".join(response_data)
+    return json.dumps(receipts, default=mongo_json_default)
 
 
 def is_correct_item_type(item, item_type):
@@ -115,15 +122,16 @@ def get_items_per_item_type(item_type: str) -> str:
     for receipt in receipts:
         for item in receipt["items"]:
             if is_correct_item_type(item, item_type):
+                """
                 response_data.append(
                     f"Name: {item['name_fi']}, \
                     Quantity: {item['quantity']}, \
                     Total price: {item['total_price']}, \
                     Price per unit: {item['unit_price']}, \
                     Store: {receipt['receipt_data']['place']}, \
-                    Purchased on: {receipt['receipt_data']['date'].isoformat()}"
+                    Purchased on: {receipt['receipt_data']['date'].isoformat() if receipt['receipt_data']['date'] else 'Unknown'}"
                 )
+                """
+                response_data.append(item)
 
-    logger.info(f"{'\n'.join(response_data)}")
-
-    return "\n".join(response_data)
+    return json.dumps(response_data)
