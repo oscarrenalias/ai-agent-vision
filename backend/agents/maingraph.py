@@ -66,7 +66,7 @@ class MainGraph:
         def receipt_processing_graph_node(global_state: GlobalState) -> dict:
             # initialize the new state and harcode the image path for now
             receipt_processing_state = ReceiptState.make_instance()
-            receipt_processing_state["receipt_image_path"] = "../data/samples/receipt_sample_1_small.jpg"
+            receipt_processing_state["receipt_image_path"] = "./data/samples/receipt_sample_1_small.jpg"
 
             # Run the meal_planner with the converted state
             receipt_processing_result = receipt_processing_graph.invoke(receipt_processing_state, config=self.config)
