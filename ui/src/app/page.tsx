@@ -7,25 +7,14 @@ import { useCoAgent, useCopilotAction } from "@copilotkit/react-core";
 import { v4 as uuidv4 } from "uuid";
 import "@copilotkit/react-ui/styles.css";
 import { Main } from "next/document";
-import {
-  ShoppingListCard,
-  ShoppingListItem,
-  ShoppingListProps,
-} from "./components/ShoppingListCard";
+import { ShoppingListCard } from "./components/ShoppingListCard";
 import { MealPlanCard, MealPlanProps } from "./components/MealPlanCard";
 import ReceiptCard from "./components/ReceiptCard";
 import "./copilotchat-custom.css";
 import React from "react";
+import type { AgentState } from "./lib/types";
 
 const AGENT_NAME = "mighty_assistant";
-
-// Define the AgentState type
-
-type AgentState = {
-  last_receipt: {} | null;
-  last_meal_plan: MealPlanProps | null;
-  last_shopping_list: {} | null;
-};
 
 function MainContent() {
   const { state } = useCoAgent<AgentState>({

@@ -1,18 +1,9 @@
 import React from "react";
 
-export type ShoppingListItem = {
-  description: string;
-  matched_product_name: string;
-  price: number;
-  quantity_needed: number;
-  unit_of_measurement: string;
-};
+import { ShoppingList } from "../lib/types";
 
-export type ShoppingListProps = {
-  shopping_list: ShoppingListItem[];
-};
-
-interface ShoppingListCardProps extends ShoppingListProps {
+interface ShoppingListCardProps {
+  shopping_list: ShoppingList;
   height?: string | number; // e.g., '400px' or 400
 }
 

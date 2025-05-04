@@ -1,6 +1,5 @@
 import React from "react";
-
-export type MealPlanItem = Record<string, any>;
+import { MealPlanItem } from "../lib/types";
 
 export type MealPlanProps = {
   meals: MealPlanItem[];
