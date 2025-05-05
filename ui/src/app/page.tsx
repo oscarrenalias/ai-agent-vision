@@ -1,6 +1,6 @@
 "use client";
 
-import { CopilotKit } from "@copilotkit/react-core";
+import { CopilotKit, useLangGraphInterrupt } from "@copilotkit/react-core";
 import { CopilotChat } from "@copilotkit/react-ui";
 import { useCopilotAction } from "@copilotkit/react-core";
 import { v4 as uuidv4 } from "uuid";

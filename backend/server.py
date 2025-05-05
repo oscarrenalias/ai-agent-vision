@@ -11,7 +11,7 @@ from agents.langgraphapp import main_graph
 from common.logging import configure_logging
 from common.server.upload_router import upload_router
 
-load_dotenv()
+load_dotenv(verbose=True)
 
 
 configure_logging(logging.DEBUG)

@@ -4,17 +4,35 @@ import uuid
 
 from fastapi import APIRouter, File, UploadFile
 
+from common.server.utils import get_uploads_folder
+
 upload_router = APIRouter()
 
 # Configure logging
-logger = logging
+logger = logging.getLogger(__name__)
 
 
 @upload_router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
+    def make_response(success: bool, file_id: str = None, error: str = None):
+        response = {}
+        if success:
+            response["status"] = "success"
+            if file_id is None:
+                raise ValueError("file_id cannot be None if success is True")
+            response["id"] = file_id
+            return response
+
+        if error:
+            response["status"] = "error"
+            if error is None:
+                raise ValueError("error cannot be None if success is False")
+            response["error"] = error
+
+            return response
+
     try:
-        # TODO: parameterize this part
-        uploads_dir = os.path.join(os.path.dirname(__file__), "../../../uploads")
+        uploads_dir = get_uploads_folder()
 
         os.makedirs(uploads_dir, exist_ok=True)
         file_ext = os.path.splitext(file.filename)[1]
@@ -24,8 +42,10 @@ async def upload_file(file: UploadFile = File(...)):
             content = await file.read()
             f.write(content)
 
-        logger.info(f"File uploaded: {file_path}")
-        return {"status": "success", "filename": file_id}
+        response = make_response(success=True, file_id=file_id)
+        logger.info(f"File uploaded: {file_path}, Response: {response}")
+        return response
+
     except Exception as e:
         logger.error(f"Error uploading file: {e}")
-        return {"status": "error", "error": str(e)}
+        return make_response(success=False, error=str(e))

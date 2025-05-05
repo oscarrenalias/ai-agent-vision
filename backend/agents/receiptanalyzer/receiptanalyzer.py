@@ -7,8 +7,10 @@ from langchain.chains import TransformChain
 from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableConfig, chain
+from langgraph.types import interrupt
 
 from agents.models import OpenAIModel
+from common.server.utils import get_uploads_folder
 
 from .receiptanalyzerprompt import ReceiptAnalyzerPrompt
 from .receiptstate import Receipt, ReceiptState
@@ -40,8 +42,13 @@ class ReceiptAnalyzer:
         chain = self.set_up_chain()
         logger.debug("state = " + str(state))
 
+        state["receipt_image_path"] = interrupt("No receipt image path provided")
+
         # emit a message to the UI to indicate that the receipt is being processed
         await copilotkit_emit_message(config, "Receipt is being processed...")
+
+        full_image_path = get_uploads_folder() / state["receipt_image_path"]
+        state["receipt_image_path"] = str(full_image_path)
 
         response = await chain.ainvoke({"receipt_image_path": state["receipt_image_path"]})
         logger.debug("response = " + pformat(response, indent=2))

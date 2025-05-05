@@ -10,7 +10,7 @@ This is a factory method for generating classifier nodes based on a simple dicti
 
 ```python
 from agents.common.classifiernode import make_classifier
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 classifier_edge = make_classifier(routing_map = {
     "upload": "If the message is a request to upload, scan or process a receipt file. Example: I want to upload my receipt.",
     "planner": "If the message is about meal planning. Example: I want to plan my meals for the week.",
@@ -57,6 +57,11 @@ def _classify_message(state: dict, routing_map: dict, default_node: str):
 
     # GPT-4.1-nano model is fast and cost-effective for this task
     llm_model = OpenAIModel(use_cache=False, openai_model="gpt-4.1-mini").get_model()
+
+    # return default node if no messages are present (should rarely happen)
+    if len(state["messages"]) == 0:
+        logger.warning("No messages found in state. Returning default node.")
+        return default_node
 
     # Get the last message which should contain the user input
     last_message = state["messages"][-1]

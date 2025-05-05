@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 from copilotkit.state import CopilotKitState
@@ -8,6 +9,8 @@ from agents.common import make_classifier
 from agents.mealplanner import MealPlannerFlow, MealPlannerState
 from agents.receiptanalyzer import ReceiptAnalyzerFlow, ReceiptState
 
+logger = logging.getLogger(__name__)
+
 
 # overall global state
 class GlobalState(CopilotKitState):
@@ -15,9 +18,10 @@ class GlobalState(CopilotKitState):
     last_meal_plan: None
     last_shopping_list: None
     items_lookup: List[dict] = None
+    image_file_path: str = None
 
     def make_instance():
-        return GlobalState(messages=[], last_meal_plan=None, last_shopping_list=None, last_receipt=None)
+        return GlobalState(messages=[], last_meal_plan=None, last_shopping_list=None, last_receipt=None, image_file_path=None)
 
 
 class MainGraph:
@@ -72,7 +76,10 @@ class MainGraph:
         async def receipt_processing_graph_node(global_state: GlobalState) -> dict:
             # initialize the new state and harcode the image path for now
             receipt_processing_state = ReceiptState.make_instance()
-            receipt_processing_state["receipt_image_path"] = "./data/samples/receipt_sample_1_small.jpg"
+
+            receipt_processing_state["receipt_image_path"] = global_state.get("image_file_path", "")
+
+            logger.info(f"Image file path: {receipt_processing_state['receipt_image_path']}")
 
             # Run the meal_planner with the converted state
             receipt_processing_result = await receipt_processing_graph.ainvoke(receipt_processing_state, config=self.config)
