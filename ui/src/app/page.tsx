@@ -1,14 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import { CopilotKit } from "@copilotkit/react-core";
 import { CopilotChat } from "@copilotkit/react-ui";
 import { useCoAgent, useCopilotAction } from "@copilotkit/react-core";
 import { v4 as uuidv4 } from "uuid";
 import "@copilotkit/react-ui/styles.css";
-import { Main } from "next/document";
 import { ShoppingListCard } from "./components/ShoppingListCard";
-import { MealPlanCard, MealPlanProps } from "./components/MealPlanCard";
+import { MealPlanCard } from "./components/MealPlanCard";
 import ReceiptCard from "./components/ReceiptCard";
 import "./copilotchat-custom.css";
 import React from "react";
@@ -46,9 +44,8 @@ function MainContent() {
   // Render actions for the agent
   useCopilotAction({
     name: "*",
-    available: "disabled", // Don't allow the agent or UI to call this tool as its only for rendering
+    available: "disabled",
     render: ({ name, args, status, result, handler, respond }) => {
-      // show a progress message while status="executing", render the result when status="complete"
       console.log(
         "Rendering action: name=",
         name,
@@ -162,6 +159,7 @@ export default function Home() {
                 title: "Your Assistant",
                 initial: "Hi! 👋 How can I assist you today?",
               }}
+              imageUploadsEnabled={true}
             />
           </div>
         </div>
