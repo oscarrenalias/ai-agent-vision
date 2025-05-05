@@ -25,6 +25,7 @@ class ChatState(CopilotKitState):
         return ChatState(
             messages=[],
             input=None,
+            items=[],
         )
 
 
