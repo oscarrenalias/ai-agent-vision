@@ -9,6 +9,7 @@ from fastapi import FastAPI
 
 from agents.langgraphapp import main_graph
 from common.logging import configure_logging
+from common.server.upload_router import upload_router
 
 load_dotenv()
 
@@ -25,13 +26,11 @@ sdk = CopilotKitRemoteEndpoint(
     ],
 )
 
+# CopilotKit integration
 add_fastapi_endpoint(app, sdk, "/copilotkit", use_thread_pool=False)
 
-
-@app.get("/health")
-def health():
-    """Health check."""
-    return {"status": "ok"}
+# Register the upload router
+app.include_router(upload_router, prefix="/api")
 
 
 def main():
