@@ -4,9 +4,9 @@ export type ToolProcessingIndicatorProps = {
   message?: string;
 };
 
-const ToolProcessingIndicator: React.FC<ToolProcessingIndicatorProps> = ({
-  message = "Processing, please wait...",
-}) => {
+export const ToolProcessingIndicator: React.FC<
+  ToolProcessingIndicatorProps
+> = ({ message = "Processing, please wait..." }) => {
   return (
     <div
       style={{
@@ -34,5 +34,3 @@ const ToolProcessingIndicator: React.FC<ToolProcessingIndicatorProps> = ({
     </div>
   );
 };
-
-export default ToolProcessingIndicator;

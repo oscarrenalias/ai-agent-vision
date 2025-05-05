@@ -4,10 +4,17 @@ export type MealPlanItem = Record<string, any>;
  * overall type fo agent state
  */
 export type AgentState = {
+  messages: string[] | null;
+
   last_receipt: Receipt | null;
   last_meal_plan: MealPlanItem | null;
   last_shopping_list: {} | null;
+
+  // for receipt processing
+  receipt_image_path: string | null;
 };
+
+export const AGENT_NAME = "mighty_assistant";
 
 /*
 
