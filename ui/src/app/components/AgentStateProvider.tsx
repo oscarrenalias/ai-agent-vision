@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useCoAgent, useLangGraphInterrupt } from "@copilotkit/react-core";
 import { AGENT_NAME, AgentState } from "../lib/types";
+import AgentStateInspector from "./debug/AgentStateInspector";
 
 type AgentStateContextType = {
   setAgentState: (newState: AgentState) => void;
@@ -118,9 +119,9 @@ export const AgentStateProvider = ({
     },
   });
 
-  useEffect(() => {
+  /*useEffect(() => {
     console.log("AgentStateProvider status changed:", state);
-  }, [state]);
+  }, [state]);*/
 
   const setAgentState = (newState: AgentState) => {
     setState((prevState) => {
@@ -138,23 +139,7 @@ export const AgentStateProvider = ({
 
   return (
     <AgentStateContext.Provider value={{ setAgentState, getAgentState }}>
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          zIndex: 1000,
-          padding: "1rem",
-          borderBottomRightRadius: "8px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-          maxHeight: "40vh",
-          overflowY: "auto",
-          maxWidth: "350px",
-        }}
-      >
-        <h3>Agent State:</h3>
-        <pre>{JSON.stringify(state, null, 2)}</pre>
-      </div>
+      <AgentStateInspector state={state} />
       {children}
     </AgentStateContext.Provider>
   );
