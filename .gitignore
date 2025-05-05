@@ -22,6 +22,7 @@ var/
 
 # Uploaded files
 backend/uploads/
+uploads/
 
 # Node.js
 node_modules/
