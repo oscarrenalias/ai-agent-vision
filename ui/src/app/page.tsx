@@ -122,7 +122,6 @@ export default function Home() {
                   title: "Your Assistant",
                   initial: "Hi! 👋 How can I assist you today?",
                 }}
-                imageUploadsEnabled={true}
               />
             </div>
           </div>
