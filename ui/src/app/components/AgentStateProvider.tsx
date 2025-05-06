@@ -102,6 +102,22 @@ export const AgentStateProvider = ({
             >
               Upload
             </button>
+            <button
+              type="button"
+              onClick={() => resolve("__CANCEL__")}
+              disabled={uploading}
+              className="upload-interrupt-cancel ml-2"
+              style={{
+                marginLeft: "0.5rem",
+                background: "#eee",
+                color: "#333",
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+                padding: "0.5rem 1rem",
+              }}
+            >
+              Cancel
+            </button>
           </div>
           {error && <div className="upload-interrupt-error">{error}</div>}
           {uploading && !error && (

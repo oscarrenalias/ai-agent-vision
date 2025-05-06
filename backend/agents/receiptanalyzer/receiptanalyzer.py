@@ -7,7 +7,8 @@ from langchain.chains import TransformChain
 from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableConfig, chain
-from langgraph.types import interrupt
+from langgraph.graph import END
+from langgraph.types import Command, interrupt
 
 from agents.models import OpenAIModel
 from common.server.utils import get_uploads_folder
@@ -38,11 +39,17 @@ class ReceiptAnalyzer:
     def __init__(self):
         self.model = OpenAIModel(openai_model="o4-mini").get_model()
 
-    async def run(self, state: ReceiptState, config: RunnableConfig) -> dict:
+    async def run(self, state: ReceiptState, config: RunnableConfig) -> Command:
         chain = self.set_up_chain()
         logger.debug("state = " + str(state))
 
         state["receipt_image_path"] = interrupt("No receipt image path provided")
+
+        if state["receipt_image_path"] == "__CANCEL__":
+            # emit a message to the UI to indicate that the receipt is being processed,
+            # and terminate the process
+            await copilotkit_emit_message(config, "Receipt processing cancelled")
+            return Command(goto=END)
 
         # emit a message to the UI to indicate that the receipt is being processed
         await copilotkit_emit_message(config, "Receipt is being processed...")
@@ -53,7 +60,8 @@ class ReceiptAnalyzer:
         response = await chain.ainvoke({"receipt_image_path": state["receipt_image_path"]})
         logger.debug("response = " + pformat(response, indent=2))
 
-        return {"receipt": response}
+        # return {"receipt": response}
+        return Command(goto="classify_items", update={"receipt": response})
 
     def set_up_chain(self):
         extraction_model = self.model

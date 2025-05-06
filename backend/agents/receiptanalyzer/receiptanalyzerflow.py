@@ -35,7 +35,9 @@ class ReceiptAnalyzerFlow:
         workflow.add_node("persist_data", PersistData(get_data_store()).run)
 
         workflow.add_edge(START, "analyze_receipt")
-        workflow.add_edge("analyze_receipt", "classify_items")
+        # no direct connection between these two as analyze_receipt will use a Command resnpose
+        # to route to the right step
+        # workflow.add_edge("analyze_receipt", "classify_items")
         workflow.add_edge("classify_items", "persist_data")
         workflow.add_edge("persist_data", END)
         return workflow
