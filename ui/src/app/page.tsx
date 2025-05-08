@@ -15,7 +15,6 @@ import {
   AgentStateProvider,
   useAgentState,
 } from "./components/AgentStateProvider";
-import { CustomInput } from "./components/copilotkit/CustomInput";
 
 function MainContent() {
   const { getAgentState } = useAgentState();

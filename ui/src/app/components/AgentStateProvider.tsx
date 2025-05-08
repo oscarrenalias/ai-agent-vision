@@ -84,6 +84,18 @@ export const AgentStateProvider = ({
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
               className="upload-interrupt-select"
+              style={{
+                minWidth: "120px",
+                padding: "0.5rem 1rem",
+                borderRadius: "4px",
+                fontSize: "1rem",
+                background: uploading ? "#b3c6e0" : "#2563eb",
+                color: "#fff",
+                border: "1px solid #2563eb",
+                marginRight: "0.5rem",
+                cursor: uploading ? "not-allowed" : "pointer",
+                transition: "background 0.2s",
+              }}
             >
               Select Image
             </button>
@@ -99,6 +111,18 @@ export const AgentStateProvider = ({
               onClick={handleUpload}
               disabled={!selectedFile || uploading}
               className="upload-interrupt-upload"
+              style={{
+                minWidth: "120px",
+                padding: "0.5rem 1rem",
+                borderRadius: "4px",
+                fontSize: "1rem",
+                background: !selectedFile || uploading ? "#a7f3d0" : "#22c55e",
+                color: !selectedFile || uploading ? "#666" : "#fff",
+                border: "1px solid #22c55e",
+                marginRight: "0.5rem",
+                cursor: !selectedFile || uploading ? "not-allowed" : "pointer",
+                transition: "background 0.2s",
+              }}
             >
               Upload
             </button>
@@ -108,12 +132,16 @@ export const AgentStateProvider = ({
               disabled={uploading}
               className="upload-interrupt-cancel ml-2"
               style={{
-                marginLeft: "0.5rem",
-                background: "#eee",
-                color: "#333",
-                border: "1px solid #ccc",
-                borderRadius: "4px",
+                minWidth: "120px",
                 padding: "0.5rem 1rem",
+                borderRadius: "4px",
+                fontSize: "1rem",
+                background: uploading ? "#fecaca" : "#ef4444",
+                color: uploading ? "#666" : "#fff",
+                border: "1px solid #ef4444",
+                marginLeft: "0.5rem",
+                cursor: uploading ? "not-allowed" : "pointer",
+                transition: "background 0.2s",
               }}
             >
               Cancel
