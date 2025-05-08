@@ -43,7 +43,7 @@ class ReceiptAnalyzer:
         chain = self.set_up_chain()
         logger.debug("state = " + str(state))
 
-        state["receipt_image_path"] = interrupt("No receipt image path provided")
+        state["receipt_image_path"] = interrupt("Please provide an image with the receipt.")
 
         if state["receipt_image_path"] == "__CANCEL__":
             # emit a message to the UI to indicate that the receipt is being processed,

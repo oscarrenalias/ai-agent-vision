@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext } from "react";
 import { useCoAgent, useLangGraphInterrupt } from "@copilotkit/react-core";
 import { AGENT_NAME, AgentState } from "../lib/types";
 import AgentStateInspector from "./debug/AgentStateInspector";
+import UploadCard from "./chat/UploadCard";
 
 type AgentStateContextType = {
   setAgentState: (newState: AgentState) => void;
@@ -28,151 +29,14 @@ export const AgentStateProvider = ({
   });
 
   useLangGraphInterrupt({
-    render: ({ event, resolve }) => {
-      const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
-      const [uploading, setUploading] = React.useState(false);
-      const [error, setError] = React.useState<string | null>(null);
-      const fileInputRef = React.useRef<HTMLInputElement>(null);
-
-      const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-          setSelectedFile(e.target.files[0]);
-          setError(null);
-        }
-      };
-
-      const handleUpload = async () => {
-        if (!selectedFile) return;
-        setUploading(true);
-        setError(null);
-        try {
-          const formData = new FormData();
-          formData.append("file", selectedFile);
-          const response = await fetch("/api/upload", {
-            method: "POST",
-            body: formData,
-          });
-          if (!response.ok) {
-            throw new Error(`Upload failed: ${response.statusText}`);
-          }
-          const data = await response.json();
-          if (!data.id) {
-            throw new Error("No file id returned from server");
-          }
-          resolve(data.id);
-        } catch (err: any) {
-          setError(err.message || "Unknown error");
-          //resolve(`Error: ${err.message || "Unknown error"}`);
-        } finally {
-          //setUploading(false);
-        }
-      };
-
-      return (
-        <div className="upload-interrupt-box w-full max-w-none">
-          <p className="upload-interrupt-title">{event.value}</p>
-          <div className={uploading ? "hidden" : "upload-interrupt-row"}>
-            <input
-              type="file"
-              accept=".jpg,.jpeg,.png"
-              className="hidden"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="upload-interrupt-select"
-              style={{
-                minWidth: "120px",
-                padding: "0.5rem 1rem",
-                borderRadius: "4px",
-                fontSize: "1rem",
-                background: uploading ? "#b3c6e0" : "#2563eb",
-                color: "#fff",
-                border: "1px solid #2563eb",
-                marginRight: "0.5rem",
-                cursor: uploading ? "not-allowed" : "pointer",
-                transition: "background 0.2s",
-              }}
-            >
-              Select Image
-            </button>
-            {selectedFile && (
-              <span className="upload-interrupt-filename">
-                {selectedFile.name}
-              </span>
-            )}
-          </div>
-          <div className={uploading ? "hidden" : "upload-interrupt-upload-row"}>
-            <button
-              type="button"
-              onClick={handleUpload}
-              disabled={!selectedFile || uploading}
-              className="upload-interrupt-upload"
-              style={{
-                minWidth: "120px",
-                padding: "0.5rem 1rem",
-                borderRadius: "4px",
-                fontSize: "1rem",
-                background: !selectedFile || uploading ? "#a7f3d0" : "#22c55e",
-                color: !selectedFile || uploading ? "#666" : "#fff",
-                border: "1px solid #22c55e",
-                marginRight: "0.5rem",
-                cursor: !selectedFile || uploading ? "not-allowed" : "pointer",
-                transition: "background 0.2s",
-              }}
-            >
-              Upload
-            </button>
-            <button
-              type="button"
-              onClick={() => resolve("__CANCEL__")}
-              disabled={uploading}
-              className="upload-interrupt-cancel ml-2"
-              style={{
-                minWidth: "120px",
-                padding: "0.5rem 1rem",
-                borderRadius: "4px",
-                fontSize: "1rem",
-                background: uploading ? "#fecaca" : "#ef4444",
-                color: uploading ? "#666" : "#fff",
-                border: "1px solid #ef4444",
-                marginLeft: "0.5rem",
-                cursor: uploading ? "not-allowed" : "pointer",
-                transition: "background 0.2s",
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-          {error && <div className="upload-interrupt-error">{error}</div>}
-          {uploading && !error && (
-            <div className="upload-interrupt-spinner-overlay">
-              <div className="upload-interrupt-spinner-box">
-                <span className="upload-interrupt-spinner" />
-                <span className="upload-interrupt-spinner-text">
-                  Uploading...
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    },
+    render: ({ event, resolve }) => (
+      <UploadCard event={event} resolve={resolve} />
+    ),
   });
-
-  /*useEffect(() => {
-    console.log("AgentStateProvider status changed:", state);
-  }, [state]);*/
 
   const setAgentState = (newState: AgentState) => {
     setState((prevState) => {
-      console.log("Previous state:", prevState);
-      console.log("New state to merge:", newState);
       const merged = { ...prevState, ...newState };
-      console.log("Merged state:", merged);
       return merged;
     });
   };

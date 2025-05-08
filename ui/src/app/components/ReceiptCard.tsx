@@ -15,8 +15,8 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, height = 400 }) => {
         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         borderRadius: 12,
         padding: 24,
-        background: "var(--card-bg)",
-        color: "var(--card-fg)",
+        background: "var(--card-bg, #fff)",
+        color: "var(--card-fg, #23272e)",
         height: typeof height === "number" ? `${height}px` : height,
         display: "flex",
         flexDirection: "column",
@@ -39,7 +39,9 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, height = 400 }) => {
             key={idx}
             style={{
               borderBottom:
-                idx !== receipt.items.length - 1 ? "1px solid #eee" : undefined,
+                idx !== receipt.items.length - 1
+                  ? "1px solid var(--card-border, #eee)"
+                  : undefined,
               paddingBottom: 12,
               marginBottom: 12,
             }}
@@ -47,7 +49,7 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, height = 400 }) => {
             <div style={{ fontWeight: 600 }}>
               {item.name_en} ({item.name_fi})
             </div>
-            <div style={{ fontSize: 14, color: "#666" }}>
+            <div style={{ fontSize: 14, color: "var(--card-muted, #666)" }}>
               Category: {item.item_category.level_1} /{" "}
               {item.item_category.level_2} / {item.item_category.level_3}
               <br />
