@@ -9,12 +9,13 @@ import { ShoppingListCard } from "./components/ShoppingListCard";
 import { MealPlanCard } from "./components/MealPlanCard";
 import ReceiptCard from "./components/ReceiptCard";
 import "./copilotchat-custom.css";
-import { AGENT_NAME } from "./lib/types";
 import { ToolProcessingIndicator } from "./components/ToolProcessingIndicator";
 import {
   AgentStateProvider,
   useAgentState,
 } from "./components/AgentStateProvider";
+import { AgentState, AGENT_NAME } from "./lib/types";
+import { useCoAgentStateRender } from "@copilotkit/react-core";
 
 function MainContent() {
   const { getAgentState } = useAgentState();
@@ -61,7 +62,7 @@ function MainContent() {
       }
 
       if (status === "complete") {
-        console.log("result", result);
+        console.log("Action complete: name=", name, "result=", result);
       }
     },
   });
@@ -112,7 +113,7 @@ export default function Home() {
             }}
           >
             {/* threadId here should change depending on the user */}
-            <div style={{ marginTop: "auto" }}>
+            <div style={{ marginTop: "auto", paddingBottom: 24 }}>
               <CopilotChat
                 instructions={
                   "You are assisting the user as best as you can. Answer in the best way possible given the data you have."
