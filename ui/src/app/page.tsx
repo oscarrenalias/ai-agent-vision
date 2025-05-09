@@ -10,6 +10,7 @@ import { MealPlanCard } from "./components/MealPlanCard";
 import ReceiptCard from "./components/ReceiptCard";
 import "./copilotchat-custom.css";
 import { ToolProcessingIndicator } from "./components/ToolProcessingIndicator";
+import PriceLookupCard from "./components/chat/PriceLookupCard";
 import {
   AgentStateProvider,
   useAgentState,
@@ -40,29 +41,16 @@ function MainContent() {
 
   // Render actions for the agent
   useCopilotAction({
-    name: "*",
+    name: "s_kaupat_price_lookup",
     available: "disabled",
     render: ({ name, args, status, result, handler, respond }) => {
-      console.log(
-        "Rendering action: name=",
-        name,
-        "args=",
-        args,
-        "status=",
-        status
-      );
       if (status === "executing") {
-        if (name.includes("price_lookup")) {
-          return (
-            <ToolProcessingIndicator message="Processing price lookup..." />
-          );
-        } else {
-          return <ToolProcessingIndicator />;
-        }
+        return <ToolProcessingIndicator message="Processing price lookup..." />;
       }
 
       if (status === "complete") {
         console.log("Action complete: name=", name, "result=", result);
+        return <PriceLookupCard args={args} items={result} />;
       }
     },
   });
