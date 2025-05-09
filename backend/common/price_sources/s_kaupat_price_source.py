@@ -214,9 +214,7 @@ class SKaupatPriceSource(BasePriceSource):
                         "id": item["id"],
                         "name": item["name"],
                         "price": item["pricing"]["currentPrice"],
-                        "brand": item["brandName"],
                         "store_id": self.store_id,
-                        "image_url": item["productDetails"]["productImages"]["mainImage"]["urlTemplate"],
                     }
                     products.append(product)
 

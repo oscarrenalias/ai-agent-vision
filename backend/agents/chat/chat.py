@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime
 from typing import List
@@ -45,7 +46,15 @@ class ChatFlow:
             [
                 SystemMessage(
                     content="""
-                You are a helfpul assistant that can use tools to perform requests.
+                You are a helfpul assistant that can use tools to perform requests related to:
+
+                - grocery shopping
+                - price comparison and price lookups, which you can perform using price lookup toools
+
+                If asked to perform a price lookup, you will use the tools to perform the lookup and return the results. Do
+                not return the results of the tool calls in the response, but instead do an analysis and return the
+                most relevant information to the user such as the highest price, lowest price. The rest of items from the
+                tools call will be presented to the user in a specifi format, hence you do not need to return them.
 
                 Current time: {time}.
                 """
@@ -88,7 +97,10 @@ class ChatFlow:
             logger.debug(f"Tool call {tool_name}, result: {tool_msg}")
             if "price_lookup" in tool_name:
                 logger.debug(f"Processing results from price lookup tool: {tool}")
-                messages.append(ToolMessage(content=tool_msg["message"], tool_call_id=tool_call["id"]))
+
+                content = json.dumps(tool_msg["items"])
+                # messages.append(ToolMessage(content=tool_msg["message"], tool_call_id=tool_call["id"]))
+                messages.append(ToolMessage(content=content, tool_call_id=tool_call["id"]))
                 items.append(tool_msg["items"])
             else:
                 messages.append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
