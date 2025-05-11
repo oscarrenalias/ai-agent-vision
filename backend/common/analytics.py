@@ -111,7 +111,8 @@ async def calculate_monthly_spend():
 
 async def calculate_daily_spend():
     logger.info("Calculating daily spend...")
-    pipeline = [
+    # Overall daily totals
+    overall_pipeline = [
         {"$project": {"date": "$receipt_data.date", "total": "$receipt_data.total"}},
         {
             "$group": {
@@ -121,9 +122,93 @@ async def calculate_daily_spend():
         },
         {"$sort": {"_id.year": 1, "_id.month": 1, "_id.day": 1}},
     ]
-    results = await db[RECEIPTS_COLLECTION].aggregate(pipeline).to_list(length=None)
+    overall = await db[RECEIPTS_COLLECTION].aggregate(overall_pipeline).to_list(length=None)
+
+    # Daily totals per level_1 item type
+    level1_pipeline = [
+        {"$unwind": "$items"},
+        {"$project": {"date": "$receipt_data.date", "level_1": "$items.item_category.level_1", "total": "$items.total_price"}},
+        {
+            "$group": {
+                "_id": {
+                    "year": {"$year": "$date"},
+                    "month": {"$month": "$date"},
+                    "day": {"$dayOfMonth": "$date"},
+                    "level_1": "$level_1",
+                },
+                "total_spend": {"$sum": "$total"},
+            }
+        },
+        {"$sort": {"_id.year": 1, "_id.month": 1, "_id.day": 1, "_id.level_1": 1}},
+    ]
+    level1 = await db[RECEIPTS_COLLECTION].aggregate(level1_pipeline).to_list(length=None)
+
+    # Daily totals per level_2 item type
+    level2_pipeline = [
+        {"$unwind": "$items"},
+        {
+            "$project": {
+                "date": "$receipt_data.date",
+                "level_1": "$items.item_category.level_1",
+                "level_2": "$items.item_category.level_2",
+                "total": "$items.total_price",
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "year": {"$year": "$date"},
+                    "month": {"$month": "$date"},
+                    "day": {"$dayOfMonth": "$date"},
+                    "level_1": "$level_1",
+                    "level_2": "$level_2",
+                },
+                "total_spend": {"$sum": "$total"},
+            }
+        },
+        {"$sort": {"_id.year": 1, "_id.month": 1, "_id.day": 1, "_id.level_1": 1, "_id.level_2": 1}},
+        {"$project": {"_id": 1, "total_spend": 1, "level_1": "$_id.level_1", "level_2": "$_id.level_2"}},
+    ]
+    level2 = await db[RECEIPTS_COLLECTION].aggregate(level2_pipeline).to_list(length=None)
+
+    # Daily totals per level_3 item type
+    level3_pipeline = [
+        {"$unwind": "$items"},
+        {
+            "$project": {
+                "date": "$receipt_data.date",
+                "level_2": "$items.item_category.level_2",
+                "level_3": "$items.item_category.level_3",
+                "total": "$items.total_price",
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "year": {"$year": "$date"},
+                    "month": {"$month": "$date"},
+                    "day": {"$dayOfMonth": "$date"},
+                    "level_2": "$level_2",
+                    "level_3": "$level_3",
+                },
+                "total_spend": {"$sum": "$total"},
+            }
+        },
+        {"$sort": {"_id.year": 1, "_id.month": 1, "_id.day": 1, "_id.level_2": 1, "_id.level_3": 1}},
+        {"$project": {"_id": 1, "total_spend": 1, "level_2": "$_id.level_2", "level_3": "$_id.level_3"}},
+    ]
+    level3 = await db[RECEIPTS_COLLECTION].aggregate(level3_pipeline).to_list(length=None)
+
+    # Store or update the aggregates in a separate collection
     await db[AGGREGATES_COLLECTION].update_one(
-        {"type": "daily_spend"}, {"$set": {"data": results, "last_updated": datetime.utcnow()}}, upsert=True
+        {"type": "daily_spend"},
+        {
+            "$set": {
+                "data": {"overall": overall, "level_1": level1, "level_2": level2, "level_3": level3},
+                "last_updated": datetime.utcnow(),
+            }
+        },
+        upsert=True,
     )
     logger.info("Daily spend calculation complete.")
 
@@ -211,6 +296,152 @@ async def calculate_yearly_spend():
     logger.info("Yearly spend calculation complete.")
 
 
+async def calculate_weekly_spend():
+    logger.info("Calculating weekly spend...")
+    # Overall weekly totals
+    overall_pipeline = [
+        {
+            "$project": {
+                "date": "$receipt_data.date",
+                "total": "$receipt_data.total",
+                "year": {"$isoWeekYear": "$receipt_data.date"},
+                "week": {"$isoWeek": "$receipt_data.date"},
+                "first_day_of_week": {
+                    "$dateFromParts": {
+                        "isoWeekYear": {"$isoWeekYear": "$receipt_data.date"},
+                        "isoWeek": {"$isoWeek": "$receipt_data.date"},
+                        "isoDayOfWeek": 1,
+                    }
+                },
+            }
+        },
+        {
+            "$group": {
+                "_id": {"year": "$year", "week": "$week", "first_day_of_week": "$first_day_of_week"},
+                "total_spend": {"$sum": "$total"},
+            }
+        },
+        {"$sort": {"_id.year": 1, "_id.week": 1}},
+    ]
+    overall = await db[RECEIPTS_COLLECTION].aggregate(overall_pipeline).to_list(length=None)
+
+    # Weekly totals per level_1 item type
+    level1_pipeline = [
+        {"$unwind": "$items"},
+        {
+            "$project": {
+                "date": "$receipt_data.date",
+                "level_1": "$items.item_category.level_1",
+                "total": "$items.total_price",
+                "year": {"$isoWeekYear": "$receipt_data.date"},
+                "week": {"$isoWeek": "$receipt_data.date"},
+                "first_day_of_week": {
+                    "$dateFromParts": {
+                        "isoWeekYear": {"$isoWeekYear": "$receipt_data.date"},
+                        "isoWeek": {"$isoWeek": "$receipt_data.date"},
+                        "isoDayOfWeek": 1,
+                    }
+                },
+            }
+        },
+        {
+            "$group": {
+                "_id": {"year": "$year", "week": "$week", "level_1": "$level_1", "first_day_of_week": "$first_day_of_week"},
+                "total_spend": {"$sum": "$total"},
+            }
+        },
+        {"$sort": {"_id.year": 1, "_id.week": 1, "_id.level_1": 1}},
+    ]
+    level1 = await db[RECEIPTS_COLLECTION].aggregate(level1_pipeline).to_list(length=None)
+
+    # Weekly totals per level_2 item type
+    level2_pipeline = [
+        {"$unwind": "$items"},
+        {
+            "$project": {
+                "date": "$receipt_data.date",
+                "level_1": "$items.item_category.level_1",
+                "level_2": "$items.item_category.level_2",
+                "total": "$items.total_price",
+                "year": {"$isoWeekYear": "$receipt_data.date"},
+                "week": {"$isoWeek": "$receipt_data.date"},
+                "first_day_of_week": {
+                    "$dateFromParts": {
+                        "isoWeekYear": {"$isoWeekYear": "$receipt_data.date"},
+                        "isoWeek": {"$isoWeek": "$receipt_data.date"},
+                        "isoDayOfWeek": 1,
+                    }
+                },
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "year": "$year",
+                    "week": "$week",
+                    "level_1": "$level_1",
+                    "level_2": "$level_2",
+                    "first_day_of_week": "$first_day_of_week",
+                },
+                "total_spend": {"$sum": "$total"},
+            }
+        },
+        {"$sort": {"_id.year": 1, "_id.week": 1, "_id.level_1": 1, "_id.level_2": 1}},
+        {"$project": {"_id": 1, "total_spend": 1, "level_1": "$_id.level_1", "level_2": "$_id.level_2"}},
+    ]
+    level2 = await db[RECEIPTS_COLLECTION].aggregate(level2_pipeline).to_list(length=None)
+
+    # Weekly totals per level_3 item type
+    level3_pipeline = [
+        {"$unwind": "$items"},
+        {
+            "$project": {
+                "date": "$receipt_data.date",
+                "level_2": "$items.item_category.level_2",
+                "level_3": "$items.item_category.level_3",
+                "total": "$items.total_price",
+                "year": {"$isoWeekYear": "$receipt_data.date"},
+                "week": {"$isoWeek": "$receipt_data.date"},
+                "first_day_of_week": {
+                    "$dateFromParts": {
+                        "isoWeekYear": {"$isoWeekYear": "$receipt_data.date"},
+                        "isoWeek": {"$isoWeek": "$receipt_data.date"},
+                        "isoDayOfWeek": 1,
+                    }
+                },
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "year": "$year",
+                    "week": "$week",
+                    "level_2": "$level_2",
+                    "level_3": "$level_3",
+                    "first_day_of_week": "$first_day_of_week",
+                },
+                "total_spend": {"$sum": "$total"},
+            }
+        },
+        {"$sort": {"_id.year": 1, "_id.week": 1, "_id.level_2": 1, "_id.level_3": 1}},
+        {"$project": {"_id": 1, "total_spend": 1, "level_2": "$_id.level_2", "level_3": "$_id.level_3"}},
+    ]
+    level3 = await db[RECEIPTS_COLLECTION].aggregate(level3_pipeline).to_list(length=None)
+
+    # Store or update the aggregates in a separate collection
+    await db[AGGREGATES_COLLECTION].update_one(
+        {"type": "weekly_spend"},
+        {
+            "$set": {
+                "data": {"overall": overall, "level_1": level1, "level_2": level2, "level_3": level3},
+                "last_updated": datetime.utcnow(),
+            }
+        },
+        upsert=True,
+    )
+    logger.info("Weekly spend calculation complete.")
+
+
 async def listen_for_receipt_changes():
     logger.info("Listening for changes in the receipts collection...")
     try:
@@ -221,6 +452,7 @@ async def listen_for_receipt_changes():
                     await calculate_monthly_spend()
                     await calculate_daily_spend()
                     await calculate_yearly_spend()
+                    await calculate_weekly_spend()
                 except Exception as e:
                     logger.error(f"Error in aggregation functions: {e}")
     except Exception as e:

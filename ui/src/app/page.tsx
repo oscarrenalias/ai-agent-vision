@@ -17,7 +17,10 @@ import {
 } from "./components/AgentStateProvider";
 import { AgentState, AGENT_NAME } from "./lib/types";
 import { useCoAgentStateRender } from "@copilotkit/react-core";
-import { YearlySpendBarChart } from "./components/YearlySpendBarChart";
+import { YearlySpendChart } from "./components/charts/YearlySpendChart";
+import { MonthlySpendChart } from "./components/charts/MonthlySpendChart";
+import { DailySpendChart } from "./components/charts/DailySpendChart";
+import { useState } from "react";
 
 function MainContent() {
   const { getAgentState } = useAgentState();
@@ -56,9 +59,27 @@ function MainContent() {
     },
   });
 
+  // Lift year/month state up to here
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
+
   return (
     <div>
-      <YearlySpendBarChart />
+      <div style={{ display: "flex", gap: 24, marginBottom: 24 }}>
+        <div style={{ flex: 1 }}>
+          <YearlySpendChart />
+        </div>
+        <div style={{ flex: 1 }}>
+          <MonthlySpendChart
+            year={year}
+            month={month}
+            setYear={setYear}
+            setMonth={setMonth}
+          />
+        </div>
+      </div>
+      <DailySpendChart year={year} month={month} />
       {hasMealPlan && (
         <MealPlanCard meals={state.last_meal_plan} height={400} />
       )}
