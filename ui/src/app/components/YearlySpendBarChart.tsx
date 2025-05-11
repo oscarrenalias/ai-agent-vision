@@ -26,6 +26,10 @@ export function YearlySpendBarChart() {
   if (error) return <div>{error}</div>;
   if (!data) return null;
 
+  // Extract the year from the first overall entry, fallback to empty if not found
+  const year =
+    data.overall && data.overall[0]?._id?.year ? data.overall[0]._id.year : "";
+
   // Show all level_2 as bars, grouped by level_1
   const rows = data.level_2.map((l2: any) => ({
     level_1: l2.level_1,
@@ -37,7 +41,7 @@ export function YearlySpendBarChart() {
     <Card sx={{ mb: 3, maxWidth: 900, margin: "0 auto" }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          Yearly Spend by Category (Level 2)
+          {`${year ? ` ${year}` : ""} Yearly Spend`}
         </Typography>
         <BarChart
           dataset={rows}
