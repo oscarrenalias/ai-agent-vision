@@ -78,7 +78,7 @@ export function DailySpendChart({
           {monthName} {year} Daily Spend
         </Typography>
         <Typography variant="subtitle1" align="center" sx={{ mb: 1 }}>
-          Month-to-date Total: {total.toFixed(2)} €
+          Month Total: {total.toFixed(2)} €
         </Typography>
         {loading ? (
           <Skeleton

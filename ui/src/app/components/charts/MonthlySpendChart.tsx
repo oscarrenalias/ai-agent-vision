@@ -157,6 +157,8 @@ export function MonthlySpendChart({
                 innerRadius: 60,
                 outerRadius: 120,
                 paddingAngle: 2,
+                arcLabel: (item) => `${item.value.toFixed(2)} €`,
+                arcLabelMinAngle: 15, // Hide labels for small arcs
               },
             ]}
             height={260}
