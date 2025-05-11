@@ -3,6 +3,7 @@ import os
 import uuid
 
 from fastapi import APIRouter, File, UploadFile
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from common.server.utils import get_uploads_folder
 
@@ -10,6 +11,13 @@ upload_router = APIRouter()
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+MONGO_URI = os.environ.get("MONGODB_URI", "mongodb://localhost:27017")
+DB_NAME = os.environ.get("MONGODB_DATABASE", "receipts")
+AGGREGATES_COLLECTION = "aggregates"
+
+mongo_client = AsyncIOMotorClient(MONGO_URI)
+db = mongo_client[DB_NAME]
 
 
 @upload_router.post("/upload")

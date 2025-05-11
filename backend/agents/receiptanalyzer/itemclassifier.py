@@ -1,5 +1,6 @@
 import logging
 
+from copilotkit.langchain import copilotkit_customize_config
 from copilotkit.langgraph import copilotkit_emit_message
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
@@ -29,6 +30,8 @@ class ItemClassifier:
 
     async def run(self, state: ReceiptState, config: RunnableConfig) -> ReceiptState:
         logger.info("ItemClassifier run")
+
+        copilotkit_customize_config(config, emit_messages=False)
 
         # call the LLM model to classify the items and map the response to the JSON object accordingly
         # Create prompt template with output format instructions

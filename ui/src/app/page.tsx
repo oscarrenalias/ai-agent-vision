@@ -17,6 +17,7 @@ import {
 } from "./components/AgentStateProvider";
 import { AgentState, AGENT_NAME } from "./lib/types";
 import { useCoAgentStateRender } from "@copilotkit/react-core";
+import { YearlySpendBarChart } from "./components/YearlySpendBarChart";
 
 function MainContent() {
   const { getAgentState } = useAgentState();
@@ -57,6 +58,7 @@ function MainContent() {
 
   return (
     <div>
+      <YearlySpendBarChart />
       {hasMealPlan && (
         <MealPlanCard meals={state.last_meal_plan} height={400} />
       )}

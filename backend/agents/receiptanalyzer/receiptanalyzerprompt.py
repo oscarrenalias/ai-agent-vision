@@ -28,4 +28,8 @@ class ReceiptAnalyzerPrompt:
         - Total value of the items before loyalty discounts
         - Total amount saved via loyalty card discounts (PLUSSAT-EDUT YHTEENSÄ)
         - Total amount paid by the customer (including taxes)
+        - Date of the receipt in YYYY-MM-DD format, if available. Otherwise, set to null. The receipt date
+        is typically found in the top of the receipt, in the format "DD.MM.YYYY" (e.g., 01.01.2023).
+        - Store name, if available. Otherwise, set to null. The store name is usually found in the top of
+        the receipt, but is it not always present or identified as the store name.
        """

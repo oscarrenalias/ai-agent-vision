@@ -2,6 +2,7 @@ import base64
 import logging
 from pprint import pformat
 
+from copilotkit.langchain import copilotkit_customize_config
 from copilotkit.langgraph import copilotkit_emit_message
 from langchain.chains import TransformChain
 from langchain_core.messages import HumanMessage
@@ -42,6 +43,8 @@ class ReceiptAnalyzer:
     async def run(self, state: ReceiptState, config: RunnableConfig) -> Command:
         chain = self.set_up_chain()
         logger.debug("state = " + str(state))
+
+        copilotkit_customize_config(config, emit_messages=False)
 
         state["receipt_image_path"] = interrupt("Please provide an image with the receipt.")
 

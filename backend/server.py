@@ -1,22 +1,45 @@
+# flake8: noqa: E402
+import asyncio
 import logging
 import os
+from contextlib import asynccontextmanager
 
 import uvicorn
 from copilotkit import CopilotKitRemoteEndpoint, LangGraphAgent
 from copilotkit.integrations.fastapi import add_fastapi_endpoint
+
+# Needed this early so that subsequent imports can use it
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from agents.langgraphapp import main_graph
-from common.logging import configure_logging
-from common.server.upload_router import upload_router
-
 load_dotenv(verbose=True)
 
+from agents.langgraphapp import main_graph
+from common.analytics import listen_for_receipt_changes
+from common.logging import configure_logging
+from common.server.analytics_router import analytics_router
+from common.server.upload_router import upload_router
 
 configure_logging(logging.DEBUG)
 
-app = FastAPI()
+
+# required for the async mongo client
+@asynccontextmanager
+async def lifespan(app):
+    loop = asyncio.get_event_loop()
+    task = loop.create_task(listen_for_receipt_changes())
+    yield
+    task.cancel()
+
+
+# instantiate the FastAPI app with a lifespan context manager
+app = FastAPI(lifespan=lifespan)
+
+# Register the upload router
+app.include_router(upload_router, prefix="/api")
+app.include_router(analytics_router, prefix="/api")
+
+# CopilotKit integration
 sdk = CopilotKitRemoteEndpoint(
     agents=[
         LangGraphAgent(
@@ -25,12 +48,7 @@ sdk = CopilotKitRemoteEndpoint(
         )
     ],
 )
-
-# CopilotKit integration
 add_fastapi_endpoint(app, sdk, "/copilotkit", use_thread_pool=False)
-
-# Register the upload router
-app.include_router(upload_router, prefix="/api")
 
 
 def main():
