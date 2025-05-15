@@ -45,21 +45,23 @@ export const MealPlanCard: React.FC<MealPlanProps> = ({
                 marginBottom: 12,
               }}
             >
-              {Object.entries(meal as Record<string, any>).map(([key, value]) => (
-                <div key={key}>
-                  <strong>{key}:</strong>{" "}
-                  {Array.isArray(value)
-                    ? value.length > 0
-                      ? value.map((item, index) => (
-                          <span key={index}>
-                            {item}
-                            {index < value.length - 1 ? ", " : ""}
-                          </span>
-                        ))
-                      : "No items"
-                    : String(value)}
-                </div>
-              ))}
+              {Object.entries(meal as Record<string, any>).map(
+                ([key, value]) => (
+                  <div key={key}>
+                    <strong>{key}:</strong>{" "}
+                    {Array.isArray(value)
+                      ? value.length > 0
+                        ? value.map((item, index) => (
+                            <span key={index}>
+                              {item}
+                              {index < value.length - 1 ? ", " : ""}
+                            </span>
+                          ))
+                        : "No items"
+                      : String(value)}
+                  </div>
+                )
+              )}
             </li>
           ))}
         </ul>

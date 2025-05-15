@@ -27,17 +27,24 @@ function MainContent() {
 
   const state = getAgentState();
 
-  const mealPlan = Array.isArray(state.last_meal_plan) ? state.last_meal_plan : [];
+  const mealPlan = Array.isArray(state.last_meal_plan)
+    ? state.last_meal_plan
+    : [];
   const shoppingList =
-    state.last_shopping_list && typeof state.last_shopping_list === "object" &&
+    state.last_shopping_list &&
+    typeof state.last_shopping_list === "object" &&
     Array.isArray((state.last_shopping_list as any).shopping_list)
       ? (state.last_shopping_list as any).shopping_list
       : [];
-  const receipt = state.last_receipt && typeof state.last_receipt === "object" ? state.last_receipt : null;
+  const receipt =
+    state.last_receipt && typeof state.last_receipt === "object"
+      ? state.last_receipt
+      : null;
 
   const hasMealPlan = mealPlan.length > 0;
   const hasShoppingList = shoppingList.length > 0;
-  const hasReceipt = receipt && Array.isArray(receipt.items) && receipt.items.length > 0;
+  const hasReceipt =
+    receipt && Array.isArray(receipt.items) && receipt.items.length > 0;
 
   // Render actions for the agent
   useCopilotAction({
@@ -45,12 +52,16 @@ function MainContent() {
     available: "disabled",
     render: ({ status, args, result }) => {
       if (status === "executing") {
-        return <ToolProcessingIndicator message="Processing price lookup..." /> as React.ReactElement;
+        return (
+          <ToolProcessingIndicator message="Processing price lookup..." />
+        ) as React.ReactElement;
       }
       if (status === "complete") {
         // name is not available, so remove it from the log
         console.log("Action complete: result=", result);
-        return <PriceLookupCard args={args} items={result} /> as React.ReactElement;
+        return (
+          <PriceLookupCard args={args} items={result} />
+        ) as React.ReactElement;
       }
       // Always return a valid ReactElement (empty fragment) instead of null
       return <></>;
@@ -78,14 +89,9 @@ function MainContent() {
         </div>
       </div>
       <DailySpendChart year={year} month={month} />
-      {hasMealPlan && (
-        <MealPlanCard meals={mealPlan} height={400} />
-      )}
+      {hasMealPlan && <MealPlanCard meals={mealPlan} height={400} />}
       {hasShoppingList && (
-        <ShoppingListCard
-          shopping_list={shoppingList}
-          height={400}
-        />
+        <ShoppingListCard shopping_list={shoppingList} height={400} />
       )}
       {hasReceipt && receipt && <ReceiptCard receipt={receipt} height={400} />}
     </div>
