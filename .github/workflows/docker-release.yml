@@ -1,0 +1,78 @@
+name: Docker Release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/backend:latest
+            ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+
+      - name: Build and push ui image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ui
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/ui:latest
+            ghcr.io/${{ github.repository }}/ui:${{ github.sha }}
+
+      - name: Prepare docker-compose.yml for release
+        run: |
+          sed -e "s|ghcr.io/OWNER/REPO/backend:latest|ghcr.io/${{ github.repository }}/backend:${{ github.sha }}|g" \
+              -e "s|ghcr.io/OWNER/REPO/ui:latest|ghcr.io/${{ github.repository }}/ui:${{ github.sha }}|g" \
+              docker-compose.yml > docker-compose.release.yml
+
+      - name: Upload docker-compose release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-compose-release
+          path: docker-compose.release.yml
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Download docker-compose artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-compose-release
+          path: ./release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: docker-release-${{ github.sha }}
+          name: Docker Compose Release ${{ github.sha }}
+          body: |
+            Docker images for backend and ui are published to GitHub Container Registry with tags `latest` and `${{ github.sha }}`.
+            This release contains the docker-compose.yml for deployment.
+          files: ./release/docker-compose.release.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
