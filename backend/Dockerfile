@@ -1,22 +1,18 @@
-# Use official Python image as base
-FROM python:3.13-slim
+# syntax=docker/dockerfile:1
 
-# Set working directory
+# --- Build stage ---
+FROM python:3.13-slim AS build
 WORKDIR /app
-
-# Copy requirements and install dependencies
 COPY requirements.txt ./
-# Install system dependencies for lxml and similar packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libxml2-dev libxslt1-dev \
+    build-essential libxml2-dev libxslt1-dev \
     && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# Copy the rest of the backend code
+# --- Final stage ---
+FROM python:3.13-slim AS final
+WORKDIR /app
+COPY --from=build /install /usr/local
 COPY . .
-
-# Expose the port (change if your app uses a different port)
 EXPOSE 8000
-
-# Set the default command to run the backend server
 CMD ["python", "server.py"]
