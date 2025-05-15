@@ -92,7 +92,6 @@ export function YearlySpendChart() {
               },
             ]}
             height={260}
-            legend={{ position: "right" }}
           />
         )}
         {!loading && noData && (

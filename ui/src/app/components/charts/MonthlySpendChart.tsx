@@ -133,7 +133,7 @@ export function MonthlySpendChart({
     const tooltipData = useItemTooltip();
     if (!tooltipData) return null;
     const key = tooltipData.label;
-    let l3List = level3Map[key] || [];
+    let l3List = key !== undefined ? level3Map[key] || [] : [];
     // Filter out empty/null values, but if all are empty, show "No breakdown available"
     const hasNonEmpty = l3List.some(
       (v) => v && v !== "(none)" && v !== "(unnamed)"

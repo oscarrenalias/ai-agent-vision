@@ -11,7 +11,8 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   shopping_list,
   height = 400,
 }) => {
-  if (!shopping_list || shopping_list.length === 0) return null;
+  const items = Object.values(shopping_list).flat();
+  if (items.length === 0) return null;
 
   return (
     <div
@@ -32,12 +33,12 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
     >
       <h2 style={{ marginTop: 0, marginBottom: 16 }}>🛒 Shopping List</h2>
       <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-        {shopping_list.map((item, idx) => (
+        {items.map((item, idx) => (
           <li
             key={idx}
             style={{
               borderBottom:
-                idx !== shopping_list.length - 1 ? "1px solid #eee" : undefined,
+                idx !== items.length - 1 ? "1px solid #eee" : undefined,
               paddingBottom: 12,
               marginBottom: 12,
             }}

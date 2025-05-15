@@ -45,7 +45,7 @@ export const MealPlanCard: React.FC<MealPlanProps> = ({
                 marginBottom: 12,
               }}
             >
-              {Object.entries(meal).map(([key, value]) => (
+              {Object.entries(meal as Record<string, any>).map(([key, value]) => (
                 <div key={key}>
                   <strong>{key}:</strong>{" "}
                   {Array.isArray(value)

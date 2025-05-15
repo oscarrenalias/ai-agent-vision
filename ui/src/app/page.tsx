@@ -27,35 +27,33 @@ function MainContent() {
 
   const state = getAgentState();
 
-  const hasMealPlan =
-    state.last_meal_plan &&
-    Array.isArray(state.last_meal_plan) &&
-    state.last_meal_plan.length > 0;
+  const mealPlan = Array.isArray(state.last_meal_plan) ? state.last_meal_plan : [];
+  const shoppingList =
+    state.last_shopping_list && typeof state.last_shopping_list === "object" &&
+    Array.isArray((state.last_shopping_list as any).shopping_list)
+      ? (state.last_shopping_list as any).shopping_list
+      : [];
+  const receipt = state.last_receipt && typeof state.last_receipt === "object" ? state.last_receipt : null;
 
-  const hasShoppingList =
-    state.last_shopping_list &&
-    Array.isArray(state.last_shopping_list.shopping_list) &&
-    state.last_shopping_list.shopping_list.length > 0;
-
-  const hasReceipt =
-    state.last_receipt &&
-    state.last_receipt.items &&
-    Array.isArray(state.last_receipt.items) &&
-    state.last_receipt.items.length > 0;
+  const hasMealPlan = mealPlan.length > 0;
+  const hasShoppingList = shoppingList.length > 0;
+  const hasReceipt = receipt && Array.isArray(receipt.items) && receipt.items.length > 0;
 
   // Render actions for the agent
   useCopilotAction({
     name: "s_kaupat_price_lookup",
     available: "disabled",
-    render: ({ name, args, status, result, handler, respond }) => {
+    render: ({ status, args, result }) => {
       if (status === "executing") {
-        return <ToolProcessingIndicator message="Processing price lookup..." />;
+        return <ToolProcessingIndicator message="Processing price lookup..." /> as React.ReactElement;
       }
-
       if (status === "complete") {
-        console.log("Action complete: name=", name, "result=", result);
-        return <PriceLookupCard args={args} items={result} />;
+        // name is not available, so remove it from the log
+        console.log("Action complete: result=", result);
+        return <PriceLookupCard args={args} items={result} /> as React.ReactElement;
       }
+      // Always return a valid ReactElement (empty fragment) instead of null
+      return <></>;
     },
   });
 
@@ -81,15 +79,15 @@ function MainContent() {
       </div>
       <DailySpendChart year={year} month={month} />
       {hasMealPlan && (
-        <MealPlanCard meals={state.last_meal_plan} height={400} />
+        <MealPlanCard meals={mealPlan} height={400} />
       )}
       {hasShoppingList && (
         <ShoppingListCard
-          shopping_list={state.last_shopping_list.shopping_list}
+          shopping_list={shoppingList}
           height={400}
         />
       )}
-      {hasReceipt && <ReceiptCard receipt={state.last_receipt} height={400} />}
+      {hasReceipt && receipt && <ReceiptCard receipt={receipt} height={400} />}
     </div>
   );
 }

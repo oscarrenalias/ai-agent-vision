@@ -26,6 +26,7 @@ export function CustomInput({ inProgress, onSend, isVisible }: InputProps) {
 
           // update state
           setAgentState({
+            ...getAgentState(),
             receipt_image_path: data.filename,
           });
           console.log("File uploaded. Agent state: ", getAgentState());
