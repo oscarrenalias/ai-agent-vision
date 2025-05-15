@@ -6,6 +6,10 @@ WORKDIR /app
 
 # Copy requirements and install dependencies
 COPY requirements.txt ./
+# Install system dependencies for lxml and similar packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libxml2-dev libxslt1-dev \
+    && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the backend code
