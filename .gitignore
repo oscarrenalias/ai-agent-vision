@@ -19,6 +19,7 @@ var/
 .installed.cfg
 *.egg
 .venv/
+example/
 
 # Uploaded files
 backend/uploads/
