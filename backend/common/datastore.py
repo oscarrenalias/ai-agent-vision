@@ -122,41 +122,21 @@ def get_data_store(store_type: str = None) -> DataStore:
     Factory function to get the appropriate data store implementation
 
     Args:
-        store_type: Type of data store to use ('postgres', 'sqlite', or None)
-                   If None, will check for DATASTORE_TYPE environment variable
-                   and default to 'postgres' if not set
+        store_type: Type of data store to use, "mongodb" is currently the default and only supported.
 
     Returns:
         DataStore implementation
     """
-    from .postgres_store import PostgresStore
-    from .sqlite_store import SQLiteStore
-
     # Determine store type from environment variable if not specified
     if store_type is None:
         store_type = os.environ.get("DATASTORE_TYPE", "mongodb").lower()
 
-    # Create and return the appropriate data store
-    if store_type == "sqlite":
-        logger.info("Using SQLite data store")
-        return SQLiteStore()
-    elif store_type == "postgres":
-        logger.info("Using PostgreSQL data store")
-        connection_params = {
-            "host": os.environ.get("POSTGRES_HOST", "localhost"),
-            "port": int(os.environ.get("POSTGRES_PORT", 5432)),
-            "dbname": os.environ.get("POSTGRES_DB", "receipts"),
-            "user": os.environ.get("POSTGRES_USER", "postgres"),
-            "password": os.environ.get("POSTGRES_PASSWORD", "postgres"),
-        }
-        return PostgresStore(connection_params)
-    else:
-        # Default to MongoDB
-        logger.info("Using MongoDB data store")
-        from .mongo_store import MongoStore
+    # Default to MongoDB
+    logger.info("Using MongoDB data store")
+    from .mongo_store import MongoStore
 
-        connection_params = {
-            "uri": os.environ.get("MONGODB_URI", "mongodb://localhost:27017"),
-            "database": os.environ.get("MONGODB_DATABASE", "receipts"),
-        }
-        return MongoStore(connection_params)
+    connection_params = {
+        "uri": os.environ.get("MONGODB_URI", "mongodb://localhost:27017"),
+        "database": os.environ.get("MONGODB_DATABASE", "receipts"),
+    }
+    return MongoStore(connection_params)
