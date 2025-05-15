@@ -39,6 +39,7 @@ async def get_monthly_spend(year: int = Query(None), month: int = Query(None)):
         "overall": filter_month(data.get("overall", [])),
         "level_1": filter_month(data.get("level_1", [])),
         "level_2": filter_month(data.get("level_2", [])),
+        "level_3": filter_month(data.get("level_3", [])),
     }
     return {"monthly_spend": data}
 

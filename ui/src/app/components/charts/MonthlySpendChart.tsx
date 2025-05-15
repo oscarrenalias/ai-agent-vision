@@ -1,4 +1,5 @@
 import { PieChart } from "@mui/x-charts/PieChart";
+import { useItemTooltip } from "@mui/x-charts/ChartsTooltip";
 import { useEffect, useState } from "react";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -7,6 +8,8 @@ import IconButton from "@mui/material/IconButton";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import Skeleton from "@mui/material/Skeleton";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
 
 export function MonthlySpendChart({
   year,
@@ -102,11 +105,83 @@ export function MonthlySpendChart({
   });
   const noData = !rows.length;
 
+  // Prepare a map from level_2 to its level_3 items (use only level_2 as key)
+  let level3Map: Record<string, string[]> = {};
+  if (data && data.level_3 && Array.isArray(data.level_3)) {
+    data.level_3.forEach((l3: any) => {
+      const key = l3.level_2;
+      if (!level3Map[key]) level3Map[key] = [];
+      // Use l3.level_3 or l3.label or l3.name as the display name
+      let display = l3.level_3 || l3.label || l3.name || "(unnamed)";
+      if (display === null) display = "(none)";
+      level3Map[key].push(display);
+    });
+  }
+
   let pieData = rows.map((row) => ({
     id: row.level_2,
     value: row.total_spend,
     label: row.level_2,
+    level_2: row.level_2,
   }));
+
+  function CustomPieTooltip({
+    level3Map,
+  }: {
+    level3Map: Record<string, string[]>;
+  }) {
+    const tooltipData = useItemTooltip();
+    if (!tooltipData) return null;
+    const key = tooltipData.label;
+    let l3List = level3Map[key] || [];
+    // Filter out empty/null values, but if all are empty, show "No breakdown available"
+    const hasNonEmpty = l3List.some(
+      (v) => v && v !== "(none)" && v !== "(unnamed)"
+    );
+    if (!hasNonEmpty && l3List.length > 0) l3List = ["No breakdown available"];
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          m: 1,
+          p: 1.5,
+          border: "solid",
+          borderWidth: 2,
+          borderColor: "divider",
+          minWidth: 180,
+        }}
+      >
+        <Stack direction="column" alignItems="flex-start">
+          <Stack direction="row" alignItems="center">
+            <div
+              style={{
+                width: 11,
+                height: 11,
+                borderRadius: "50%",
+                backgroundColor: tooltipData.color,
+              }}
+            />
+            <Typography sx={{ ml: 2 }} fontWeight="light">
+              {tooltipData.label}
+            </Typography>
+            <Typography sx={{ ml: 2 }}>{tooltipData.formattedValue}</Typography>
+          </Stack>
+          {l3List.length > 0 && (
+            <div style={{ marginTop: 6 }}>
+              <div style={{ fontWeight: 500, marginBottom: 2 }}>
+                Level 3 breakdown:
+              </div>
+              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                {l3List.map((name, idx) => (
+                  <li key={idx}>{name || "(none)"}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </Stack>
+      </Paper>
+    );
+  }
 
   return (
     <Card sx={{ mb: 3, width: "100%", minWidth: 320, flex: 1 }}>
@@ -150,19 +225,23 @@ export function MonthlySpendChart({
             sx={{ borderRadius: 2, mb: 2 }}
           />
         ) : (
-          <PieChart
-            series={[
-              {
-                data: pieData,
-                innerRadius: 60,
-                outerRadius: 120,
-                paddingAngle: 2,
-                arcLabel: (item) => `${item.value.toFixed(2)} €`,
-                arcLabelMinAngle: 15, // Hide labels for small arcs
-              },
-            ]}
-            height={260}
-          />
+          <div style={{ position: "relative" }}>
+            <PieChart
+              series={[
+                {
+                  data: pieData,
+                  innerRadius: 60,
+                  outerRadius: 120,
+                  paddingAngle: 2,
+                  arcLabel: (item) => `${item.value.toFixed(2)} €`,
+                  arcLabelMinAngle: 15, // Hide labels for small arcs
+                },
+              ]}
+              height={260}
+            >
+              <CustomPieTooltip level3Map={level3Map} />
+            </PieChart>
+          </div>
         )}
         {!loading && noData && (
           <Typography
