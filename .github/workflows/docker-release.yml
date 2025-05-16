@@ -38,7 +38,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/backend:latest
             ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
-          platforms: linux/amd64,linux/arm/v7,linux/arm64
+          platforms: linux/amd64,linux/arm64
 
       - name: Build and push ui image
         uses: docker/build-push-action@v5
@@ -48,7 +48,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/ui:latest
             ghcr.io/${{ github.repository }}/ui:${{ github.sha }}
-          platforms: linux/amd64,linux/arm/v7,linux/arm64
+          platforms: linux/amd64,linux/arm64
 
       - name: Prepare docker-compose.yml for release
         run: |
