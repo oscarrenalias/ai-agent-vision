@@ -1,7 +1,7 @@
 import logging
 
+from copilotkit import CopilotKitState
 from copilotkit.langgraph import copilotkit_interrupt
-from copilotkit.state import CopilotKitState
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph

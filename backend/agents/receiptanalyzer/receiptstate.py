@@ -1,4 +1,4 @@
-from copilotkit.state import CopilotKitState
+from copilotkit import CopilotKitState
 from pydantic import BaseModel, Field
 from typing_extensions import Any, List, Literal, Optional
 

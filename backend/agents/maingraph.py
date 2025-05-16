@@ -1,7 +1,7 @@
 import logging
 from typing import List
 
-from copilotkit.state import CopilotKitState
+from copilotkit import CopilotKitState
 from langgraph.graph import START, StateGraph
 
 from agents.chat import ChatFlow, ChatState

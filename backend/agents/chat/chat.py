@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from typing import List
 
-from copilotkit.state import CopilotKitState
+from copilotkit import CopilotKitState
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
