@@ -57,6 +57,14 @@ pre-commit install
 pre-commit run --all-files
 ```
 
+The pre-commit configuration includes:
+
+- Black for Python code formatting
+- isort for Python import sorting
+- flake8 for Python code quality checks
+- Prettier for frontend code formatting
+- General hooks for trailing whitespace, file endings, etc.
+
 ## 🔎 Unit tests
 
 Run with pytest from the backend folder:
