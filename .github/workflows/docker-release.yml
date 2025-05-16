@@ -39,6 +39,8 @@ jobs:
             ghcr.io/${{ github.repository }}/backend:latest
             ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
           platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build and push ui image
         uses: docker/build-push-action@v5
@@ -49,6 +51,8 @@ jobs:
             ghcr.io/${{ github.repository }}/ui:latest
             ghcr.io/${{ github.repository }}/ui:${{ github.sha }}
           platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Prepare docker-compose.yml for release
         run: |
