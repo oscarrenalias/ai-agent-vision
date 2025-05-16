@@ -26,4 +26,4 @@
         uv sync --locked
 
     EXPOSE 8000
-    CMD ["python", "server.py"]
+    CMD ["/app/.venv/bin/python", "server.py"]
