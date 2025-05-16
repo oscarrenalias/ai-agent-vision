@@ -5,6 +5,7 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${file}",
+      "justMyCode": false,
       "console": "integratedTerminal",
       "args": "${command:pickArgs}",
       "cwd": "${workspaceFolder}/backend"
