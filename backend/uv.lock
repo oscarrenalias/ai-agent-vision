@@ -37,7 +37,7 @@ dependencies = [
 requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.11.0" },
     { name = "cachetools", specifier = ">=5.2.0" },
-    { name = "copilotkit", specifier = ">=0.1.46,<0.2.0" },
+    { name = "copilotkit", specifier = "==0.1.44" },
     { name = "dotenv", specifier = ">=0.9.9,<0.10.0" },
     { name = "fastapi", specifier = ">=0.100.0" },
     { name = "langchain-community", specifier = ">=0.3.24,<0.4.0" },
@@ -335,7 +335,7 @@ wheels = [
 
 [[package]]
 name = "copilotkit"
-version = "0.1.46"
+version = "0.1.44"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastapi" },
@@ -344,9 +344,9 @@ dependencies = [
     { name = "partialjson" },
     { name = "toml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/79/3e/f23a123699d6aefeffa56186a72d6d87523d57bb057b6be2895d29fa6804/copilotkit-0.1.46.tar.gz", hash = "sha256:fa9e913b63af60c07d599722801121831903b6ce858dc57db7f1b5ad361c6d22", size = 28443, upload-time = "2025-05-12T19:49:20.436Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d4/8e/266bb8234e55699fa1a0fcb3baef843ddacccbd24601054f3eb8d3cbcf21/copilotkit-0.1.44.tar.gz", hash = "sha256:6701a3e013ac9c64046c682b34cd88444fced620cc55c44759ac26f5d9ccbf69", size = 28330, upload-time = "2025-04-16T14:46:47.458Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/14/ae/506441e430c29c7c1c506c8a455baef319bd3b57affb012aa3445cbb271c/copilotkit-0.1.46-py3-none-any.whl", hash = "sha256:f229dd513d3fcbbcb5634e4e5e1563bfebd7f6cb97525c3345d1f203deedf5fa", size = 36185, upload-time = "2025-05-12T19:49:18.971Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/c9/2576f3566fcc736c58d79b84d619a9fe53d58b4c41ff4227c5822324f369/copilotkit-0.1.44-py3-none-any.whl", hash = "sha256:4ba68a1ed58574fd1b2db3597a77af385fb1f063675ef682b685d7c87dcc596c", size = 36080, upload-time = "2025-04-16T14:46:46.024Z" },
 ]
 
 [[package]]
