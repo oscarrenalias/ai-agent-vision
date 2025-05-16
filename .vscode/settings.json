@@ -1,2 +1,12 @@
 {
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.venv": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.venv": true
+  }
 }

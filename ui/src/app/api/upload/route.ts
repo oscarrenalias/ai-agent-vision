@@ -10,7 +10,9 @@ export async function POST(req: NextRequest) {
     },
     body: req.body,
     // Only add duplex in Node.js (development), and bypass type error
-    ...(typeof process !== "undefined" && process.versions?.node ? { duplex: "half" as any } : {}),
+    ...(typeof process !== "undefined" && process.versions?.node
+      ? { duplex: "half" as any }
+      : {}),
   });
 
   const data = await backendRes.json();
