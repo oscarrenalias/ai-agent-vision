@@ -1,0 +1,16 @@
+[Unit]
+Description=AI Agent Vision Application
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=//home/admin/ai-agent-vision
+ExecStart=/usr/bin/docker-compose -f docker-compose.release.yml up --remove-orphans
+ExecStop=/usr/bin/docker-compose -f docker-compose.release.yml down
+Restart=always
+RestartSec=10
+User=pi
+
+[Install]
+WantedBy=multi-user.target
