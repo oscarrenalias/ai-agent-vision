@@ -1,6 +1,16 @@
-## Getting Started
+## Pre-requisites
 
-First, run the development server:
+- Node.js – tested with v22
+
+## Install libraries and run
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+And run the development server:
 
 ```bash
 npm run dev
