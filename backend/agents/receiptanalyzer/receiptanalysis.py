@@ -1,5 +1,6 @@
 import base64
 import logging
+from datetime import UTC, datetime
 from pprint import pformat
 
 # from copilotkit.langchain import copilotkit_customize_config
@@ -7,7 +8,7 @@ from copilotkit.langgraph import copilotkit_emit_message
 from langchain.chains import TransformChain
 from langchain.prompts import ChatPromptTemplate
 from langchain.tools import tool
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableConfig, chain
 from langgraph.graph import END, START, StateGraph
@@ -17,6 +18,7 @@ from agents.common import make_tool_node
 from agents.models import OpenAIModel
 from agents.receiptanalyzer.receiptanalyzerprompt import ReceiptAnalyzerPrompt
 from agents.receiptanalyzer.receiptstate import Receipt, ReceiptState
+from common.datastore import get_data_store
 from common.server.utils import get_uploads_folder
 
 logger = logging.getLogger(__name__)
@@ -62,6 +64,29 @@ def receipt_analyzer_tool(image_path: str) -> Receipt:
     return response
 
 
+@tool
+def persist_receipt_tool(receipt: Receipt) -> dict:
+    """
+    Persist the receipt data to a database or file.
+
+    Input parameters:
+    - receipt (Receipt): The receipt data to be persisted.
+
+    Returns:
+    - dict: A dictionary containing the status of the persistence operation.
+    """
+    logger.info(f"persist_receipt_tool called: {receipt}")
+
+    # Convert receipt data to JSON string
+    # and save it to the data store
+    data_store = get_data_store()
+    # receipt_json = json.dumps(receipt)
+    metadata = {"timestamp": datetime.now(UTC).isoformat()}
+    success = data_store.save_receipt(receipt.model_dump_json(), metadata)
+
+    return {"success": success}
+
+
 def setup_chain():
     extraction_model = OpenAIModel().get_model()
     prompt = ReceiptAnalyzerPrompt()
@@ -104,21 +129,35 @@ def load_image(path: dict) -> dict:
     return {"image": image_base64}
 
 
+def routing_condition(tools_node="tools", next_node=END, messages_key="messages"):
+    logger.debug(f"Routing condition: tools_node={tools_node}, next_node={next_node}, messages_key={messages_key}")
+
+    def _routing_condition(state):
+        if isinstance(state, list):
+            ai_message = state[-1]
+        elif isinstance(state, dict) and (messages := state.get(messages_key, [])):
+            ai_message = messages[-1]
+        elif messages := getattr(state, messages_key, []):
+            ai_message = messages[-1]
+        else:
+            raise ValueError(f"No messages found in input state to tool_edge: {state}")
+        if hasattr(ai_message, "tool_calls") and len(ai_message.tool_calls) > 0:
+            return tools_node
+        return next_node
+
+    return _routing_condition
+
+
 class ReceiptAnalysisFlow:
     model: None
 
     def __init__(self):
-        model = OpenAIModel(openai_model="o4-mini").get_model()
-
-        # bind the tools to the model
-        # model_with_tools = model.bind_tools(self.get_tools(), tool_choice="receipt_analyzer_tool")
-        model_with_tools = model.bind_tools(self.get_tools())
-        self.model = model_with_tools
+        pass
 
     def get_tools(self):
-        return [receipt_analyzer_tool]
+        return [receipt_analyzer_tool, persist_receipt_tool]
 
-    def receipt_analysis_start(self, state: ReceiptState, config: RunnableConfig) -> dict:
+    def receipt_analysis(self, state: ReceiptState, config: RunnableConfig) -> dict:
         state["receipt_image_path"] = interrupt("Please provide an image with the receipt.")
 
         if state["receipt_image_path"] == "__CANCEL__":
@@ -136,34 +175,104 @@ class ReceiptAnalysisFlow:
                     content="""
                     You are a grocery receipt analyzer. Your only task is to analyze the receipt image
                     by using the receipt_analyzer_tool tool and return the extracted information in JSON format.
-
-                    Do not provide any additional information or context, only the JSON output from the tool.
                     """
                 ),
-                ("human", "Receipt image path:{receipt_image_path}"),
+                (
+                    "human",
+                    "When calling the receipt_analyzer_tool tool, please provide the following value for the image path: {receipt_image_path}",
+                ),
             ]
         )
 
-        prompt = prompt_template.invoke({"receipt_image_path": state["receipt_image_path"]})
-        response = self.model.invoke(prompt)
-        logger.debug("response = " + pformat(response, indent=2))
+        tools = [receipt_analyzer_tool]
+        model = OpenAIModel(openai_model="gpt-4o").get_model().bind_tools(tools)
 
-        return {"messages": response, "receipt": response}
+        prompt = prompt_template.invoke({"receipt_image_path": state["receipt_image_path"]})
+        response = model.invoke(prompt)  # logger.debug("response = " + pformat(response, indent=2))
+
+        # response should have tool_calls
+        if hasattr(response, "tool_calls") and len(response.tool_calls) > 0:
+            # process the tool calls
+            messages = []
+
+            # there should be only one tool call
+            if len(response.tool_calls) > 1:
+                error_msg = f"More than one tool call found: {response.tool_calls}"
+                raise ValueError(error_msg)
+
+            # and it should be the receipt_analyzer_tool
+            if response.tool_calls[0]["name"] != "receipt_analyzer_tool":
+                error_msg = f"Tool call is not receipt_analyzer_tool: {response.tool_calls[0]}"
+                raise ValueError(error_msg)
+
+            tool_call = response.tool_calls[0]
+            tool = tools[0]
+            tool_msg = tool.invoke(tool_call["args"])
+            logger.debug(f"Tool call {tool_call['name']}, result: {tool_msg}")
+            messages.append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
+        else:
+            raise ValueError(f"Response from receipt_analysis node did not have tool_calls: {response}")
+
+        return {"messages": messages, "receipt": tool_msg}
+
+    def persist_receipt(self, state: ReceiptState, config: RunnableConfig) -> dict:
+        logger.debug("persisting_receipt")
+
+        if "receipt" not in state:
+            logger.warning("No receipt data found in state")
+            return state
+
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                SystemMessage(
+                    content="""
+                    You are using a tool to persist a JSON structure with a grocecies receipt to a database. This is your only task.
+                    by using the use the persist_receipt_tool to save data to the database.
+                    """
+                ),
+                ("human", "{receipt}"),
+            ]
+        )
+
+        tools = [persist_receipt_tool]
+        prompt = prompt_template.invoke({"receipt": state["receipt"]})
+        model = OpenAIModel(openai_model="gpt-4o").get_model().bind_tools(tools)
+        response = model.invoke(prompt)
+
+        # response should have tool_calls
+        if hasattr(response, "tool_calls") and len(response.tool_calls) > 0:
+            # there should be only one tool call
+            if len(response.tool_calls) > 1:
+                error_msg = f"More than one tool call found: {response.tool_calls}"
+                raise ValueError(error_msg)
+
+            # and it should be the persist_receipt_tool
+            if response.tool_calls[0]["name"] != "persist_receipt_tool":
+                error_msg = f"Tool call is not persist_receipt_tool: {response.tool_calls[0]}"
+                raise ValueError(error_msg)
+
+            messages = []
+            tool_call = response.tool_calls[0]
+            tool = tools[0]
+            tool_msg = tool.invoke(tool_call["args"])
+            logger.debug(f"Tool call {tool_call['name']}, result: {tool_msg}")
+            messages.append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
+
+        else:
+            raise ValueError(f"Response from persist_receipt node did not have tool_calls: {response}")
+
+        return {"messages": AIMessage(content="Receipt persisted successfully")}
 
     def as_subgraph(self):
         workflow = StateGraph(state_schema=ReceiptState)
 
         # nodes
-        workflow.add_node("receipt_analysis_start", self.receipt_analysis_start)
+        workflow.add_node("receipt_analysis", self.receipt_analysis)
         workflow.add_node("tools", make_tool_node(messages_key="messages", tools=self.get_tools()))
+        workflow.add_node("persist_receipt", self.persist_receipt)
 
-        # edges
-        workflow.add_edge(START, "receipt_analysis_start")
-        workflow.add_edge("receipt_analysis_start", "tools")
-        workflow.add_edge("tools", END)
-
-        # workflow.add_edge("tools", "receipt_analysis_start")
-        # workflow.add_conditional_edges("receipt_analysis_start", tools_condition)
-        # workflow.add_edge("tools", END)
+        workflow.add_edge(START, "receipt_analysis")
+        workflow.add_edge("receipt_analysis", "persist_receipt")
+        workflow.add_edge("persist_receipt", END)
 
         return workflow
