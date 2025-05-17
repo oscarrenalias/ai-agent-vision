@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from pprint import pformat
 
 # from copilotkit.langchain import copilotkit_customize_config
+# from copilotkit.langgraph import copilotkit_customize_config, copilotkit_emit_message
 from copilotkit.langgraph import copilotkit_emit_message
 from langchain.chains import TransformChain
 from langchain.prompts import ChatPromptTemplate
@@ -77,10 +78,8 @@ def persist_receipt_tool(receipt: Receipt) -> dict:
     """
     logger.info(f"persist_receipt_tool called: {receipt}")
 
-    # Convert receipt data to JSON string
-    # and save it to the data store
+    # Convert receipt data to JSON string and save it to the data store
     data_store = get_data_store()
-    # receipt_json = json.dumps(receipt)
     metadata = {"timestamp": datetime.now(UTC).isoformat()}
     success = data_store.save_receipt(receipt.model_dump_json(), metadata)
 
@@ -184,11 +183,16 @@ class ReceiptAnalysisFlow:
             ]
         )
 
+        # modifiedConfig = copilotkit_customize_config(
+        #    config,
+        #    emit_messages=False,
+        # )
+
         tools = [receipt_analyzer_tool]
         model = OpenAIModel(openai_model="gpt-4o").get_model().bind_tools(tools)
 
         prompt = prompt_template.invoke({"receipt_image_path": state["receipt_image_path"]})
-        response = model.invoke(prompt)  # logger.debug("response = " + pformat(response, indent=2))
+        response = model.invoke(prompt)
 
         # response should have tool_calls
         if hasattr(response, "tool_calls") and len(response.tool_calls) > 0:
@@ -209,7 +213,9 @@ class ReceiptAnalysisFlow:
             tool = tools[0]
             tool_msg = tool.invoke(tool_call["args"])
             logger.debug(f"Tool call {tool_call['name']}, result: {tool_msg}")
-            messages.append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
+            messages.append(
+                ToolMessage(content="Receipt analyzed successfully", artifact=tool_msg, tool_call_id=tool_call["id"])
+            )
         else:
             raise ValueError(f"Response from receipt_analysis node did not have tool_calls: {response}")
 
@@ -257,11 +263,12 @@ class ReceiptAnalysisFlow:
             tool_msg = tool.invoke(tool_call["args"])
             logger.debug(f"Tool call {tool_call['name']}, result: {tool_msg}")
             messages.append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
+            messages.append(AIMessage(content="Receipt persisted successfully"))
 
         else:
             raise ValueError(f"Response from persist_receipt node did not have tool_calls: {response}")
 
-        return {"messages": AIMessage(content="Receipt persisted successfully")}
+        return {"messages": messages}
 
     def as_subgraph(self):
         workflow = StateGraph(state_schema=ReceiptState)
