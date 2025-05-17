@@ -1,0 +1,21 @@
+# Dockerfile for CI: expects pre-built .next, node_modules, etc.
+# This file significantly speeds up the CI process as it doesn't need to build the app from
+# scratch every time for the x86 and arm64 architectures, which can take a long time and a lot
+# of storage space.
+#
+# For cleaner builds, use the regular Dockerfile in this directory.
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy only production files and built assets
+COPY package.json .
+COPY .next ./.next
+COPY public ./public
+COPY node_modules ./node_modules
+
+# Prune devDependencies inside the container
+RUN npm prune --production
+
+EXPOSE 3000
+CMD ["npm", "start"]
