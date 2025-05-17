@@ -7,7 +7,8 @@ from langgraph.graph import START, StateGraph
 from agents.chat import ChatFlow, ChatState
 from agents.common import make_classifier
 from agents.mealplanner import MealPlannerFlow, MealPlannerState
-from agents.receiptanalyzer import ReceiptAnalyzerFlow, ReceiptState
+from agents.receiptanalyzer import ReceiptState
+from agents.receiptanalyzer.receiptanalysis import ReceiptAnalysisFlow
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +39,9 @@ class MainGraph:
         meal_planner_graph = meal_planner_flow.as_subgraph().compile()
 
         # receipt processing graph
-        receipt_processing_flow = ReceiptAnalyzerFlow()
-        receipt_processing_graph = receipt_processing_flow.as_subgraph().compile()
+        # receipt_processing_flow = ReceiptAnalyzerFlow()
+        # receipt_processing_graph = receipt_processing_flow.as_subgraph().compile()
+        receipt_analysis_graph = ReceiptAnalysisFlow().as_subgraph().compile()
 
         main_flow = StateGraph(state_schema=GlobalState)
 
@@ -82,7 +84,7 @@ class MainGraph:
             logger.info(f"Image file path: {receipt_processing_state['receipt_image_path']}")
 
             # Run the meal_planner with the converted state
-            receipt_processing_result = await receipt_processing_graph.ainvoke(receipt_processing_state, config=self.config)
+            receipt_processing_result = await receipt_analysis_graph.ainvoke(receipt_processing_state, config=self.config)
 
             # let langgraph update the state with the new messages
             return {
