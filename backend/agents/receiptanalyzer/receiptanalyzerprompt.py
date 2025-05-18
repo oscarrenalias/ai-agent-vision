@@ -38,7 +38,8 @@ class ReceiptAnalyzerPrompt:
         - Household
         - Other
 
-        Level 2 and Level 3 depend on the Level 1 category:
+        Level 2 and Level 3 depend on the Level 1 category.
+
         If Level 1 is Food:
 
         - Fruits
@@ -67,6 +68,8 @@ class ReceiptAnalyzerPrompt:
         - Deposits: Bottle Deposit, Can Deposit, Other
         - Unknown / Miscellaneous
         - Ensure that level_3 is always null if there’s no need for further classification.
+
+        Do not use any other categories or subcategories. If you cannot classify an item, set Level 1 to "Other" and Level 2 to "Unknown / Miscellaneous". Set Level 3 to null.
 
         3. Receipt Summary
         Extract the following:
