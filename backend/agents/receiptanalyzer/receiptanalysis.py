@@ -15,7 +15,7 @@ from langchain_core.runnables import RunnableConfig, chain
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 
-from agents.common import make_tool_node
+# from agents.common import make_tool_node
 from agents.models import OpenAIModel
 from agents.receiptanalyzer.receiptanalyzerprompt import ReceiptAnalyzerPrompt
 from agents.receiptanalyzer.receiptstate import Receipt, ReceiptState
@@ -128,25 +128,6 @@ def load_image(path: dict) -> dict:
     return {"image": image_base64}
 
 
-def routing_condition(tools_node="tools", next_node=END, messages_key="messages"):
-    logger.debug(f"Routing condition: tools_node={tools_node}, next_node={next_node}, messages_key={messages_key}")
-
-    def _routing_condition(state):
-        if isinstance(state, list):
-            ai_message = state[-1]
-        elif isinstance(state, dict) and (messages := state.get(messages_key, [])):
-            ai_message = messages[-1]
-        elif messages := getattr(state, messages_key, []):
-            ai_message = messages[-1]
-        else:
-            raise ValueError(f"No messages found in input state to tool_edge: {state}")
-        if hasattr(ai_message, "tool_calls") and len(ai_message.tool_calls) > 0:
-            return tools_node
-        return next_node
-
-    return _routing_condition
-
-
 class ReceiptAnalysisFlow:
     model: None
 
@@ -189,26 +170,19 @@ class ReceiptAnalysisFlow:
         # )
 
         tools = [receipt_analyzer_tool]
-        model = OpenAIModel(openai_model="gpt-4o").get_model().bind_tools(tools)
+        model = OpenAIModel(openai_model="gpt-4o").get_model().bind_tools(tools, tool_choice="receipt_analyzer_tool")
 
         prompt = prompt_template.invoke({"receipt_image_path": state["receipt_image_path"]})
         response = model.invoke(prompt)
 
         # response should have tool_calls
-        if hasattr(response, "tool_calls") and len(response.tool_calls) > 0:
-            # process the tool calls
-            messages = []
-
-            # there should be only one tool call
-            if len(response.tool_calls) > 1:
-                error_msg = f"More than one tool call found: {response.tool_calls}"
-                raise ValueError(error_msg)
-
+        if hasattr(response, "tool_calls") and len(response.tool_calls) == 1:
             # and it should be the receipt_analyzer_tool
             if response.tool_calls[0]["name"] != "receipt_analyzer_tool":
                 error_msg = f"Tool call is not receipt_analyzer_tool: {response.tool_calls[0]}"
                 raise ValueError(error_msg)
 
+            messages = []
             tool_call = response.tool_calls[0]
             tool = tools[0]
             tool_msg = tool.invoke(tool_call["args"])
@@ -242,16 +216,11 @@ class ReceiptAnalysisFlow:
 
         tools = [persist_receipt_tool]
         prompt = prompt_template.invoke({"receipt": state["receipt"]})
-        model = OpenAIModel(openai_model="gpt-4o").get_model().bind_tools(tools)
+        model = OpenAIModel(openai_model="gpt-4o").get_model().bind_tools(tools, tool_choice="persist_receipt_tool")
         response = model.invoke(prompt)
 
-        # response should have tool_calls
-        if hasattr(response, "tool_calls") and len(response.tool_calls) > 0:
-            # there should be only one tool call
-            if len(response.tool_calls) > 1:
-                error_msg = f"More than one tool call found: {response.tool_calls}"
-                raise ValueError(error_msg)
-
+        # response should have tool_calls, and only one tool call
+        if hasattr(response, "tool_calls") and len(response.tool_calls) == 1:
             # and it should be the persist_receipt_tool
             if response.tool_calls[0]["name"] != "persist_receipt_tool":
                 error_msg = f"Tool call is not persist_receipt_tool: {response.tool_calls[0]}"
@@ -266,7 +235,7 @@ class ReceiptAnalysisFlow:
             messages.append(AIMessage(content="Receipt persisted successfully"))
 
         else:
-            raise ValueError(f"Response from persist_receipt node did not have tool_calls: {response}")
+            raise ValueError(f"Error processing tool calls in persist_receipt: {response}")
 
         return {"messages": messages}
 
@@ -275,7 +244,6 @@ class ReceiptAnalysisFlow:
 
         # nodes
         workflow.add_node("receipt_analysis", self.receipt_analysis)
-        workflow.add_node("tools", make_tool_node(messages_key="messages", tools=self.get_tools()))
         workflow.add_node("persist_receipt", self.persist_receipt)
 
         workflow.add_edge(START, "receipt_analysis")

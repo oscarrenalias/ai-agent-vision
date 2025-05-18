@@ -20,7 +20,7 @@ import { useCoAgentStateRender } from "@copilotkit/react-core";
 import { YearlySpendChart } from "./components/charts/YearlySpendChart";
 import { MonthlySpendChart } from "./components/charts/MonthlySpendChart";
 import { DailySpendChart } from "./components/charts/DailySpendChart";
-import { useState } from "react";
+import React, { useState } from "react";
 
 function MainContent() {
   const { getAgentState } = useAgentState();
@@ -46,7 +46,6 @@ function MainContent() {
   const hasReceipt =
     receipt && Array.isArray(receipt.items) && receipt.items.length > 0;
 
-  // Render actions for the agent
   useCopilotAction({
     name: "s_kaupat_price_lookup",
     available: "disabled",
@@ -57,13 +56,45 @@ function MainContent() {
         ) as React.ReactElement;
       }
       if (status === "complete") {
-        // name is not available, so remove it from the log
-        console.log("Action complete: result=", result);
         return (
           <PriceLookupCard args={args} items={result} />
         ) as React.ReactElement;
       }
-      // Always return a valid ReactElement (empty fragment) instead of null
+      return <></>; // Always return a valid ReactElement (empty fragment) instead of null
+    },
+  });
+
+  useCopilotAction({
+    name: "receipt_analyzer_tool",
+    available: "disabled",
+    render: ({ status, args, result }) => {
+      console.log("receipt_analyzer_tool: status=", status);
+      if (status === "executing") {
+        return (
+          <ToolProcessingIndicator message="Processing receipt..." />
+        ) as React.ReactElement;
+      }
+      if (status === "complete") {
+        console.log("receipt_analyzer_tool complete: result=", result);
+      }
+      return <></>;
+    },
+  });
+
+  useCopilotAction({
+    name: "persist_receipt_tool",
+    available: "disabled",
+    render: ({ status, args, result }) => {
+      console.log("persist_receipt_tool: status=", status);
+      if (status === "executing") {
+        return (
+          <ToolProcessingIndicator message="Persisting receipt..." />
+        ) as React.ReactElement;
+      }
+      if (status === "complete") {
+        console.log("persist_receipt_tool complete: result=", result);
+        return (<ReceiptCard receipt={result} />) as React.ReactElement;
+      }
       return <></>;
     },
   });
@@ -93,7 +124,6 @@ function MainContent() {
       {hasShoppingList && (
         <ShoppingListCard shopping_list={shoppingList} height={400} />
       )}
-      {hasReceipt && receipt && <ReceiptCard receipt={receipt} height={400} />}
     </div>
   );
 }

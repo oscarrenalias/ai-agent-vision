@@ -79,3 +79,4 @@ htmlcov/
 coverage.xml
 *.cover
 backend/.langgraph_api
+data/samples/*
