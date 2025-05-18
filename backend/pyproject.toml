@@ -24,14 +24,16 @@ multi_line_output = 3
 [tool.poetry]
 package-mode = false
 
-[tool.poetry.group.dev.dependencies]
-pre-commit = ">=3.3.2"
-black = ">=23.3.0"
-isort = ">=5.12.0"
-flake8 = ">=6.0.0"
-flake8-docstrings = ">=1.7.0"
-pytest = ">=7.3.1"
-pytest-cov = ">=4.1.0"
+[dependency-groups]
+dev = [
+    "pre-commit >=3.3.2",
+    "black >=23.3.0",
+    "isort >=5.12.0",
+    "flake8 >=6.0.0",
+    "flake8-docstrings >=1.7.0",
+    "pytest >=7.3.1",
+    "pytest-cov >=4.1.0"
+]
 
 [project]
 name = "ai-agent-vision"

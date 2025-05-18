@@ -13,17 +13,17 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # Set up Python environment
-#RUN pip install --upgrade pip \
-#    && pip install fastapi uvicorn pymongo pytest
+RUN pip install --upgrade pip \
+    && pip install uv
 
 # Install AWS Q CLI
-RUN curl "https://desktop-release.codewhisperer.us-east-1.amazonaws.com/latest/q-x86_64-linux-musl.zip" -o "amazon-q-cli.zip" \
-    && unzip amazon-q-cli.zip \
-    && mv q/bin/* /usr/local/bin \
-    && rm -rf amazon-q-cli.zip
+#RUN curl "https://desktop-release.codewhisperer.us-east-1.amazonaws.com/latest/q-x86_64-linux-musl.zip" -o "amazon-q-cli.zip" \
+#    && unzip amazon-q-cli.zip \
+#    && mv q/bin/* /usr/local/bin \
+#    && rm -rf amazon-q-cli.zip
 
 # Ensure Amazon Q is in PATH
-RUN echo 'export PATH="$PATH:$HOME/bin"' >> /etc/bash.bashrc
+#RUN echo 'export PATH="$PATH:$HOME/bin"' >> /etc/bash.bashrc
 
 # Create a non-root user to use if preferred
 ARG USERNAME=vscode

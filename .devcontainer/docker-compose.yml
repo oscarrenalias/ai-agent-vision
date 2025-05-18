@@ -13,7 +13,6 @@ services:
     environment:
       - MONGODB_URI=mongodb://localhost:27017
       - MONGODB_DATABASE=receipts
-      - HUGGINGFACEHUB_API_TOKEN=${HUGGINGFACEHUB_API_TOKEN}
 
   mongodb:
     image: mongo:latest

@@ -20,8 +20,9 @@ Initialy virtual environment and install dependencies:
 uv venv
 source .venv/bin/activate
 
-# Install dependencies
+# Install project dependencies and dev dependencies
 uv sync
+uv sync --group dev
 ```
 
 ## 💻 Configure the application for local development

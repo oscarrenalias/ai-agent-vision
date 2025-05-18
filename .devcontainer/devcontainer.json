@@ -1,4 +1,4 @@
-{
+xº{
   "name": "AI Agent Vision Development",
   "workspaceFolder": "/workspaces/ai-agent-vision",
   "dockerComposeFile": "docker-compose.yml",
@@ -8,7 +8,6 @@
       "extensions": [
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "svelte.svelte-vscode",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "mongodb.mongodb-vscode",
@@ -22,9 +21,6 @@
       "settings": {
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "[svelte]": {
-          "editor.defaultFormatter": "svelte.svelte-vscode"
-        },
         "[python]": {
           "editor.defaultFormatter": "ms-python.python"
         },
