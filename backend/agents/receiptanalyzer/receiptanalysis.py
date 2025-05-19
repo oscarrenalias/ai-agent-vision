@@ -22,9 +22,6 @@ from common.server.utils import get_uploads_folder
 
 logger = logging.getLogger(__name__)
 
-# Control the usage of cache of the OpenAI models in this graph
-OPENAI_MODEL_USE_CACHE = True
-
 
 @tool
 def receipt_analyzer_tool(image_path: str) -> Receipt:
@@ -70,7 +67,7 @@ def persist_receipt_tool(receipt: Receipt) -> dict:
 
 
 def setup_chain():
-    extraction_model = OpenAIModel(use_cache=OPENAI_MODEL_USE_CACHE).get_model()
+    extraction_model = OpenAIModel(use_cache=True).get_model()
     prompt = ReceiptAnalyzerPrompt()
     parser = JsonOutputParser(pydantic_object=Receipt)
 
@@ -141,12 +138,14 @@ class ReceiptAnalysisFlow:
             [
                 SystemMessage(
                     content="""
-                    You are a grocery receipt analyzer. Your only task is to analyze the receipt image
-                    by using the receipt_analyzer_tool tool and return the extracted information in JSON format.
+                    You are a grocery receipt analyzer. Your only task is to analyze the receipt image and save the data to the database.
 
-                    If there is already a receipt in the state, please use the persist_receipt_tool to save the data to the database.
+                    To extract information from the receipt, use tool receipt_analyzer_tool tool and return the extracted information in JSON format.
 
-                    When the operation is complete, do not return the results of the tool calls in the response, but instead do a quick analysis
+                    If there is already a receipt in the messages, please use tool persist_receipt_tool to save the data to the database before
+                    returning a summary of the receipt.
+
+                    When the tool call to persist data to the database is complete, do not return the results of the tool calls in the response, but instead do a quick analysis
                     of the receipt including:
                     - the total amount of the receipt
                     - the number of items in the receipt
@@ -162,10 +161,10 @@ class ReceiptAnalysisFlow:
             ]
         )
 
-        model = OpenAIModel(openai_model="gpt-4o", use_cache=OPENAI_MODEL_USE_CACHE).get_model().bind_tools(self.get_tools())
-        no_messages_config = copilotkit_customize_config(config, emit_messages=False)
+        model = OpenAIModel(openai_model="gpt-4o", use_cache=False).get_model().bind_tools(self.get_tools())
+        no_messages_config = copilotkit_customize_config(config, emit_messages=False, emit_tool_calls=True)
         prompt = prompt_template.invoke({"receipt_image_path": state["receipt_image_path"], "messages": state["messages"]})
-        response = await model.ainvoke(prompt, no_messages_config)
+        response = await model.ainvoke(prompt, config=no_messages_config)
 
         if response.tool_calls:
             return Command(goto="tool_node", update={"messages": response})
