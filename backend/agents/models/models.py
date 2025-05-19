@@ -82,6 +82,8 @@ class OpenAIModel:
             verbose=True,
         )
 
+        logger.info(f"Initializing OpenAI model: {self.openai_model}")
+
         if self.use_cache:
             logger.info(
                 "Using LLM cache to speed things up. Keep this in mind if results do not change when altering prompts!"
