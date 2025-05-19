@@ -23,28 +23,8 @@ from common.server.utils import get_uploads_folder
 
 logger = logging.getLogger(__name__)
 
-# Do not use cache for the OpenAI model instances in this module
-OPENAI_MODEL_USE_CACHE = False
-
-"""
-Usage example:
-
-```python
-from agents.receiptanalyzer.receiptanalysis import ReceiptAnalysisFlow
-from langgraph.types import Command
-from dotenv import load_dotenv
-from langgraph.checkpoint.memory import MemorySaver
-load_dotenv()
-f = ReceiptAnalysisFlow()
-g = f.as_subgraph().compile(checkpointer=MemorySaver())
-config = {"configurable": { "thread_id": 1 }}
-
-# this should cause an interrupt
-g.invoke({"messages": "foo"}, config=config)
-g.invoke(Command(resume="kk.jpg"), config=config)
-```
-
-"""
+# Control the usage of cache of the OpenAI models in this graph
+OPENAI_MODEL_USE_CACHE = True
 
 
 @tool
@@ -64,7 +44,6 @@ def receipt_analyzer_tool(image_path: str) -> Receipt:
     response = chain.invoke({"receipt_image_path": image_path})
     logger.debug("response = " + pformat(response, indent=2))
 
-    # return response.model_dump_json()
     import json
 
     return json.dumps(response)
@@ -92,7 +71,7 @@ def persist_receipt_tool(receipt: Receipt) -> dict:
 
 
 def setup_chain():
-    extraction_model = OpenAIModel(use_cache=True).get_model()
+    extraction_model = OpenAIModel(use_cache=OPENAI_MODEL_USE_CACHE).get_model()
     prompt = ReceiptAnalyzerPrompt()
     parser = JsonOutputParser(pydantic_object=Receipt)
 
@@ -196,6 +175,7 @@ class ReceiptAnalysisFlow:
         return Command(goto="__end__", update={"messages": response})
 
     def tool_node(self, state: ReceiptState, config: RunnableConfig) -> dict:
+        # TODO: eventually we should use the tool node from langgraph
         tools_by_name = {tool.name: tool for tool in self.get_tools()}
         for tool_call in state["messages"][-1].tool_calls:
             tool = tools_by_name[tool_call["name"]]
