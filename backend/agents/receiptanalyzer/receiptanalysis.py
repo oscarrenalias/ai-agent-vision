@@ -3,15 +3,14 @@ import logging
 from datetime import UTC, datetime
 from pprint import pformat
 
-# from copilotkit.langgraph import copilotkit_customize_config, copilotkit_emit_message
-from copilotkit.langgraph import copilotkit_emit_message
+from copilotkit.langgraph import copilotkit_customize_config, copilotkit_emit_message
 from langchain.chains import TransformChain
 from langchain.prompts import ChatPromptTemplate
 from langchain.tools import tool
-from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableConfig, chain
-from langgraph.graph import END, START, StateGraph
+from langgraph.graph import START, StateGraph
 from langgraph.types import Command, interrupt
 
 # from agents.common import make_tool_node
@@ -121,17 +120,18 @@ class ReceiptAnalysisFlow:
     def get_tools(self):
         return [receipt_analyzer_tool, persist_receipt_tool]
 
-    def receipt_analysis_start(self, state: ReceiptState, config: RunnableConfig) -> dict:
+    async def receipt_analysis_start(self, state: ReceiptState, config: RunnableConfig) -> dict:
         # this node is only here to handle the interrupt
         state["receipt_image_path"] = interrupt("Please provide an image with the receipt.")
 
-        if state["receipt_image_path"] == "__CANCEL__":
+        if state["receipt_image_path"].strip() == "__CANCEL__":
             # emit a message to the UI to indicate that the receipt is being processed,
             # and terminate the process
-            copilotkit_emit_message(config, "Receipt processing cancelled")
-            return Command(goto=END)
+            state["messages"].append(AIMessage(content="Receipt processing cancelled"))
+            await copilotkit_emit_message(config, "Receipt processing cancelled")
+            return Command(goto="__end__", update={})
 
-        return state
+        return Command(goto="receipt_analysis", update=state)
 
     async def receipt_analysis(self, state: ReceiptState, config: RunnableConfig) -> dict:
         full_image_path = get_uploads_folder() / state["receipt_image_path"]
@@ -162,12 +162,10 @@ class ReceiptAnalysisFlow:
             ]
         )
 
-        # modifiedConfig = copilotkit_customize_config(config, emit_messages=False)
-
         model = OpenAIModel(openai_model="gpt-4o", use_cache=OPENAI_MODEL_USE_CACHE).get_model().bind_tools(self.get_tools())
-
+        no_messages_config = copilotkit_customize_config(config, emit_messages=False)
         prompt = prompt_template.invoke({"receipt_image_path": state["receipt_image_path"], "messages": state["messages"]})
-        response = await model.ainvoke(prompt)
+        response = await model.ainvoke(prompt, no_messages_config)
 
         if response.tool_calls:
             return Command(goto="tool_node", update={"messages": response})
@@ -193,9 +191,9 @@ class ReceiptAnalysisFlow:
         workflow.add_node("receipt_analysis", self.receipt_analysis)
         workflow.add_node("tool_node", self.tool_node)
 
+        # build the graph; end node as well as the next node from receipt_analysis_start is
+        # defined within the logic of each node
         workflow.add_edge(START, "receipt_analysis_start")
-        workflow.add_edge("receipt_analysis_start", "receipt_analysis")
         workflow.add_edge("tool_node", "receipt_analysis")
-        # workflow.add_edge("persist_receipt", END)
 
         return workflow
