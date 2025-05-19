@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import "@copilotkit/react-ui/styles.css";
 import { ShoppingListCard } from "./components/ShoppingListCard";
 import { MealPlanCard } from "./components/MealPlanCard";
-import ReceiptCard from "./components/ReceiptCard";
+import ReceiptCard from "./components/chat/ReceiptCard";
 import "./copilotchat-custom.css";
 import { ToolProcessingIndicator } from "./components/ToolProcessingIndicator";
 import PriceLookupCard from "./components/chat/PriceLookupCard";
@@ -20,7 +20,7 @@ import { YearlySpendChart } from "./components/charts/YearlySpendChart";
 import { YearlyMonthlySpendChart } from "./components/charts/YearlyMonthlySpendChart";
 import { MonthlySpendChart } from "./components/charts/MonthlySpendChart";
 import { DailySpendChart } from "./components/charts/DailySpendChart";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 function MainContent() {
   const { getAgentState } = useAgentState();
@@ -58,17 +58,25 @@ function MainContent() {
     },
   });
 
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [refreshKey, setRefreshKey] = useState(0);
+
   useCopilotAction({
     name: "receipt_analyzer_tool",
     available: "disabled",
     render: ({ status, args, result }) => {
+      // Only trigger refresh when status transitions to 'complete'
+      if (status === "complete") {
+        setRefreshKey((k) => k + 1);
+      }
       if (status === "executing") {
         return (
           <ToolProcessingIndicator message="Processing receipt..." />
         ) as React.ReactElement;
       }
       if (status === "complete") {
-        console.log("receipt_analyzer_tool complete: result=", result);
         return (<ReceiptCard receipt={result} />) as React.ReactElement;
       }
       return <></>;
@@ -87,11 +95,6 @@ function MainContent() {
       return <></>;
     },
   });
-
-  // Lift year/month state up to here
-  const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
 
   return (
     <div>

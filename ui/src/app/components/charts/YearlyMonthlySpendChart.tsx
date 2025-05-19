@@ -68,16 +68,15 @@ export function YearlyMonthlySpendChart({
   if (error && !data) return <div>{error}</div>;
 
   // Prepare bar chart data for new structure
-  let bars: BarData[] = Array.from({ length: 12 }, (_, i) => ({
-    month: i + 1,
-  }));
+  let bars: BarData[] = Array.from({ length: 12 }, (_, i) => ({ month: i + 1 }));
   let level1Keys: string[] = [];
+  let overallKey = "Total";
 
   if (Array.isArray(data)) {
     data.forEach((entry: any) => {
       const m = entry.month;
       if (m) {
-        bars[m - 1]["total"] = entry.overall_spend;
+        bars[m - 1][overallKey] = entry.overall_spend;
         if (Array.isArray(entry.level_1)) {
           entry.level_1.forEach((l1: any) => {
             const key = l1.level_1;
@@ -89,14 +88,20 @@ export function YearlyMonthlySpendChart({
     });
   }
 
-  // Only level_1 breakdown or total is available in this structure
-  let seriesKeys: string[] = level1Keys.length > 0 ? level1Keys : ["total"];
-
-  const series = seriesKeys.map((key) => ({
-    data: bars.map((bar) => (typeof bar[key] === "number" ? bar[key] : 0)),
-    label: key,
-    stack: "level_1", // Enable stacking for all level_1 keys
-  }));
+  // Series: one for each level_1, plus one for overall
+  const series = [
+    ...level1Keys.map((key) => ({
+      data: bars.map((bar) => (typeof bar[key] === "number" ? bar[key] : 0)),
+      label: key,
+      stack: undefined, // Not stacked
+    })),
+    {
+      data: bars.map((bar) => (typeof bar[overallKey] === "number" ? bar[overallKey] : 0)),
+      label: overallKey,
+      stack: undefined, // Not stacked
+      color: '#888', // Optional: visually distinguish overall
+    },
+  ];
 
   return (
     <Card sx={{ mb: 3, width: "100%", minWidth: 320, flex: 1 }}>
@@ -147,8 +152,7 @@ export function YearlyMonthlySpendChart({
             ]}
             series={series}
             height={320}
-            // Enable stacking
-            slotProps={{ legend: { hidden: false } }}
+            slotProps={{ legend: {} }}
           />
         )}
       </CardContent>
