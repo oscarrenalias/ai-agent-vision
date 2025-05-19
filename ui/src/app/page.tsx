@@ -68,7 +68,6 @@ function MainContent() {
     name: "receipt_analyzer_tool",
     available: "disabled",
     render: ({ status, args, result }) => {
-      console.log("receipt_analyzer_tool: status=", status);
       if (status === "executing") {
         return (
           <ToolProcessingIndicator message="Processing receipt..." />
@@ -76,23 +75,6 @@ function MainContent() {
       }
       if (status === "complete") {
         console.log("receipt_analyzer_tool complete: result=", result);
-      }
-      return <></>;
-    },
-  });
-
-  useCopilotAction({
-    name: "persist_receipt_tool",
-    available: "disabled",
-    render: ({ status, args, result }) => {
-      console.log("persist_receipt_tool: status=", status);
-      if (status === "executing") {
-        return (
-          <ToolProcessingIndicator message="Persisting receipt..." />
-        ) as React.ReactElement;
-      }
-      if (status === "complete") {
-        console.log("persist_receipt_tool complete: result=", result);
         return (<ReceiptCard receipt={result} />) as React.ReactElement;
       }
       return <></>;

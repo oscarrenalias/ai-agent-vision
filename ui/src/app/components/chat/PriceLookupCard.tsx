@@ -25,7 +25,6 @@ export default function PriceLookupCard({
     <Card
       sx={{
         width: "100%",
-        maxWidth: 420,
         borderRadius: 3,
         boxShadow: 3,
         position: "relative",
