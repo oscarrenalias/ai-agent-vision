@@ -27,7 +27,6 @@ async def calculate_monthly_spend():
     ]
     overall = await db[RECEIPTS_COLLECTION].aggregate(overall_pipeline).to_list(length=None)
 
-    # Monthly totals per level_1 item type
     level1_pipeline = [
         {"$unwind": "$items"},
         {"$project": {"date": "$receipt_data.date", "level_1": "$items.item_category.level_1", "total": "$items.total_price"}},
@@ -41,7 +40,6 @@ async def calculate_monthly_spend():
     ]
     level1 = await db[RECEIPTS_COLLECTION].aggregate(level1_pipeline).to_list(length=None)
 
-    # Monthly totals per level_2 item type
     level2_pipeline = [
         {"$unwind": "$items"},
         {
@@ -64,11 +62,10 @@ async def calculate_monthly_spend():
             }
         },
         {"$sort": {"_id.year": 1, "_id.month": 1, "_id.level_1": 1, "_id.level_2": 1}},
-        {"$project": {"_id": 1, "total_spend": 1, "level_1": "$_id.level_1", "level_2": "$_id.level_2"}},
+        {"$project": {"_id": 1, "total_spend": 1, "level_1": "$__id.level_1", "level_2": "$__id.level_2"}},
     ]
     level2 = await db[RECEIPTS_COLLECTION].aggregate(level2_pipeline).to_list(length=None)
 
-    # Monthly totals per level_3 item type
     level3_pipeline = [
         {"$unwind": "$items"},
         {
@@ -91,21 +88,34 @@ async def calculate_monthly_spend():
             }
         },
         {"$sort": {"_id.year": 1, "_id.month": 1, "_id.level_2": 1, "_id.level_3": 1}},
-        {"$project": {"_id": 1, "total_spend": 1, "level_2": "$_id.level_2", "level_3": "$_id.level_3"}},
+        {"$project": {"_id": 1, "total_spend": 1, "level_2": "$__id.level_2", "level_3": "$__id.level_3"}},
     ]
     level3 = await db[RECEIPTS_COLLECTION].aggregate(level3_pipeline).to_list(length=None)
 
-    # Store or update the aggregates in a separate collection
-    await db[AGGREGATES_COLLECTION].update_one(
-        {"type": "monthly_spend"},
-        {
-            "$set": {
-                "data": {"overall": overall, "level_1": level1, "level_2": level2, "level_3": level3},
-                "last_updated": datetime.utcnow(),
-            }
-        },
-        upsert=True,
-    )
+    # Organize by (year, month)
+    from collections import defaultdict
+
+    monthly_data = defaultdict(lambda: {"overall": [], "level_1": [], "level_2": [], "level_3": []})
+    for entry in overall:
+        y, m = entry["_id"]["year"], entry["_id"]["month"]
+        monthly_data[(y, m)]["overall"].append(entry)
+    for entry in level1:
+        y, m = entry["_id"]["year"], entry["_id"]["month"]
+        monthly_data[(y, m)]["level_1"].append(entry)
+    for entry in level2:
+        y, m = entry["_id"]["year"], entry["_id"]["month"]
+        monthly_data[(y, m)]["level_2"].append(entry)
+    for entry in level3:
+        y, m = entry["_id"]["year"], entry["_id"]["month"]
+        monthly_data[(y, m)]["level_3"].append(entry)
+
+    # Store or update one document per (year, month)
+    for (y, m), data in monthly_data.items():
+        await db[AGGREGATES_COLLECTION].update_one(
+            {"type": "monthly_spend", "year": y, "month": m},
+            {"$set": {"data": data, "last_updated": datetime.utcnow()}},
+            upsert=True,
+        )
     logger.info("Monthly spend calculation complete.")
 
 
@@ -199,17 +209,30 @@ async def calculate_daily_spend():
     ]
     level3 = await db[RECEIPTS_COLLECTION].aggregate(level3_pipeline).to_list(length=None)
 
-    # Store or update the aggregates in a separate collection
-    await db[AGGREGATES_COLLECTION].update_one(
-        {"type": "daily_spend"},
-        {
-            "$set": {
-                "data": {"overall": overall, "level_1": level1, "level_2": level2, "level_3": level3},
-                "last_updated": datetime.utcnow(),
-            }
-        },
-        upsert=True,
-    )
+    # Organize by (year, month)
+    from collections import defaultdict
+
+    daily_data = defaultdict(lambda: {"overall": [], "level_1": [], "level_2": [], "level_3": []})
+    for entry in overall:
+        y, m = entry["_id"]["year"], entry["_id"]["month"]
+        daily_data[(y, m)]["overall"].append(entry)
+    for entry in level1:
+        y, m = entry["_id"]["year"], entry["_id"]["month"]
+        daily_data[(y, m)]["level_1"].append(entry)
+    for entry in level2:
+        y, m = entry["_id"]["year"], entry["_id"]["month"]
+        daily_data[(y, m)]["level_2"].append(entry)
+    for entry in level3:
+        y, m = entry["_id"]["year"], entry["_id"]["month"]
+        daily_data[(y, m)]["level_3"].append(entry)
+
+    # Store or update one document per (year, month)
+    for (y, m), data in daily_data.items():
+        await db[AGGREGATES_COLLECTION].update_one(
+            {"type": "daily_spend", "year": y, "month": m},
+            {"$set": {"data": data, "last_updated": datetime.utcnow()}},
+            upsert=True,
+        )
     logger.info("Daily spend calculation complete.")
 
 
@@ -428,18 +451,95 @@ async def calculate_weekly_spend():
     ]
     level3 = await db[RECEIPTS_COLLECTION].aggregate(level3_pipeline).to_list(length=None)
 
-    # Store or update the aggregates in a separate collection
-    await db[AGGREGATES_COLLECTION].update_one(
-        {"type": "weekly_spend"},
+    # Organize by (year, week)
+    from collections import defaultdict
+
+    weekly_data = defaultdict(lambda: {"overall": [], "level_1": [], "level_2": [], "level_3": []})
+    for entry in overall:
+        y, w = entry["_id"]["year"], entry["_id"]["week"]
+        weekly_data[(y, w)]["overall"].append(entry)
+    for entry in level1:
+        y, w = entry["_id"]["year"], entry["_id"]["week"]
+        weekly_data[(y, w)]["level_1"].append(entry)
+    for entry in level2:
+        y, w = entry["_id"]["year"], entry["_id"]["week"]
+        weekly_data[(y, w)]["level_2"].append(entry)
+    for entry in level3:
+        y, w = entry["_id"]["year"], entry["_id"]["week"]
+        weekly_data[(y, w)]["level_3"].append(entry)
+
+    # Store or update one document per (year, week)
+    for (y, w), data in weekly_data.items():
+        await db[AGGREGATES_COLLECTION].update_one(
+            {"type": "weekly_spend", "year": y, "week": w},
+            {"$set": {"data": data, "last_updated": datetime.utcnow()}},
+            upsert=True,
+        )
+    logger.info("Weekly spend calculation complete.")
+
+
+#
+# Generates the following document:
+#
+# - year
+# - month
+# - overall_spend
+# - list of level_1 data
+# { "level_1", "Groceries", "total_spend": 100 }
+# { "level_1", "Household items", "total_spend": 50 }
+# (for as many level_1 items as we have)
+#
+async def calculate_yearly_monthly_spend():
+    logger.info("Calculating yearly-monthly spend...")
+    # Overall monthly totals per year
+    overall_pipeline = [
+        {"$project": {"date": "$receipt_data.date", "total": "$receipt_data.total"}},
+        {"$group": {"_id": {"year": {"$year": "$date"}, "month": {"$month": "$date"}}, "total_spend": {"$sum": "$total"}}},
+        {"$sort": {"_id.year": 1, "_id.month": 1}},
+    ]
+    overall = await db[RECEIPTS_COLLECTION].aggregate(overall_pipeline).to_list(length=None)
+
+    # Monthly totals per level_1 per year
+    level1_pipeline = [
+        {"$unwind": "$items"},
+        {"$project": {"date": "$receipt_data.date", "level_1": "$items.item_category.level_1", "total": "$items.total_price"}},
         {
-            "$set": {
-                "data": {"overall": overall, "level_1": level1, "level_2": level2, "level_3": level3},
-                "last_updated": datetime.utcnow(),
+            "$group": {
+                "_id": {"year": {"$year": "$date"}, "month": {"$month": "$date"}, "level_1": "$level_1"},
+                "total_spend": {"$sum": "$total"},
             }
         },
-        upsert=True,
-    )
-    logger.info("Weekly spend calculation complete.")
+        {"$sort": {"_id.year": 1, "_id.month": 1, "_id.level_1": 1}},
+    ]
+    level1 = await db[RECEIPTS_COLLECTION].aggregate(level1_pipeline).to_list(length=None)
+
+    # Organize by (year, month)
+    from collections import defaultdict
+
+    monthly_docs = defaultdict(lambda: {"overall_spend": 0, "level_1": []})
+    for entry in overall:
+        y, m = entry["_id"]["year"], entry["_id"]["month"]
+        monthly_docs[(y, m)]["overall_spend"] = entry["total_spend"]
+    for entry in level1:
+        y, m = entry["_id"]["year"], entry["_id"]["month"]
+        monthly_docs[(y, m)]["level_1"].append({"level_1": entry["_id"]["level_1"], "total_spend": entry["total_spend"]})
+
+    # Store or update one document per (year, month)
+    for (y, m), data in monthly_docs.items():
+        await db[AGGREGATES_COLLECTION].update_one(
+            {"type": "yearly_monthly_spend", "year": y, "month": m},
+            {
+                "$set": {
+                    "year": y,
+                    "month": m,
+                    "overall_spend": data["overall_spend"],
+                    "level_1": data["level_1"],
+                    "last_updated": datetime.utcnow(),
+                }
+            },
+            upsert=True,
+        )
+    logger.info("Yearly-monthly spend calculation complete.")
 
 
 async def listen_for_receipt_changes():
@@ -453,6 +553,7 @@ async def listen_for_receipt_changes():
                     await calculate_daily_spend()
                     await calculate_yearly_spend()
                     await calculate_weekly_spend()
+                    await calculate_yearly_monthly_spend()
                 except Exception as e:
                     logger.error(f"Error in aggregation functions: {e}")
     except Exception as e:

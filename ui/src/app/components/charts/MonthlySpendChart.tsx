@@ -84,8 +84,8 @@ export function MonthlySpendChart({
   let rows: any[] = [];
   if (data && data.level_2 && Array.isArray(data.level_2)) {
     rows = data.level_2.map((l2: any) => ({
-      level_1: l2.level_1,
-      level_2: l2.level_2,
+      level_1: l2._id?.level_1,
+      level_2: l2._id?.level_2,
       total_spend: l2.total_spend,
     }));
   }
@@ -204,7 +204,7 @@ export function MonthlySpendChart({
             <ArrowBackIosNewIcon fontSize="small" />
           </IconButton>
           <span style={{ margin: "0 8px" }}>
-            {monthName} {year} Monthly Spend
+            {monthName} {year} Spend
           </span>
           <IconButton
             onClick={handleNextMonth}

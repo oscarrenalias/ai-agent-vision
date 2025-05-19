@@ -16,8 +16,8 @@ import {
   useAgentState,
 } from "./components/AgentStateProvider";
 import { AgentState, AGENT_NAME } from "./lib/types";
-import { useCoAgentStateRender } from "@copilotkit/react-core";
 import { YearlySpendChart } from "./components/charts/YearlySpendChart";
+import { YearlyMonthlySpendChart } from "./components/charts/YearlyMonthlySpendChart";
 import { MonthlySpendChart } from "./components/charts/MonthlySpendChart";
 import { DailySpendChart } from "./components/charts/DailySpendChart";
 import React, { useState } from "react";
@@ -36,15 +36,9 @@ function MainContent() {
     Array.isArray((state.last_shopping_list as any).shopping_list)
       ? (state.last_shopping_list as any).shopping_list
       : [];
-  const receipt =
-    state.last_receipt && typeof state.last_receipt === "object"
-      ? state.last_receipt
-      : null;
 
   const hasMealPlan = mealPlan.length > 0;
   const hasShoppingList = shoppingList.length > 0;
-  const hasReceipt =
-    receipt && Array.isArray(receipt.items) && receipt.items.length > 0;
 
   useCopilotAction({
     name: "s_kaupat_price_lookup",
@@ -81,6 +75,19 @@ function MainContent() {
     },
   });
 
+  useCopilotAction({
+    name: "persist_receipt_tool",
+    available: "disabled",
+    render: ({ status, args, result }) => {
+      if (status === "executing") {
+        return (
+          <ToolProcessingIndicator message="Saving receipt..." />
+        ) as React.ReactElement;
+      }
+      return <></>;
+    },
+  });
+
   // Lift year/month state up to here
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -90,7 +97,7 @@ function MainContent() {
     <div>
       <div style={{ display: "flex", gap: 24, marginBottom: 24 }}>
         <div style={{ flex: 1 }}>
-          <YearlySpendChart />
+          <YearlyMonthlySpendChart year={2025} />
         </div>
         <div style={{ flex: 1 }}>
           <MonthlySpendChart
