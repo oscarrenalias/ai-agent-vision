@@ -8,7 +8,7 @@ from copilotkit.langgraph import copilotkit_emit_message
 from langchain.chains import TransformChain
 from langchain.prompts import ChatPromptTemplate
 from langchain.tools import tool
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableConfig, chain
 from langgraph.graph import END, START, StateGraph
@@ -161,93 +161,46 @@ class ReceiptAnalysisFlow:
                     content="""
                     You are a grocery receipt analyzer. Your only task is to analyze the receipt image
                     by using the receipt_analyzer_tool tool and return the extracted information in JSON format.
+
+                    If there is already a receipt in the state, please use the persist_receipt_tool to save the data to the database.
+
+                    When the operation is complete, do not return the results of the tool calls in the response, but instead do a quick analysis
+                    of the receipt including:
+                    - the total amount of the receipt
+                    - the number of items in the receipt
+                    - the date of the receipt
+                    - the store name
                     """
                 ),
                 (
                     "human",
                     "When calling the receipt_analyzer_tool tool, please provide the following value for the image path: {receipt_image_path}",
                 ),
+                ("placeholder", "{messages}"),
             ]
         )
 
         # modifiedConfig = copilotkit_customize_config(config, emit_messages=False)
 
-        tools = [receipt_analyzer_tool]
-        model = (
-            OpenAIModel(openai_model="gpt-4o", use_cache=OPENAI_MODEL_USE_CACHE)
-            .get_model()
-            .bind_tools(tools, tool_choice="receipt_analyzer_tool")
-        )
+        model = OpenAIModel(openai_model="gpt-4o", use_cache=OPENAI_MODEL_USE_CACHE).get_model().bind_tools(self.get_tools())
 
-        prompt = prompt_template.invoke({"receipt_image_path": state["receipt_image_path"]})
+        prompt = prompt_template.invoke({"receipt_image_path": state["receipt_image_path"], "messages": state["messages"]})
         response = await model.ainvoke(prompt)
 
-        # response should have tool_calls
-        if hasattr(response, "tool_calls") and len(response.tool_calls) == 1:
-            # and it should be the receipt_analyzer_tool
-            if response.tool_calls[0]["name"] != "receipt_analyzer_tool":
-                error_msg = f"Tool call is not receipt_analyzer_tool: {response.tool_calls[0]}"
-                raise ValueError(error_msg)
+        if response.tool_calls:
+            return Command(goto="tool_node", update={"messages": response})
 
-            messages = []
-            tool_call = response.tool_calls[0]
-            tool = tools[0]
+        return Command(goto="__end__", update={"messages": response})
+
+    def tool_node(self, state: ReceiptState, config: RunnableConfig) -> dict:
+        tools_by_name = {tool.name: tool for tool in self.get_tools()}
+        for tool_call in state["messages"][-1].tool_calls:
+            tool = tools_by_name[tool_call["name"]]
             tool_msg = tool.invoke(tool_call["args"])
             logger.debug(f"Tool call {tool_call['name']}, result: {tool_msg}")
-            messages.append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
-            messages.append(AIMessage(content="Receipt analysis completed"))
-        else:
-            raise ValueError(f"Response from receipt_analysis node did not have tool_calls: {response}")
+            state["messages"].append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
 
-        return {"messages": messages, "receipt": tool_msg}
-
-    async def persist_receipt(self, state: ReceiptState, config: RunnableConfig) -> dict:
-        logger.debug("persisting_receipt")
-
-        if "receipt" not in state:
-            logger.warning("No receipt data found in state")
-            return state
-
-        prompt_template = ChatPromptTemplate.from_messages(
-            [
-                SystemMessage(
-                    content="""
-                    You are using a tool to persist a JSON structure with a grocecies receipt to a database. This is your only task.
-                    by using the use the persist_receipt_tool to save data to the database.
-                    """
-                ),
-                ("human", "{receipt}"),
-            ]
-        )
-
-        tools = [persist_receipt_tool]
-        prompt = await prompt_template.ainvoke({"receipt": state["receipt"]})
-        model = (
-            OpenAIModel(openai_model="gpt-4o", use_cache=OPENAI_MODEL_USE_CACHE)
-            .get_model()
-            .bind_tools(tools, tool_choice="persist_receipt_tool")
-        )
-        response = model.invoke(prompt)
-
-        # response should have tool_calls, and only one tool call
-        if hasattr(response, "tool_calls") and len(response.tool_calls) == 1:
-            # and it should be the persist_receipt_tool
-            if response.tool_calls[0]["name"] != "persist_receipt_tool":
-                error_msg = f"Tool call is not persist_receipt_tool: {response.tool_calls[0]}"
-                raise ValueError(error_msg)
-
-            messages = []
-            tool_call = response.tool_calls[0]
-            tool = tools[0]
-            tool_msg = tool.invoke(tool_call["args"])
-            logger.debug(f"Tool call {tool_call['name']}, result: {tool_msg}")
-            messages.append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
-            messages.append(AIMessage(content="Receipt stored successfully"))
-
-        else:
-            raise ValueError(f"Error processing tool calls in persist_receipt: {response}")
-
-        return {"messages": messages}
+        return state
 
     def as_subgraph(self):
         workflow = StateGraph(state_schema=ReceiptState)
@@ -255,11 +208,11 @@ class ReceiptAnalysisFlow:
         # nodes
         workflow.add_node("receipt_analysis_start", self.receipt_analysis_start)
         workflow.add_node("receipt_analysis", self.receipt_analysis)
-        workflow.add_node("persist_receipt", self.persist_receipt)
+        workflow.add_node("tool_node", self.tool_node)
 
         workflow.add_edge(START, "receipt_analysis_start")
         workflow.add_edge("receipt_analysis_start", "receipt_analysis")
-        workflow.add_edge("receipt_analysis", "persist_receipt")
-        workflow.add_edge("persist_receipt", END)
+        workflow.add_edge("tool_node", "receipt_analysis")
+        # workflow.add_edge("persist_receipt", END)
 
         return workflow
