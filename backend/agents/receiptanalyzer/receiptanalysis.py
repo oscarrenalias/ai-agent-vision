@@ -64,7 +64,10 @@ def receipt_analyzer_tool(image_path: str) -> Receipt:
     response = chain.invoke({"receipt_image_path": image_path})
     logger.debug("response = " + pformat(response, indent=2))
 
-    return response
+    # return response.model_dump_json()
+    import json
+
+    return json.dumps(response)
 
 
 @tool
