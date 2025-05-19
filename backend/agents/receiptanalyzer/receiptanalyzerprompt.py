@@ -33,39 +33,39 @@ class ReceiptAnalyzerPrompt:
 
         Taxonomy:
 
-        Level 1 must be one of:
+        level_1 must be one of:
         - Food
         - Household
         - Other
 
-        Level 2 and Level 3 depend on the Level 1 category.
+        level_2 and level_2 depend on the level_1 category.
 
-        If Level 1 is Food:
+        level_1 is Food:
 
         - Fruits
         - Vegetables
-        - Meats: Pork, Beef, Poultry, Mixed, Other
-        - Fish & Seafood: Tuna, Salmon, Shrimp, Other
-        - Dairy: Milk, Yoghurt, Cheese, Butter, Other
-        - Bread & Bakery: Flatbread, Sliced Bread, Sweet Bakery, Other
+        - Meats: use one of the following values for level_3=Pork, Beef, Poultry, Mixed, Other
+        - Fish & Seafood: use one of the following values for level_3=Tuna, Salmon, Shrimp, Other
+        - Dairy: use one of the following values for level_3=Milk, Yoghurt, Cheese, Butter, Other
+        - Bread & Bakery: use one of the following values for level_3=Flatbread, Sliced Bread, Sweet Bakery, Other
         - Grains & Pasta
         - Sauces & Condiments
         - Snacks & Sweets
-        - Beverages: Juice, Water, Soft Drink, Alcohol, Sports Drink, Other
+        - Beverages: use one of the following values for level_3=Juice, Water, Soft Drink, Alcohol, Sports Drink, Other
         - Legumes & Pulses
         - Herbs & Spices
-        - Prepared Foods: Sauces, Soups, Ready Meals, Other
+        - Prepared Foods: use one of the following values for level_3=Sauces, Soups, Ready Meals, Other
         - Other Food
 
-        If Level 1 is Household:
-        - Cleaning Products: Toilet Cleaner, Surface Cleaner, Dishwashing, Other
+        If level_1 is Household:
+        - Cleaning Products: use one of the following values for level_3=Toilet Cleaner, Surface Cleaner, Dishwashing, Other
         - Paper Goods
         - Laundry
         - Kitchen Supplies
         - Personal Hygiene
 
-        If Level 1 is Other:
-        - Deposits: Bottle Deposit, Can Deposit, Other
+        If level_1 is Other:
+        - Deposits: use one of the following values for level_3=Bottle Deposit, Can Deposit, Other
         - Unknown / Miscellaneous
         - Ensure that level_3 is always null if there’s no need for further classification.
 

@@ -3,7 +3,6 @@ import logging
 from datetime import UTC, datetime
 from pprint import pformat
 
-# from copilotkit.langchain import copilotkit_customize_config
 # from copilotkit.langgraph import copilotkit_customize_config, copilotkit_emit_message
 from copilotkit.langgraph import copilotkit_emit_message
 from langchain.chains import TransformChain
@@ -23,6 +22,9 @@ from common.datastore import get_data_store
 from common.server.utils import get_uploads_folder
 
 logger = logging.getLogger(__name__)
+
+# Do not use cache for the OpenAI model instances in this module
+OPENAI_MODEL_USE_CACHE = False
 
 """
 Usage example:
@@ -87,7 +89,7 @@ def persist_receipt_tool(receipt: Receipt) -> dict:
 
 
 def setup_chain():
-    extraction_model = OpenAIModel().get_model()
+    extraction_model = OpenAIModel(use_cache=True).get_model()
     prompt = ReceiptAnalyzerPrompt()
     parser = JsonOutputParser(pydantic_object=Receipt)
 
@@ -137,7 +139,8 @@ class ReceiptAnalysisFlow:
     def get_tools(self):
         return [receipt_analyzer_tool, persist_receipt_tool]
 
-    def receipt_analysis(self, state: ReceiptState, config: RunnableConfig) -> dict:
+    def receipt_analysis_start(self, state: ReceiptState, config: RunnableConfig) -> dict:
+        # this node is only here to handle the interrupt
         state["receipt_image_path"] = interrupt("Please provide an image with the receipt.")
 
         if state["receipt_image_path"] == "__CANCEL__":
@@ -146,6 +149,9 @@ class ReceiptAnalysisFlow:
             copilotkit_emit_message(config, "Receipt processing cancelled")
             return Command(goto=END)
 
+        return state
+
+    async def receipt_analysis(self, state: ReceiptState, config: RunnableConfig) -> dict:
         full_image_path = get_uploads_folder() / state["receipt_image_path"]
         state["receipt_image_path"] = str(full_image_path)
 
@@ -164,16 +170,17 @@ class ReceiptAnalysisFlow:
             ]
         )
 
-        # modifiedConfig = copilotkit_customize_config(
-        #    config,
-        #    emit_messages=False,
-        # )
+        # modifiedConfig = copilotkit_customize_config(config, emit_messages=False)
 
         tools = [receipt_analyzer_tool]
-        model = OpenAIModel(openai_model="gpt-4o").get_model().bind_tools(tools, tool_choice="receipt_analyzer_tool")
+        model = (
+            OpenAIModel(openai_model="gpt-4o", use_cache=OPENAI_MODEL_USE_CACHE)
+            .get_model()
+            .bind_tools(tools, tool_choice="receipt_analyzer_tool")
+        )
 
         prompt = prompt_template.invoke({"receipt_image_path": state["receipt_image_path"]})
-        response = model.invoke(prompt)
+        response = await model.ainvoke(prompt)
 
         # response should have tool_calls
         if hasattr(response, "tool_calls") and len(response.tool_calls) == 1:
@@ -187,15 +194,14 @@ class ReceiptAnalysisFlow:
             tool = tools[0]
             tool_msg = tool.invoke(tool_call["args"])
             logger.debug(f"Tool call {tool_call['name']}, result: {tool_msg}")
-            messages.append(
-                ToolMessage(content="Receipt analyzed successfully", artifact=tool_msg, tool_call_id=tool_call["id"])
-            )
+            messages.append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
+            messages.append(AIMessage(content="Receipt analysis completed"))
         else:
             raise ValueError(f"Response from receipt_analysis node did not have tool_calls: {response}")
 
         return {"messages": messages, "receipt": tool_msg}
 
-    def persist_receipt(self, state: ReceiptState, config: RunnableConfig) -> dict:
+    async def persist_receipt(self, state: ReceiptState, config: RunnableConfig) -> dict:
         logger.debug("persisting_receipt")
 
         if "receipt" not in state:
@@ -215,8 +221,12 @@ class ReceiptAnalysisFlow:
         )
 
         tools = [persist_receipt_tool]
-        prompt = prompt_template.invoke({"receipt": state["receipt"]})
-        model = OpenAIModel(openai_model="gpt-4o").get_model().bind_tools(tools, tool_choice="persist_receipt_tool")
+        prompt = await prompt_template.ainvoke({"receipt": state["receipt"]})
+        model = (
+            OpenAIModel(openai_model="gpt-4o", use_cache=OPENAI_MODEL_USE_CACHE)
+            .get_model()
+            .bind_tools(tools, tool_choice="persist_receipt_tool")
+        )
         response = model.invoke(prompt)
 
         # response should have tool_calls, and only one tool call
@@ -232,7 +242,7 @@ class ReceiptAnalysisFlow:
             tool_msg = tool.invoke(tool_call["args"])
             logger.debug(f"Tool call {tool_call['name']}, result: {tool_msg}")
             messages.append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
-            messages.append(AIMessage(content="Receipt persisted successfully"))
+            messages.append(AIMessage(content="Receipt stored successfully"))
 
         else:
             raise ValueError(f"Error processing tool calls in persist_receipt: {response}")
@@ -243,10 +253,12 @@ class ReceiptAnalysisFlow:
         workflow = StateGraph(state_schema=ReceiptState)
 
         # nodes
+        workflow.add_node("receipt_analysis_start", self.receipt_analysis_start)
         workflow.add_node("receipt_analysis", self.receipt_analysis)
         workflow.add_node("persist_receipt", self.persist_receipt)
 
-        workflow.add_edge(START, "receipt_analysis")
+        workflow.add_edge(START, "receipt_analysis_start")
+        workflow.add_edge("receipt_analysis_start", "receipt_analysis")
         workflow.add_edge("receipt_analysis", "persist_receipt")
         workflow.add_edge("persist_receipt", END)
 
