@@ -143,6 +143,7 @@ class ChatFlow:
                 summary_text = await self.summarize_messages(old_messages_str, config=config)
                 summary_message = SystemMessage(content=f"Summary of previous conversation and tool results: {summary_text}")
                 messages = [summary_message] + to_keep
+
         return {"messages": messages, "input": state["input"], "items": state.get("items", [])}
 
     # Custom tool node so that we can return the items from the price lookup tool
