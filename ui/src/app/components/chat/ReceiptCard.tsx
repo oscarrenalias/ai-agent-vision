@@ -1,4 +1,4 @@
-import { Receipt } from "../lib/types";
+import { Receipt } from "../../lib/types";
 import React, { useState } from "react";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -148,7 +148,8 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, height = 400 }) => {
                       onClick={() => setFlipped((f) => !f)}
                       title={flipped ? item.name_fi : item.name_en}
                     >
-                      <CategoryEmoji item={item} /> {flipped ? item.name_fi : item.name_en}
+                      <CategoryEmoji item={item} />{" "}
+                      {flipped ? item.name_fi : item.name_en}
                     </span>
                     <span
                       style={{
@@ -161,8 +162,13 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, height = 400 }) => {
                       {item.total_price} €
                     </span>
                   </div>
-                  <div style={{ fontSize: 14, color: "var(--card-muted, #666)" }}>
-                    Category: {item.item_category.level_3 ?? item.item_category.level_2 ?? item.item_category.level_1}
+                  <div
+                    style={{ fontSize: 14, color: "var(--card-muted, #666)" }}
+                  >
+                    Category:{" "}
+                    {item.item_category.level_3 ??
+                      item.item_category.level_2 ??
+                      item.item_category.level_1}
                     <br />
                     Qty: {item.quantity} {item.unit_of_measure}
                     {item.unit_price !== null && (
@@ -171,12 +177,13 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, height = 400 }) => {
                         Unit price: {item.unit_price} €
                       </>
                     )}
-                    {item.has_loyalty_discount && item.loyalty_discount !== null && (
-                      <>
-                        <br />
-                        Loyalty discount: {item.loyalty_discount} €
-                      </>
-                    )}
+                    {item.has_loyalty_discount &&
+                      item.loyalty_discount !== null && (
+                        <>
+                          <br />
+                          Loyalty discount: {item.loyalty_discount} €
+                        </>
+                      )}
                   </div>
                 </li>
               );
