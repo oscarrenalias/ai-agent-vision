@@ -23,8 +23,20 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          docker system prune -af
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-flags: --debug
+          config-inline: |
+            [worker.oci]
+              max-parallelism = 1
+              gc = true
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
@@ -35,7 +47,7 @@ jobs:
             ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
 
   build-and-push-ui:
     runs-on: ubuntu-latest
@@ -54,8 +66,20 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          docker system prune -af
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-flags: --debug
+          config-inline: |
+            [worker.oci]
+              max-parallelism = 1
+              gc = true
       - name: Install frontend dependencies and build (outside Docker)
         run: |
           cd ui
@@ -72,7 +96,7 @@ jobs:
             ghcr.io/${{ github.repository }}/ui:${{ github.sha }}
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
 
   prepare-compose:
     runs-on: ubuntu-latest
