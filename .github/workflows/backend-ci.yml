@@ -1,5 +1,8 @@
 name: Backend CI
 
+env:
+  PYTHON_VERSION: "3.12"
+
 on:
   push:
     branches: [main]
@@ -18,10 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.13
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v4
         with:
-          python-version: "3.13"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install uv
         run: |
@@ -31,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd backend
-          uv pip sync --group dev .
+          uv sync --group dev
 
       - name: Lint with flake8
         run: |
@@ -54,10 +57,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.13
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v4
         with:
-          python-version: "3.13"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install uv
         run: |
@@ -67,14 +70,12 @@ jobs:
       - name: Install dependencies
         run: |
           cd backend
-          uv pip sync --group dev .
+          uv sync --group dev
 
       - name: Test with pytest
         run: |
           cd backend
           pytest --cov=. --cov-report=xml
-        env:
-          HUGGINGFACEHUB_API_TOKEN: ${{ secrets.HUGGINGFACEHUB_API_TOKEN }}
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -89,10 +90,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.13
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v4
         with:
-          python-version: "3.13"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install uv
         run: |
@@ -102,7 +103,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd backend
-          uv pip sync --group dev .
+          uv sync --group dev
 
       - name: Build package
         run: |
