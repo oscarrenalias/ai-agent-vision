@@ -67,10 +67,6 @@ function MainContent() {
     name: "receipt_analyzer_tool",
     available: "disabled",
     render: ({ status, args, result }) => {
-      // Only trigger refresh when status transitions to 'complete'
-      if (status === "complete") {
-        setRefreshKey((k) => k + 1);
-      }
       if (status === "executing") {
         return (
           <ToolProcessingIndicator message="Processing receipt..." />
@@ -90,6 +86,32 @@ function MainContent() {
       if (status === "executing") {
         return (
           <ToolProcessingIndicator message="Saving receipt..." />
+        ) as React.ReactElement;
+      }
+      return <></>;
+    },
+  });
+
+  useCopilotAction({
+    name: "get_receipts_by_date",
+    available: "disabled",
+    render: ({ status, args, result }) => {
+      if (status === "executing") {
+        return (
+          <ToolProcessingIndicator message="Getting receipt data..." />
+        ) as React.ReactElement;
+      }
+      return <></>;
+    },
+  });
+
+  useCopilotAction({
+    name: "get_items_per_item_type",
+    available: "disabled",
+    render: ({ status, args, result }) => {
+      if (status === "executing") {
+        return (
+          <ToolProcessingIndicator message="Getting receipt data..." />
         ) as React.ReactElement;
       }
       return <></>;
