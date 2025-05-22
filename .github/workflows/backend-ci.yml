@@ -38,18 +38,21 @@ jobs:
 
       - name: Lint with flake8
         run: |
+          cd backend
           # Critical errors only
-          flake8 backend --count --select=E9,F63,F7,F82 --show-source --statistics
+          uv run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # All other errors - with the same ignores as pre-commit
-          flake8 backend --count --extend-ignore=E203,W503,E501,D100,D101,D102,D103,D104 --statistics
+          uv run flake8 . --count --extend-ignore=E203,W503,E501,D100,D101,D102,D103,D104 --statistics
 
       - name: Check formatting with black
         run: |
-          black --check backend
+          cd backend
+          uv run black --check .
 
       - name: Check imports with isort
         run: |
-          isort --check-only --profile black backend
+          cd backend
+          uv run isort --check-only --profile black .
 
   test:
     runs-on: ubuntu-latest
@@ -75,7 +78,7 @@ jobs:
       - name: Test with pytest
         run: |
           cd backend
-          pytest --cov=. --cov-report=xml
+          uv run pytest --cov=. --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -108,7 +111,7 @@ jobs:
       - name: Build package
         run: |
           cd backend
-          python -m build
+          uv run python -m build
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
