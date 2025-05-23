@@ -1,6 +1,7 @@
 """
 API client for S-Kaupat product search.
 """
+
 import json
 import logging
 import urllib.parse
