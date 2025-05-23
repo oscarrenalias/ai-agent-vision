@@ -1,6 +1,7 @@
 """
 Scraper for K-Ruoka website.
 """
+
 import logging
 import urllib.parse
 from typing import Any, Dict, List, Optional

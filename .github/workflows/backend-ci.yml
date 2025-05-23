@@ -46,8 +46,9 @@ jobs:
 
       - name: Check formatting with black
         run: |
-          cd backend
-          uv run black --check .
+          # Use the same pattern and version as pre-commit
+          cd /workspaces/ai-agent-vision
+          uv run black --check backend/
 
       - name: Check imports with isort
         run: |
