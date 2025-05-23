@@ -112,7 +112,7 @@ class Recipe(BaseModel):
 
 class ReceiptState(CopilotKitState):
     site_url: Optional[str]
-    page_content: Optional[str]
+    recipe_content: Optional[str]
     recipe: Recipe
 
     def make_instance():
@@ -183,7 +183,14 @@ class RecipeFlow:
         """
         This node is only here to handle the interrupt and provide the URL of the site that contains the recipe.
         """
-        state["site_url"] = interrupt("Please provide a URL of the site that contains the recipe.")
+        top_message = state["messages"][-1].content.strip()
+        if top_message == "":
+            # no message, we need to ask for the URL
+            state["site_url"] = interrupt("Please provide a URL of the site that contains the recipe.")
+        else:
+            # there is some body, let's assume it's a receipt
+            state["recipe_content"] = top_message
+
         return state
 
     def get_tools(self) -> list:
@@ -195,19 +202,22 @@ class RecipeFlow:
                 content="""
                     You are a helpful assistant that can fetch and extract recipes from either a URL, or page content.
 
-                    If you are provided with a URL of a site that should contain a recipe, your first task is to use the
+                    If you are provided with something that looks like URL of a site that should contain a recipe, your first task is to use the
                     page_retriever tool to retrieve the page content.
+
+                    If you are provided with a block of text that looks like a recipe, instead of a URL, your next task is to
+                    use the receipt_parser tool.
 
                     After retrieving the content, or if the state already contains a recipe, your next task is to
                     use the receipt_parser tool to generate a JSON object out of the recipe content. Do not call the page_retriever_tool again.
                     Do not return the JSON payload in your response, just return a brief summary of the recipe for the user.
 
-                    If the page does not contain a recipe, or you cannot retrieve the page content, please
-                    return a message indicating the nature of the issue and do not use the tools.
+                    If you are provided with text that does not look like a receipt, the page does not contain a recipe, or you cannot
+                    retrieve the page content, please return a message indicating the nature of the issue and do not use the tools.
                     """
             ),
             ("human", "Site URL: {site_url}"),
-            ("human", "{page_content}"),
+            ("human", "{recipe_content}"),
             ("human", "{messages}"),
         ]
 
@@ -217,7 +227,7 @@ class RecipeFlow:
             {
                 "site_url": state.get("site_url", ""),
                 "messages": state.get("messages", []),
-                "page_content": state.get("page_content", ""),
+                "recipe_content": state.get("recipe_content", ""),
             }
         )
 
@@ -287,7 +297,7 @@ class RecipeFlow:
         - url: URL of the page to retrieve
 
         Returns:
-        - Dictionary with state updates: page_content and site_url
+        - Dictionary with state updates: recipe_content and site_url
         """
         # Create recipe retriever instance and use it to get the recipe content
         retriever = RecipeRetriever()
@@ -295,12 +305,12 @@ class RecipeFlow:
 
     @tool
     @staticmethod
-    def receipt_parser(page_content: str) -> Dict[str, Any]:
+    def receipt_parser(recipe_content: str) -> Dict[str, Any]:
         """
         Parse the page content to extract the recipe.
 
         Parameters:
-        - page_content: Content of the page
+        - recipe_content: Content of the page
 
         Returns:
         - Dictionary with state updates containing the parsed recipe in JSON format
@@ -331,7 +341,7 @@ class RecipeFlow:
                     5. If the content appears to be pre-structured (like from recipe-scrapers), preserve that structure
                     """
                 ),
-                ("human", "Page content: {page_content}"),
+                ("human", "Recipe content: {recipe_content}"),
                 ("human", "{parser_instructions}"),
             ]
         )
@@ -340,7 +350,7 @@ class RecipeFlow:
         chain = extraction_model | json_output_parser
 
         prompt = prompt_template.invoke(
-            {"page_content": page_content, "parser_instructions": json_output_parser.get_format_instructions()}
+            {"recipe_content": recipe_content, "parser_instructions": json_output_parser.get_format_instructions()}
         )
 
         result = chain.invoke(prompt)

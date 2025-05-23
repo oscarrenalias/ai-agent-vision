@@ -33,12 +33,12 @@ class RecipeRetriever:
         - url: URL of the page to retrieve
 
         Returns:
-        - Dictionary with page_content, site_url, and description
+        - Dictionary with recipe_content, site_url, and description
         """
         if not url or not url.startswith(("http://", "https://")):
             error_msg = f"Invalid URL provided: {url}"
             logger.error(error_msg)
-            return {"page_content": f"Error: {error_msg}", "site_url": url if url else "", "description": error_msg}
+            return {"recipe_content": f"Error: {error_msg}", "site_url": url if url else "", "description": error_msg}
 
         logger.info(f"Retrieving recipe content from URL: {url}")
         domain = urlparse(url).netloc
@@ -65,7 +65,7 @@ class RecipeRetriever:
         except Exception as e:
             error_msg = f"Error retrieving recipe from {url}: {str(e)}"
             logger.error(error_msg)
-            return {"page_content": f"Error retrieving recipe: {str(e)}", "site_url": url, "description": error_msg}
+            return {"recipe_content": f"Error retrieving recipe: {str(e)}", "site_url": url, "description": error_msg}
 
     def _try_recipe_scrapers(self, url: str) -> Optional[Dict[str, Any]]:
         """
@@ -180,7 +180,7 @@ class RecipeRetriever:
                 page_content = "\n".join(content_parts)
 
                 return {
-                    "page_content": page_content,
+                    "recipe_content": page_content,
                     "site_url": url,
                     "description": f"Successfully extracted recipe: {recipe_data['title']}",
                 }
@@ -285,7 +285,7 @@ class RecipeRetriever:
             page_content = "\n".join(content_parts)
 
             return {
-                "page_content": page_content,
+                "recipe_content": page_content,
                 "site_url": url,
                 "description": f"Successfully extracted structured recipe: {title}",
             }
@@ -385,7 +385,7 @@ class RecipeRetriever:
             page_content = "Recipe content:\n" + text.strip()
 
             return {
-                "page_content": page_content,
+                "recipe_content": page_content,
                 "site_url": url,
                 "description": f"Retrieved recipe content from {domain} ({len(page_content)} characters)",
             }
@@ -393,7 +393,7 @@ class RecipeRetriever:
         except Exception as e:
             logger.error(f"Basic content extraction failed: {str(e)}")
             return {
-                "page_content": f"Failed to retrieve content from {url}. Error: {str(e)}",
+                "recipe_content": f"Failed to retrieve content from {url}. Error: {str(e)}",
                 "site_url": url,
                 "description": "Failed to retrieve page content",
             }
