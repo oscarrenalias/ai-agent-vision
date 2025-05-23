@@ -21,9 +21,6 @@ profile = "black"
 line_length = 127
 multi_line_output = 3
 
-[tool.poetry]
-package-mode = false
-
 [dependency-groups]
 dev = [
     "pre-commit >=3.3.2",
@@ -32,19 +29,26 @@ dev = [
     "flake8 >=6.0.0",
     "flake8-docstrings >=1.7.0",
     "pytest >=7.3.1",
-    "pytest-cov >=4.1.0"
+    "pytest-cov >=4.1.0",
+    "build>=1.2.2.post1"
 ]
+
+[tool.setuptools]
+packages = ["agents", "common" ]
+
+[tools.setuptools.data_files]
+"." = [".env.example", "README.md"]
+
+[project.scripts]
+ai-agent-vision-server = "server:main"
 
 [project]
 name = "ai-agent-vision"
 version = "0.1.0"
 description = ""
-package-mode = false
-
 authors = [
     {name = "Your Name",email = "you@example.com"}
 ]
-
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 
