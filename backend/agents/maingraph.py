@@ -9,6 +9,7 @@ from agents.common import make_classifier
 from agents.mealplanner import MealPlannerFlow, MealPlannerState
 from agents.receiptanalyzer import ReceiptState
 from agents.receiptanalyzer.receiptanalysis import ReceiptAnalysisFlow
+from agents.recipes.recipeflow import RecipeFlow, RecipeState
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +36,11 @@ class MainGraph:
         chat_graph = chat_flow.as_subgraph().compile()
 
         # meal planner graph
-        meal_planner_flow = MealPlannerFlow()
-        meal_planner_graph = meal_planner_flow.as_subgraph().compile()
-
+        meal_planner_graph = MealPlannerFlow().as_subgraph().compile()
         # receipt processing graph
-        # receipt_processing_flow = ReceiptAnalyzerFlow()
-        # receipt_processing_graph = receipt_processing_flow.as_subgraph().compile()
         receipt_analysis_graph = ReceiptAnalysisFlow().as_subgraph().compile()
+        # recipe analysis graph
+        recipe_handler_graph = RecipeFlow().as_subgraph().compile()
 
         main_flow = StateGraph(state_schema=GlobalState)
 
@@ -75,6 +74,13 @@ class MainGraph:
                 "messages": meal_planner_result["messages"],
             }
 
+        async def recipe_handler_graph_node(global_state: GlobalState) -> dict:
+            state = RecipeState.make_instance()
+            state["messages"] = global_state["messages"].copy()
+            result = await recipe_handler_graph.ainvoke(state, config=self.config)
+
+            return {"messages": result["messages"]}
+
         async def receipt_processing_graph_node(global_state: GlobalState) -> dict:
             # initialize the new state and harcode the image path for now
             receipt_processing_state = ReceiptState.make_instance()
@@ -94,14 +100,16 @@ class MainGraph:
 
         # main_flow.add_node("chat", chat_graph)
         main_flow.add_node("chat", chat_graph_node)
-        main_flow.add_node("meal_planner", meal_planner_graph_node)
+        # main_flow.add_node("meal_planner", meal_planner_graph_node)
         main_flow.add_node("receipt_processing", receipt_processing_graph_node)
+        main_flow.add_node("recipe_handler", recipe_handler_graph_node)
 
         # Routing configuration for the decider, as a dictionary:
         # { "target node": "routing description, gets appended to the prompt for the LLM to decide." }
         classifier_routes = {
             "meal_planner": "If the message is about meal planning. Example: I want to plan my meals for the week.",
             "receipt_processing": "If the message is a request to upload, scan or process a new receipt file, and only about that. Examples: I want to upload a receipt or can you help me process a receipt?",
+            "recipe_handler": "If the message looks like a recipe and the user is asking for help extracting a recipe. Example: 'I want to extract a recipe from this text' or ' please help me extract a recipe from a web site or URL'",
             "chat": "Everything else, including questions about prices, or past receipts. Example: I want to chat with you.",
         }
         main_flow.add_conditional_edges(START, make_classifier(routing_map=classifier_routes, default_node="chat"))
