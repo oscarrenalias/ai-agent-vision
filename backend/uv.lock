@@ -37,6 +37,7 @@ dependencies = [
 [package.dev-dependencies]
 cli = [
     { name = "prompt-toolkit" },
+    { name = "pygments" },
     { name = "rich" },
 ]
 dev = [
@@ -79,6 +80,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 cli = [
     { name = "prompt-toolkit", specifier = ">=3.0.0" },
+    { name = "pygments", specifier = ">=2.10.0" },
     { name = "rich", specifier = ">=10.0.0" },
 ]
 dev = [

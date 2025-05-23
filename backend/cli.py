@@ -16,6 +16,7 @@ Commands:
     /load [file]    - Load conversation from file (default: conversation.json)
     /clear          - Clear conversation history
     /debug          - Toggle debug mode
+    /state          - Display full state object (for debugging)
     /exit or /quit  - Exit the application
 """
 
@@ -35,6 +36,7 @@ from prompt_toolkit.history import FileHistory
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.pretty import Pretty
 from rich.table import Table
 
 from agents.maingraph import GlobalState, MainGraph
@@ -70,6 +72,7 @@ def print_help():
         ("/load [file]", "Load conversation from JSON file (default: conversation.json)"),
         ("/clear", "Clear conversation history"),
         ("/debug", "Toggle debug mode"),
+        ("/state", "Display full state object (for debugging)"),
         ("/exit or /quit", "Exit application"),
     ]
 
@@ -151,6 +154,20 @@ def display_state_info(state: GlobalState, debug_mode: bool):
         console.print(debug_info)
 
 
+def display_full_state(state: GlobalState):
+    """Display the complete state object for debugging"""
+    console.print("[bold yellow]Full State Object:[/bold yellow]")
+
+    # Create a panel for the state content
+    state_panel = Panel(
+        Pretty(state, max_depth=4, indent_guides=True, expand_all=True),
+        title="[bold]State Contents[/bold]",
+        border_style="yellow",
+    )
+
+    console.print(state_panel)
+
+
 async def main():
     """Main CLI application"""
     # Parse command line arguments
@@ -171,7 +188,7 @@ async def main():
     state = GlobalState.make_instance()
 
     # Initialize command session with history
-    command_completer = WordCompleter(["/help", "/upload", "/save", "/load", "/clear", "/debug", "/exit", "/quit"])
+    command_completer = WordCompleter(["/help", "/upload", "/save", "/load", "/clear", "/debug", "/state", "/exit", "/quit"])
     session = PromptSession(
         history=FileHistory(".chat_history"), auto_suggest=AutoSuggestFromHistory(), completer=command_completer
     )
@@ -259,6 +276,11 @@ async def main():
                     console.print(f"[bold yellow]Debug mode: {'ON' if debug_mode else 'OFF'}[/bold yellow]")
                     continue
 
+                # Display full state
+                elif command == "/state":
+                    display_full_state(state)
+                    continue
+
                 # Unknown command
                 else:
                     console.print(f"[bold red]Unknown command: {command}[/bold red]")
@@ -276,7 +298,7 @@ async def main():
             # Update the state with the result
             state = result
 
-            # Display the AI's response (last message)
+            # Display the AI's response (last message)can
             if state["messages"] and len(state["messages"]) > 0:
                 last_message = state["messages"][-1]
                 console.print("[bold yellow]=== 🤖 AI response ===[/bold yellow]")
