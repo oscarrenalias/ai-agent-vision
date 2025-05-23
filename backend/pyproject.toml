@@ -33,6 +33,12 @@ dev = [
     "build>=1.2.2.post1"
 ]
 
+cli = [
+    "prompt_toolkit >=3.0.0",
+    "rich >=10.0.0",
+    "pygments >=2.10.0"   # Required for syntax highlighting in Rich
+]
+
 [tool.setuptools]
 packages = ["agents", "common" ]
 
@@ -41,6 +47,7 @@ packages = ["agents", "common" ]
 
 [project.scripts]
 ai-agent-vision-server = "server:main"
+ai-agent-vision-cli = "cli:entry_point"
 
 [project]
 name = "ai-agent-vision"
