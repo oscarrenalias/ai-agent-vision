@@ -110,13 +110,13 @@ class Recipe(BaseModel):
     tags: List[str] = Field(description="List of tags for the recipe")
 
 
-class ReceiptState(CopilotKitState):
+class RecipeState(CopilotKitState):
     site_url: Optional[str]
     recipe_content: Optional[str]
     recipe: Recipe
 
     def make_instance():
-        return ReceiptState(
+        return RecipeState(
             site_url=None,
             recipe=Recipe(
                 name=None,
@@ -165,7 +165,7 @@ class ReceiptState(CopilotKitState):
 
     # Create from MongoDB document
     @classmethod
-    def from_mongo(cls, data: Dict[str, Any]) -> "ReceiptState":
+    def from_mongo(cls, data: Dict[str, Any]) -> "RecipeState":
         """Create instance from MongoDB document"""
         # The field validators will handle conversion back
         return cls.model_validate(data)
@@ -177,9 +177,9 @@ class RecipeFlow:
     """
 
     def __init__(self):
-        self.state = ReceiptState.make_instance()
+        self.state = RecipeState.make_instance()
 
-    def receipt_agent_check(self, state: ReceiptState, config: RunnableConfig) -> ReceiptState:
+    async def receipt_agent_check(self, state: RecipeState, config: RunnableConfig) -> RecipeState:
         """
         This node is only here to handle the interrupt and provide the URL of the site that contains the recipe.
         """
@@ -196,7 +196,7 @@ class RecipeFlow:
     def get_tools(self) -> list:
         return [self.page_retriever, self.receipt_parser]
 
-    def receipt_agent(self, state: ReceiptState, config: RunnableConfig) -> ReceiptState:
+    async def receipt_agent(self, state: RecipeState, config: RunnableConfig) -> RecipeState:
         prompt_template_messages = [
             SystemMessage(
                 content="""
@@ -232,12 +232,12 @@ class RecipeFlow:
         )
 
         model_with_tools = OpenAIModel(use_cache=True).get_model().bind_tools(self.get_tools())
-        result = model_with_tools.invoke(prompt, config=config)
+        result = await model_with_tools.ainvoke(prompt, config=config)
         messages = [*state["messages"], result]
 
         return {"messages": messages, "recipe": state.get("recipe", "")}
 
-    def tools_node(self, state: ReceiptState, config: RunnableConfig) -> ReceiptState:
+    async def tools_node(self, state: RecipeState, config: RunnableConfig) -> RecipeState:
         """
         Process tool calls and update state with tool results.
         Implements Option 3: Tools return state updates directly with a standard format.
@@ -261,7 +261,7 @@ class RecipeFlow:
                 tool_args = tool_call["args"]
 
                 logger.debug(f"Invoking tool {tool_name} with args: {tool_args}")
-                tool_result = tool.invoke(tool_args)
+                tool_result = await tool.ainvoke(tool_args)
 
                 # Process the tool result
                 if isinstance(tool_result, dict):
@@ -366,7 +366,7 @@ class RecipeFlow:
         return {"recipe": recipe, "description": description}
 
     def as_subgraph(self):
-        workflow = StateGraph(state_schema=ReceiptState)
+        workflow = StateGraph(state_schema=RecipeState)
 
         workflow.add_node("receipt_agent", self.receipt_agent)
         workflow.add_node("receipt_agent_check", self.receipt_agent_check)
