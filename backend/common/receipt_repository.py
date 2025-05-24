@@ -242,27 +242,38 @@ class ReceiptRepository:
             List of dictionaries containing receipt data for the specified period.
         """
         try:
-            start_date = datetime.strptime(start_date, "%Y-%m-%d")
-            end_date = datetime.strptime(end_date, "%Y-%m-%d")
+            start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
 
-            cursor = self.receipts_collection.find({"created_at": {"$gte": start_date, "$lte": end_date}}).sort(
-                "created_at", pymongo.DESCENDING
+            # Adjust end_date to include the entire day
+            end_date_dt = datetime(end_date_dt.year, end_date_dt.month, end_date_dt.day, 23, 59, 59)
+
+            # Query using receipt_data.date field instead of created_at
+            cursor = self.receipts_collection.find({"receipt_data.date": {"$gte": start_date_dt, "$lte": end_date_dt}}).sort(
+                "receipt_data.date", pymongo.DESCENDING
             )
 
             receipts = []
             for document in cursor:
+                # Convert MongoDB date objects to ISO format strings for JSON serialization
+                receipt_data = document.get("receipt_data", {})
+                items = document.get("items", [])
+
+                # Convert MongoDB date to string if it's a datetime object
+                if "date" in receipt_data and isinstance(receipt_data["date"], datetime):
+                    receipt_data["date"] = receipt_data["date"].strftime("%d.%m.%Y")
+
                 receipt = {
                     "id": str(document["_id"]),
                     "created_at": document["created_at"].isoformat(),
                     "updated_at": document["updated_at"].isoformat(),
-                    "receipt_data": document["receipt_data"],
-                    "items": document["items"],
+                    "data": {"receipt_data": receipt_data, "items": items},
                 }
                 receipts.append(receipt)
 
             return receipts
         except Exception as e:
-            logger.error(f"Error retrieving receipts from MongoDB: {str(e)}")
+            logger.error(f"Error retrieving receipts by date from MongoDB: {str(e)}")
             return None
 
     def get_items_per_item_type(self, item_type: str) -> List[Dict[str, Any]]:

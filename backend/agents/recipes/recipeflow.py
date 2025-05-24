@@ -11,7 +11,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import tools_condition
 from langgraph.types import interrupt
-from pydantic import BaseModel, Field, field_serializer, field_validator
+from pydantic import BaseModel, Field
 
 from agents.models import OpenAIModel
 from agents.recipes.reciperetriever import RecipeRetriever
@@ -33,67 +33,6 @@ logger = logging.getLogger(__name__)
 
 # TimeRange type is a tuple of (min_time, max_time) where max_time is optional
 TimeRange = Tuple[timedelta, Optional[timedelta]]
-
-
-def format_time_range(time_range: Optional[TimeRange]) -> str:
-    """Format a time range into a human-readable string"""
-    if not time_range:
-        return ""
-
-    min_time, max_time = time_range
-    if max_time is None:
-        return format_timedelta(min_time)
-    return f"{format_timedelta(min_time)} to {format_timedelta(max_time)}"
-
-
-# Helper functions for timedelta serialization/deserialization
-def serialize_timedelta(td: Optional[timedelta]) -> Optional[Dict[str, int]]:
-    """Convert timedelta to a MongoDB and JSON-serializable format"""
-    if td is None:
-        return None
-    return {"total_seconds": int(td.total_seconds())}
-
-
-def deserialize_timedelta(data: Optional[Dict[str, int]]) -> Optional[timedelta]:
-    """Recreate timedelta from serialized format"""
-    if data is None or "total_seconds" not in data:
-        return None
-    return timedelta(seconds=data["total_seconds"])
-
-
-def serialize_time_range(tr: Optional[TimeRange]) -> Optional[List[Dict[str, int]]]:
-    """Convert TimeRange to a MongoDB and JSON-serializable format"""
-    if tr is None:
-        return None
-    min_time, max_time = tr
-    result = [serialize_timedelta(min_time)]
-    if max_time is not None:
-        result.append(serialize_timedelta(max_time))
-    return result
-
-
-def deserialize_time_range(data: Optional[List[Dict[str, int]]]) -> Optional[TimeRange]:
-    """Recreate TimeRange from serialized format"""
-    if not data or not isinstance(data, list) or len(data) == 0:
-        return None
-
-    min_time = deserialize_timedelta(data[0])
-    max_time = deserialize_timedelta(data[1]) if len(data) > 1 else None
-
-    return (min_time, max_time)
-
-
-def format_timedelta(td: timedelta) -> str:
-    """Format a timedelta into a human-readable string for recipe times."""
-    total_minutes = int(td.total_seconds() / 60)
-    hours, minutes = divmod(total_minutes, 60)
-
-    if hours > 0 and minutes > 0:
-        return f"{hours} hour{'s' if hours > 1 else ''} {minutes} minute{'s' if minutes > 1 else ''}"
-    elif hours > 0:
-        return f"{hours} hour{'s' if hours > 1 else ''}"
-    else:
-        return f"{minutes} minute{'s' if minutes > 1 else ''}"
 
 
 class Recipe(BaseModel):
@@ -128,47 +67,6 @@ class RecipeState(CopilotKitState):
                 tags=[],
             ),
         )
-
-    # Serialization for timedelta fields
-    @field_serializer("cooking_time", "preparation_time")
-    def serialize_timedelta(self, td: Optional[timedelta]) -> Optional[Dict[str, int]]:
-        return serialize_timedelta(td)
-
-    # Serialization for TimeRange fields
-    @field_serializer("cooking_time_range", "preparation_time_range")
-    def serialize_time_range(self, tr: Optional[TimeRange]) -> Optional[List[Dict[str, int]]]:
-        return serialize_time_range(tr)
-
-    # Validator to deserialize timedelta from dict when loading from MongoDB
-    @field_validator("cooking_time", "preparation_time", mode="before")
-    @classmethod
-    def deserialize_timedelta(cls, value):
-        if isinstance(value, dict) and "total_seconds" in value:
-            return timedelta(seconds=value["total_seconds"])
-        return value
-
-    # Validator to deserialize TimeRange from dict when loading from MongoDB
-    @field_validator("cooking_time_range", "preparation_time_range", mode="before")
-    @classmethod
-    def deserialize_time_range(cls, value):
-        if isinstance(value, list):
-            return deserialize_time_range(value)
-        return value
-
-    # Convert to MongoDB-friendly dictionary
-    def to_mongo(self) -> Dict[str, Any]:
-        """Convert to MongoDB-friendly dictionary"""
-        # Use Pydantic's model_dump and post-process timedeltas
-        data = self.model_dump()
-        # No need to process further as field serializers handle the conversion
-        return data
-
-    # Create from MongoDB document
-    @classmethod
-    def from_mongo(cls, data: Dict[str, Any]) -> "RecipeState":
-        """Create instance from MongoDB document"""
-        # The field validators will handle conversion back
-        return cls.model_validate(data)
 
 
 class RecipeFlow:
@@ -377,7 +275,30 @@ class RecipeFlow:
         Returns:
         - A dictionary with state updates
         """
-        pass
+        try:
+            from common.repository_factory import get_recipe_repository
+
+            # Get the recipe repository instance
+            recipe_repo = get_recipe_repository()
+
+            # Save the recipe to the database
+            recipe_id = recipe_repo.save_recipe(recipe)
+
+            if not recipe_id:
+                return {"description": "Failed to save recipe to the database.", "success": False}
+
+            return {
+                "description": f"Recipe '{recipe.name}' saved successfully with ID: {recipe_id}",
+                "recipe_id": recipe_id,
+                "success": True,
+            }
+
+        except Exception as e:
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error saving recipe: {str(e)}")
+            return {"description": f"Error saving recipe: {str(e)}", "success": False}
 
     def as_subgraph(self):
         workflow = StateGraph(state_schema=RecipeState)
@@ -392,30 +313,3 @@ class RecipeFlow:
         workflow.add_conditional_edges("receipt_agent", tools_condition)
 
         return workflow
-
-
-# MongoDB customization example - for PyMongo
-def setup_mongodb_codecs():
-    """
-    Example of setting up custom codecs for PyMongo if needed
-    """
-    from bson.codec_options import CodecOptions, TypeCodec, TypeRegistry
-
-    class TimedeltaCodec(TypeCodec):
-        python_type = timedelta
-        bson_type = dict
-
-        def transform_python(self, value):
-            return serialize_timedelta(value)
-
-        def transform_bson(self, value):
-            return deserialize_timedelta(value)
-
-    # Register the codec with PyMongo
-    type_registry = TypeRegistry([TimedeltaCodec()])
-    codec_options = CodecOptions(type_registry=type_registry)
-
-    # Use with your MongoDB client
-    # Example: db.get_collection('recipes', codec_options=codec_options)
-
-    return codec_options
