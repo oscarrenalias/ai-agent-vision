@@ -7,7 +7,7 @@ LangGraph implementation. It allows users to input messages, process them throug
 the graph, and displays the responses.
 
 Usage:
-    python cli.py [--debug]
+    python cli.py [--debug] [--fulldebug]
 
 Commands:
     /help           - Display help information
@@ -15,7 +15,9 @@ Commands:
     /save [file]    - Save conversation to file (default: conversation.json)
     /load [file]    - Load conversation from file (default: conversation.json)
     /clear          - Clear conversation history
-    /debug          - Toggle debug mode
+    /debug          - Toggle debug mode for application code
+    /fulldebug      - Toggle full debug mode (includes external libraries)
+    /loglevel <level> - Set log level (DEBUG, INFO, WARNING, ERROR)
     /state          - Display full state object (for debugging)
     /exit or /quit  - Exit the application
 """
@@ -23,6 +25,7 @@ Commands:
 import argparse
 import asyncio
 import json
+import logging
 import os
 import sys
 from typing import Any, Dict, List
@@ -71,7 +74,9 @@ def print_help():
         ("/save [file]", "Save conversation to JSON file (default: conversation.json)"),
         ("/load [file]", "Load conversation from JSON file (default: conversation.json)"),
         ("/clear", "Clear conversation history"),
-        ("/debug", "Toggle debug mode"),
+        ("/debug", "Toggle debug mode for application code"),
+        ("/fulldebug", "Toggle full debug mode (includes external libraries like LangGraph)"),
+        ("/loglevel <level>", "Set log level (DEBUG, INFO, WARNING, ERROR)"),
         ("/state", "Display full state object (for debugging)"),
         ("/exit or /quit", "Exit application"),
     ]
@@ -168,12 +173,53 @@ def display_full_state(state: GlobalState):
     console.print(state_panel)
 
 
+def setup_logging(debug_mode=False, full_debug=False):
+    """Configure basic console logging
+
+    Args:
+        debug_mode: Enable debug logging for application code
+        full_debug: Enable debug logging for all libraries (LangGraph, LangChain, etc.)
+    """
+    # Set the log level based on debug mode
+    log_level = logging.DEBUG if debug_mode else logging.INFO
+
+    # Remove any existing handlers to avoid duplicates
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+
+    # Configure the root logger
+    logging.basicConfig(
+        level=log_level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%H:%M:%S",
+    )
+
+    # Set specific logger levels for libraries we care about
+    if full_debug:
+        # In full debug mode, set everything to DEBUG
+        logging.getLogger("langgraph").setLevel(logging.DEBUG)
+        logging.getLogger("langchain").setLevel(logging.DEBUG)
+    else:
+        # In normal mode, keep external libraries at INFO level regardless of app debug state
+        logging.getLogger("langgraph").setLevel(logging.INFO)
+        logging.getLogger("langchain").setLevel(logging.INFO)
+
+    logging.info(
+        "Logging configured with level: %s (Full debug: %s)", "DEBUG" if debug_mode else "INFO", "ON" if full_debug else "OFF"
+    )
+
+
 async def main():
     """Main CLI application"""
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="AI Agent Vision CLI")
     parser.add_argument("--debug", action="store_true", help="Start in debug mode")
+    parser.add_argument("--fulldebug", action="store_true", help="Start in full debug mode (includes external libraries)")
     args = parser.parse_args()
+
+    # Set up logging
+    setup_logging(debug_mode=args.debug, full_debug=args.fulldebug)
 
     # Create a checkpointer to save state between interactions
     checkpointer = MemorySaver()
@@ -188,17 +234,25 @@ async def main():
     state = GlobalState.make_instance()
 
     # Initialize command session with history
-    command_completer = WordCompleter(["/help", "/upload", "/save", "/load", "/clear", "/debug", "/state", "/exit", "/quit"])
+    command_completer = WordCompleter(
+        ["/help", "/upload", "/save", "/load", "/clear", "/debug", "/fulldebug", "/loglevel", "/state", "/exit", "/quit"]
+    )
     session = PromptSession(
         history=FileHistory(".chat_history"), auto_suggest=AutoSuggestFromHistory(), completer=command_completer
     )
 
     # Track debug mode
     debug_mode = args.debug
+    full_debug_mode = args.fulldebug
+
+    # Setup logging
+    setup_logging(debug_mode=debug_mode, full_debug=full_debug_mode)
 
     print_header()
     if debug_mode:
         console.print("[bold yellow]Debug mode is ON[/bold yellow]")
+    if full_debug_mode:
+        console.print("[bold yellow]Full debug mode is ON (including external libraries)[/bold yellow]")
 
     # Main interaction loop
     while True:
@@ -274,6 +328,41 @@ async def main():
                 elif command == "/debug":
                     debug_mode = not debug_mode
                     console.print(f"[bold yellow]Debug mode: {'ON' if debug_mode else 'OFF'}[/bold yellow]")
+                    # Update logging level when debug mode changes
+                    setup_logging(debug_mode=debug_mode, full_debug=full_debug_mode)
+                    continue
+
+                # Full debug mode toggle (includes external libraries)
+                elif command == "/fulldebug":
+                    full_debug_mode = not full_debug_mode
+                    console.print(f"[bold yellow]Full debug mode: {'ON' if full_debug_mode else 'OFF'}[/bold yellow]")
+                    if full_debug_mode:
+                        console.print(
+                            "[bold yellow]Warning: This will produce a lot of output from external libraries[/bold yellow]"
+                        )
+                    # Update logging configuration
+                    setup_logging(debug_mode=debug_mode, full_debug=full_debug_mode)
+                    continue
+
+                # Set log level
+                elif command == "/loglevel":
+                    if not args:
+                        console.print("[bold red]Please specify a log level (DEBUG, INFO, WARNING, ERROR).[/bold red]")
+                        continue
+
+                    level = args.strip().upper()
+                    valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR"]
+                    if level not in valid_levels:
+                        console.print(f"[bold red]Invalid log level. Use one of: {', '.join(valid_levels)}[/bold red]")
+                        continue
+
+                    # Set the log level
+                    numeric_level = getattr(logging, level)
+                    logging.getLogger().setLevel(numeric_level)
+                    logging.getLogger("langgraph").setLevel(numeric_level)
+                    logging.getLogger("langchain").setLevel(numeric_level)
+
+                    console.print(f"[bold yellow]Log level set to: {level}[/bold yellow]")
                     continue
 
                 # Display full state
@@ -293,7 +382,9 @@ async def main():
             # Display "thinking" indicator
             with console.status("[bold green]Thinking...[/bold green]"):
                 # Process user input through the graph
+                logging.info("Processing user input: %s", user_input)
                 result = await graph.ainvoke(state, config=config)
+                logging.info("Finished processing user input")
 
             # Update the state with the result
             state = result
