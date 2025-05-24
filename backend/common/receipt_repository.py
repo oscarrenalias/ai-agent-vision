@@ -1,8 +1,9 @@
 """
-MongoDB data storage implementation for the AI Agent Vision application.
-This module provides a MongoDB implementation of the DataStore interface.
+Receipt repository implementation for the AI Agent Vision application.
+This module provides a MongoDB implementation for storing and retrieving receipts.
 """
 
+import json
 import logging
 import re
 from datetime import UTC, datetime
@@ -10,75 +11,44 @@ from typing import Any, Dict, List, Optional
 
 import pymongo
 from bson import ObjectId
-from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure, PyMongoError
+from pymongo.errors import PyMongoError
 
-from .datastore import DataStore
+from common.mongo_connection import MongoConnection
 
 logger = logging.getLogger(__name__)
 
 
-class MongoStore(DataStore):
+class ReceiptRepository:
     """
-    MongoDB implementation of the DataStore interface.
-    This class provides methods to store and retrieve data from a MongoDB database.
+    MongoDB implementation for storing and retrieving receipts.
+    This class provides methods to store and retrieve receipt data from a MongoDB database.
     """
-
-    receipts_collection: None
 
     def __init__(self, connection_params: Dict[str, Any] = None):
         """
-        Initialize the MongoDB store with connection parameters
+        Initialize the receipt repository with MongoDB connection parameters
 
         Args:
             connection_params: Dictionary containing MongoDB connection parameters
                                (uri, database)
         """
-        self.connection_params = connection_params or {
-            "uri": "mongodb://localhost:27017",
-            "database": "receipts",
-        }
-        self.client = None
-        self.db = None
-        logger.info(
-            f"MongoDB store initialized with URI: {self.connection_params.get('uri')}, "
-            f"database: {self.connection_params.get('database')}"
-        )
-
-        self.receipts_collection = self._get_connection().receipts
-
-    def _get_connection(self):
-        """
-        Get a connection to the MongoDB database
-
-        Returns:
-            MongoDB database object
-        """
-        if self.client is None:
-            try:
-                self.client = MongoClient(self.connection_params.get("uri"))
-                # Test the connection
-                self.client.admin.command("ping")
-                self.db = self.client[self.connection_params.get("database")]
-                logger.info("Connected to MongoDB successfully")
-            except ConnectionFailure as e:
-                logger.error(f"Error connecting to MongoDB: {str(e)}")
-                raise
-        return self.db
+        self.mongo_connection = MongoConnection(connection_params)
+        self.initialize()
 
     def initialize(self):
-        """Create the receipts collection if it doesn't exist"""
+        """Create the receipts collection if it doesn't exist and set up indexes"""
         try:
-            db = self._get_connection()
-            # In MongoDB, collections are created automatically when first document is inserted
-            # We can create an index to optimize queries
-            if "receipts" not in db.list_collection_names():
-                db.create_collection("receipts")
-                db.receipts.create_index([("created_at", pymongo.DESCENDING)])
-            logger.info("MongoDB database initialized successfully")
+            # Create the collection with a descending index on created_at
+            self.mongo_connection.initialize_collection("receipts", indexes=[(("created_at", pymongo.DESCENDING),)])
+            logger.info("Receipt repository initialized successfully")
         except PyMongoError as e:
-            logger.error(f"Error initializing MongoDB database: {str(e)}")
+            logger.error(f"Error initializing receipt repository: {str(e)}")
             raise
+
+    @property
+    def receipts_collection(self):
+        """Get the receipts collection from the MongoDB database"""
+        return self.mongo_connection.get_database().receipts
 
     def save_receipt(self, receipt_data: str, metadata: dict) -> bool:
         """
@@ -95,8 +65,6 @@ class MongoStore(DataStore):
             current_time = datetime.now(UTC)
 
             # Convert string to dict if it's a JSON string
-            import json
-
             if isinstance(receipt_data, str):
                 receipt_data = json.loads(receipt_data)
 
@@ -213,8 +181,6 @@ class MongoStore(DataStore):
             current_time = datetime.now(UTC)
 
             # Convert string to dict if it's a JSON string
-            import json
-
             if isinstance(receipt_data, str):
                 receipt_data = json.loads(receipt_data)
 

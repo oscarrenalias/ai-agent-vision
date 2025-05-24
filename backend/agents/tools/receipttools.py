@@ -4,7 +4,7 @@ from typing import List
 
 from langchain_core.tools import tool
 
-from common.datastore import get_data_store
+from common.repository_factory import get_receipt_repository
 
 logger = logging.getLogger(__name__)
 
@@ -59,8 +59,8 @@ def get_receipts_by_date(start_date: str, end_date: str, store: None) -> str:
     """
     logger.info(f"Getting groceries from {start_date} to {end_date}")
 
-    data_store = get_data_store()
-    receipts = data_store.get_receipts_by_date(start_date, end_date)
+    receipt_repo = get_receipt_repository()
+    receipts = receipt_repo.get_receipts_by_date(start_date, end_date)
 
     return json.dumps(receipts, default=mongo_json_default)
 
@@ -114,8 +114,8 @@ def get_items_per_item_type(item_type: str) -> str:
     """
     logger.info(f"Getting groceries for {item_type}")
 
-    data_store = get_data_store()
-    receipts = data_store.get_items_per_item_type(item_type)
+    receipt_repo = get_receipt_repository()
+    receipts = receipt_repo.get_items_per_item_type(item_type)
     logger.info(f"Found {len(receipts)} receipts for {item_type}")
     response_data = []
 

@@ -365,6 +365,20 @@ class RecipeFlow:
         # Return state updates directly with description
         return {"recipe": recipe, "description": description}
 
+    @tool
+    @staticmethod
+    def save_recipe_tool(recipe: Recipe) -> dict:
+        """
+        This tool persists a Recipe to the data store.
+
+        Parameters:
+        - recipe: an object of type Recipe
+
+        Returns:
+        - A dictionary with state updates
+        """
+        pass
+
     def as_subgraph(self):
         workflow = StateGraph(state_schema=RecipeState)
 
