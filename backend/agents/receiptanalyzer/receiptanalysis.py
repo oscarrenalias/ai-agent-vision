@@ -17,7 +17,7 @@ from langgraph.types import Command, interrupt
 from agents.models import OpenAIModel
 from agents.receiptanalyzer.receiptanalyzerprompt import ReceiptAnalyzerPrompt
 from agents.receiptanalyzer.receiptstate import Receipt, ReceiptState
-from common.datastore import get_data_store
+from common.repository_factory import get_receipt_repository
 from common.server.utils import get_uploads_folder
 
 logger = logging.getLogger(__name__)
@@ -59,9 +59,9 @@ def persist_receipt_tool(receipt: Receipt) -> dict:
     logger.info(f"persist_receipt_tool called: {receipt}")
 
     # Convert receipt data to JSON string and save it to the data store
-    data_store = get_data_store()
+    receipt_repo = get_receipt_repository()
     metadata = {"timestamp": datetime.now(UTC).isoformat()}
-    success = data_store.save_receipt(receipt.model_dump_json(), metadata)
+    success = receipt_repo.save_receipt(receipt.model_dump_json(), metadata)
 
     return {"success": success}
 
@@ -119,7 +119,8 @@ class ReceiptAnalysisFlow:
 
     async def receipt_analysis_start(self, state: ReceiptState, config: RunnableConfig) -> dict:
         # this node is only here to handle the interrupt
-        state["receipt_image_path"] = interrupt("Please provide an image with the receipt.")
+        if state["receipt_image_path"] is None or state["receipt_image_path"].strip() == "":
+            state["receipt_image_path"] = interrupt("Please provide an image with the receipt.")
 
         if state["receipt_image_path"].strip() == "__CANCEL__":
             # emit a message to the UI to indicate that the receipt is being processed,
@@ -168,6 +169,9 @@ class ReceiptAnalysisFlow:
 
         if response.tool_calls:
             return Command(goto="tool_node", update={"messages": response})
+
+        # reset a key part of the state
+        state["image_file_path"] = None
 
         return Command(goto="__end__", update={"messages": response})
 

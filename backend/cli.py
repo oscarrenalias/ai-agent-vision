@@ -288,11 +288,13 @@ async def main():
                         continue
 
                     # Expand user path if needed
-                    path = os.path.expanduser(args)
-                    if not os.path.exists(path):
-                        console.print(f"[bold red]File not found: {path}[/bold red]")
-                        continue
+                    # path = os.path.expanduser(args)
+                    # path = ""
+                    # if not os.path.exists(path):
+                    #    console.print(f"[bold red]File not found: {path}[/bold red]")
+                    #    continue
 
+                    path = args
                     state["image_file_path"] = path
                     console.print(f"[bold green]Image path set to: {path}[/bold green]")
                     continue
