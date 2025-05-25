@@ -10,7 +10,6 @@ from typing import Any, Dict, List
 from langchain_core.tools import tool
 
 from agents.recipes.recipeflow import Recipe
-from common.recipe_repository import deserialize_time_range, serialize_time_range
 from common.repository_factory import get_recipe_repository
 
 logger = logging.getLogger(__name__)
@@ -33,62 +32,14 @@ def _recipe_to_dict(recipe: Recipe) -> Dict[str, Any]:
         "tags": recipe.tags,
     }
 
-    # Handle TimeRange fields with proper serialization
+    # Handle time range fields
     if recipe.cooking_time_range:
-        recipe_dict["cooking_time_range"] = serialize_time_range(recipe.cooking_time_range)
+        recipe_dict["cooking_time_range"] = recipe.cooking_time_range
 
     if recipe.preparation_time_range:
-        recipe_dict["preparation_time_range"] = serialize_time_range(recipe.preparation_time_range)
+        recipe_dict["preparation_time_range"] = recipe.preparation_time_range
 
     return recipe_dict
-
-
-@tool
-def fetch_and_store_recipe(recipe_data: Dict[str, Any]) -> str:
-    """
-    Store a recipe in the database.
-
-    Args:
-        recipe_data (dict): Recipe data to store
-
-    Returns:
-        str: JSON string with operation result
-    """
-    try:
-        # Create Recipe object from the provided data
-        recipe = Recipe(
-            name=recipe_data.get("name"),
-            description=recipe_data.get("description"),
-            ingredients=recipe_data.get("ingredients", []),
-            steps=recipe_data.get("steps", []),
-            tags=recipe_data.get("tags", []),
-        )
-
-        # Handle time ranges if present
-        if "cooking_time_range" in recipe_data:
-            recipe.cooking_time_range = deserialize_time_range(recipe_data["cooking_time_range"])
-
-        if "preparation_time_range" in recipe_data:
-            recipe.preparation_time_range = deserialize_time_range(recipe_data["preparation_time_range"])
-
-        # Store the recipe in the database
-        recipe_repo = get_recipe_repository()
-        recipe_id = recipe_repo.save_recipe(recipe)
-
-        if recipe_id:
-            # Fetch the stored recipe to return
-            stored_recipe = recipe_repo.get_recipe_by_id(recipe_id)
-            if stored_recipe:
-                return json.dumps({"success": True, "recipe": _recipe_to_dict(stored_recipe), "recipe_id": recipe_id})
-            else:
-                return json.dumps(
-                    {"success": True, "recipe_id": recipe_id, "message": "Recipe stored but could not retrieve details"}
-                )
-        else:
-            return json.dumps({"success": False, "error": "Failed to store recipe"})
-    except Exception as e:
-        logger.error(f"Error in fetch_and_store_recipe: {str(e)}")
-        return json.dumps({"success": False, "error": str(e)})
 
 
 @tool
@@ -179,3 +130,51 @@ def get_recipes_by_ingredients(ingredients: str) -> str:
     recipe_dicts = [_recipe_to_dict(recipe) for recipe in recipes]
 
     return json.dumps({"success": True, "results": recipe_dicts, "count": len(recipes)})
+
+
+@tool
+def fetch_and_store_recipe(recipe_data: Dict[str, Any]) -> str:
+    """
+    Store a recipe in the database.
+
+    Args:
+        recipe_data (dict): Recipe data to store
+
+    Returns:
+        str: JSON string with operation result
+    """
+    try:
+        # Create Recipe object from the provided data
+        recipe = Recipe(
+            name=recipe_data.get("name"),
+            description=recipe_data.get("description"),
+            ingredients=recipe_data.get("ingredients", []),
+            steps=recipe_data.get("steps", []),
+            tags=recipe_data.get("tags", []),
+        )
+
+        # Handle time ranges if present (in the new dictionary format)
+        if "cooking_time_range" in recipe_data:
+            recipe.cooking_time_range = recipe_data["cooking_time_range"]
+
+        if "preparation_time_range" in recipe_data:
+            recipe.preparation_time_range = recipe_data["preparation_time_range"]
+
+        # Store the recipe in the database
+        recipe_repo = get_recipe_repository()
+        recipe_id = recipe_repo.save_recipe(recipe)
+
+        if recipe_id:
+            # Fetch the stored recipe to return
+            stored_recipe = recipe_repo.get_recipe_by_id(recipe_id)
+            if stored_recipe:
+                return json.dumps({"success": True, "recipe": _recipe_to_dict(stored_recipe), "recipe_id": recipe_id})
+            else:
+                return json.dumps(
+                    {"success": True, "recipe_id": recipe_id, "message": "Recipe stored but could not retrieve details"}
+                )
+        else:
+            return json.dumps({"success": False, "error": "Failed to store recipe"})
+    except Exception as e:
+        logger.error(f"Error in fetch_and_store_recipe: {str(e)}")
+        return json.dumps({"success": False, "error": str(e)})

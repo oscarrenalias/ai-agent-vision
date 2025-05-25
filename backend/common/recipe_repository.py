@@ -1,75 +1,16 @@
 import logging
-from datetime import timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import pymongo
 from bson import ObjectId
-from bson.codec_options import CodecOptions, TypeCodec, TypeRegistry
 from pymongo.errors import PyMongoError
 
-from agents.recipes.recipeflow import Recipe, TimeRange
+from agents.recipes.recipeflow import Recipe
 
 from .mongo_connection import MongoConnection
 
 logger = logging.getLogger(__name__)
-
-
-# Helper functions for timedelta serialization/deserialization
-def serialize_timedelta(td: Optional[timedelta]) -> Optional[Dict[str, int]]:
-    """Convert timedelta to a MongoDB and JSON-serializable format"""
-    if td is None:
-        return None
-    return {"total_seconds": int(td.total_seconds())}
-
-
-def deserialize_timedelta(data: Optional[Dict[str, int]]) -> Optional[timedelta]:
-    """Recreate timedelta from serialized format"""
-    if data is None or "total_seconds" not in data:
-        return None
-    return timedelta(seconds=data["total_seconds"])
-
-
-def serialize_time_range(tr: Optional[TimeRange]) -> Optional[List[Dict[str, int]]]:
-    """Convert TimeRange to a MongoDB and JSON-serializable format"""
-    if tr is None:
-        return None
-    min_time, max_time = tr
-    result = [serialize_timedelta(min_time)]
-    if max_time is not None:
-        result.append(serialize_timedelta(max_time))
-    return result
-
-
-def deserialize_time_range(data: Optional[List[Dict[str, int]]]) -> Optional[TimeRange]:
-    """Recreate TimeRange from serialized format"""
-    if not data or not isinstance(data, list) or len(data) == 0:
-        return None
-
-    min_time = deserialize_timedelta(data[0])
-    max_time = deserialize_timedelta(data[1]) if len(data) > 1 else None
-
-    return (min_time, max_time)
-
-
-# MongoDB customization for PyMongo
-def setup_mongodb_codecs():
-    """Setup custom codecs for PyMongo to handle timedelta serialization"""
-
-    class TimedeltaCodec(TypeCodec):
-        python_type = timedelta
-        bson_type = dict
-
-        def transform_python(self, value):
-            return serialize_timedelta(value)
-
-        def transform_bson(self, value):
-            return deserialize_timedelta(value)
-
-    # Register the codec with PyMongo
-    type_registry = TypeRegistry([TimedeltaCodec()])
-    codec_options = CodecOptions(type_registry=type_registry)
-
-    return codec_options
 
 
 class RecipeRepository:
@@ -92,14 +33,11 @@ class RecipeRepository:
 
     def _setup_mongodb_collections(self):
         """Setup MongoDB collections with proper codec options"""
-        # Get codec options for TimeRange and timedelta
-        codec_options = setup_mongodb_codecs()
-
         # Get database with default options
         db = self.mongo_connection.get_database()
 
-        # Get collection with custom codec options
-        self._recipes_collection = db.get_collection("recipes", codec_options=codec_options)
+        # Get collection with codec options
+        self._recipes_collection = db.get_collection("recipes")
 
     def initialize(self):
         """Create the recipes collection if it doesn't exist and set up indexes"""
@@ -109,8 +47,8 @@ class RecipeRepository:
             self.mongo_connection.initialize_collection(
                 "recipes",
                 indexes=[
-                    (("created_at", pymongo.DESCENDING),),
-                    ([("name", pymongo.TEXT), ("tags", pymongo.TEXT)],),  # Compound text index for both name and tags
+                    [("created_at", pymongo.DESCENDING)],
+                    [("name", pymongo.TEXT), ("tags", pymongo.TEXT)],  # Compound text index for both name and tags
                 ],
             )
             logger.info("Recipe repository initialized successfully")
@@ -121,7 +59,10 @@ class RecipeRepository:
     @property
     def recipes_collection(self):
         """Get the recipes collection from the MongoDB database"""
-        return self._recipes_collection or self.mongo_connection.get_database().recipes
+        # if self._recipes_collection is None:
+        #    return self.mongo_connection.get_database().recipes
+        # return self._recipes_collection
+        return self.mongo_connection.get_database().recipes
 
     def save_recipe(self, recipe: Recipe) -> Optional[str]:
         """
@@ -343,3 +284,72 @@ class RecipeRepository:
             "updated_at": document["updated_at"].isoformat(),
         }
         return recipe
+
+    def _recipe_to_document(self, recipe: Recipe, existing_doc: Dict[str, Any] = None) -> Dict[str, Any]:
+        """
+        Convert Recipe model to MongoDB document format
+
+        Args:
+            recipe: Recipe model object
+            existing_doc: Optional existing MongoDB document to update
+
+        Returns:
+            MongoDB document dictionary
+        """
+        now = datetime.utcnow()
+
+        # Create the base document
+        document = {
+            "name": recipe.name or "",
+            "description": recipe.description or "",
+            "ingredients": recipe.ingredients or [],
+            "steps": recipe.steps or [],
+            "tags": recipe.tags or [],
+            "updated_at": now,
+        }
+
+        # Handle optional time ranges
+        if recipe.cooking_time_range:
+            document["cooking_time_range"] = recipe.cooking_time_range
+
+        if recipe.preparation_time_range:
+            document["preparation_time_range"] = recipe.preparation_time_range
+
+        # For new documents, set created_at
+        if existing_doc is None:
+            document["created_at"] = now
+        else:
+            # For updates, preserve existing created_at and _id
+            document["created_at"] = existing_doc.get("created_at", now)
+            if "_id" in existing_doc:
+                document["_id"] = existing_doc["_id"]
+
+        return document
+
+    def _document_to_recipe(self, document: Dict[str, Any]) -> Recipe:
+        """
+        Convert MongoDB document to Recipe model
+
+        Args:
+            document: MongoDB document
+
+        Returns:
+            Recipe model object
+        """
+        # Extract the basic fields
+        recipe_data = {
+            "name": document.get("name", ""),
+            "description": document.get("description", ""),
+            "ingredients": document.get("ingredients", []),
+            "steps": document.get("steps", []),
+            "tags": document.get("tags", []),
+        }
+
+        # Handle optional time ranges
+        if "cooking_time_range" in document:
+            recipe_data["cooking_time_range"] = document["cooking_time_range"]
+
+        if "preparation_time_range" in document:
+            recipe_data["preparation_time_range"] = document["preparation_time_range"]
+
+        return Recipe(**recipe_data)

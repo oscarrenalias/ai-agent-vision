@@ -1,6 +1,5 @@
 import logging
-from datetime import timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from copilotkit import CopilotKitState
 from langchain.prompts import ChatPromptTemplate
@@ -31,8 +30,8 @@ print(f"Recipe: {result.recipe}")
 
 logger = logging.getLogger(__name__)
 
-# TimeRange type is a tuple of (min_time, max_time) where max_time is optional
-TimeRange = Tuple[timedelta, Optional[timedelta]]
+# New format for time ranges: {"min": minutes, "max": minutes}
+# Both min and max are integer values representing minutes
 
 
 class Recipe(BaseModel):
@@ -41,9 +40,13 @@ class Recipe(BaseModel):
     ingredients: Optional[List[str]] = Field(description="List of ingredients")
     steps: Optional[List[str]] = Field(description="List of steps to prepare the recipe")
 
-    # min and max cooking and preparation times
-    # cooking_time_range: Optional[TimeRange] = Field(description="Cooking time range")
-    # preparation_time_range: Optional[TimeRange] = Field(description="Preparation time range")
+    # min and max cooking and preparation times as dictionaries with minutes
+    cooking_time_range: Optional[Dict[str, int]] = Field(
+        description="Cooking time range as a dictionary with 'min' and optional 'max' keys with values in minutes"
+    )
+    preparation_time_range: Optional[Dict[str, int]] = Field(
+        description="Preparation time range as a dictionary with 'min' and optional 'max' keys with values in minutes"
+    )
 
     # list of tags
     tags: List[str] = Field(description="List of tags for the recipe")
@@ -84,7 +87,9 @@ class RecipeFlow:
         top_message = state["messages"][-1].content.strip()
         if top_message == "":
             # no message, we need to ask for the URL
-            state["site_url"] = interrupt("Please provide a URL of the site that contains the recipe.")
+            state["site_url"] = interrupt(
+                "Please provide a URL of the site that contains the recipe, or paste the text of the recipe."
+            )
         else:
             # there is some body, let's assume it's a receipt
             state["recipe_content"] = top_message
@@ -230,15 +235,15 @@ class RecipeFlow:
                     - Name of the recipe
                     - List of ingredients: please convert the measurements to metric
                     - List of steps: Extract the preparation steps as a list of individual steps, not as a single blob of text
-                    - preparation time: min and max range, if known (format as minutes)
-                    - cooking time: min and max range, if known (format as minutes)
+                    - preparation time: A dictionary with 'min' and optional 'max' keys, with integer values in minutes
+                    - cooking time: A dictionary with 'min' and optional 'max' keys, with integer values in minutes
                     - tags: list of tags, such as complexity (easy, medium, etc), effort required (quick, long, etc)
                     taste (sweet, savory, etc), main ingredients (fruit, meat, pasta), type of meal (dinner, lunch, breakfast, vegan)
 
                     Important guidelines:
                     1. Steps MUST be returned as an array of strings, with each step as a separate item
                     2. Convert any imperial measurements to metric equivalents
-                    3. Extract cooking and preparation times in minutes
+                    3. Extract cooking and preparation times as dictionaries with 'min' and optional 'max' keys, with values in minutes
                     4. Include a rich set of relevant tags to facilitate searching and categorization
                     5. If the content appears to be pre-structured (like from recipe-scrapers), preserve that structure
                     """

@@ -90,13 +90,20 @@ class MongoConnection:
             # Create indexes if specified
             if indexes:
                 for index_spec in indexes:
-                    # Handle both single field and compound indexes
-                    if len(index_spec) == 1 and isinstance(index_spec[0], tuple):
-                        # Single field index: (('field_name', 1),)
-                        collection.create_index(*index_spec)
-                    else:
-                        # Compound index: ([('field1', 'text'), ('field2', 'text')],)
-                        collection.create_index(index_spec[0])
+                    try:
+                        # Check if this is a compound text index format: ([('field1', 'text'), ('field2', 'text')],)
+                        if isinstance(index_spec, tuple) and len(index_spec) == 1 and isinstance(index_spec[0], list):
+                            collection.create_index(index_spec[0])
+                        # Check if this is a standard single field index: (('field_name', 1),)
+                        elif isinstance(index_spec, tuple) and len(index_spec) == 1 and isinstance(index_spec[0], tuple):
+                            field_name, direction = index_spec[0]
+                            collection.create_index([(field_name, direction)])
+                        # Default case: just pass the index specification directly
+                        else:
+                            collection.create_index(index_spec)
+                    except Exception as ex:
+                        logger.error(f"Error creating index {index_spec}: {str(ex)}")
+                        raise
 
             logger.info(f"MongoDB collection '{collection_name}' initialized successfully")
         except PyMongoError as e:
