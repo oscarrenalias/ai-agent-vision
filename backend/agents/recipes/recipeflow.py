@@ -159,7 +159,12 @@ class RecipeFlow:
                             state[key] = value
 
                     # Use the tool's provided description or fall back to string representation
-                    tool_msg = tool_result.get("description", str(tool_result))
+                    if tool_name == "recipe_parser":
+                        import json
+
+                        tool_msg = json.dumps(tool_result.get("recipe"))
+                    else:
+                        tool_msg = tool_result.get("description", str(tool_result))
                 else:
                     # Fallback for tools that don't return state updates
                     tool_msg = str(tool_result)

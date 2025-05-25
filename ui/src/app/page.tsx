@@ -8,6 +8,7 @@ import "@copilotkit/react-ui/styles.css";
 import { ShoppingListCard } from "./components/ShoppingListCard";
 import { MealPlanCard } from "./components/MealPlanCard";
 import ReceiptCard from "./components/chat/ReceiptCard";
+import RecipeCard from "./components/chat/RecipeCard";
 import "./copilotchat-custom.css";
 import { ToolProcessingIndicator } from "./components/ToolProcessingIndicator";
 import PriceLookupCard from "./components/chat/PriceLookupCard";
@@ -112,6 +113,48 @@ function MainContent() {
       if (status === "executing") {
         return (
           <ToolProcessingIndicator message="Getting receipt data..." />
+        ) as React.ReactElement;
+      }
+      return <></>;
+    },
+  });
+
+  useCopilotAction({
+    name: "page_retriever",
+    available: "disabled",
+    render: ({ status, args, result }) => {
+      if (status === "executing") {
+        return (
+          <ToolProcessingIndicator message="Retrieving recipe" />
+        ) as React.ReactElement;
+      }
+      return <></>;
+    },
+  });
+
+  useCopilotAction({
+    name: "recipe_parser",
+    available: "disabled",
+    render: ({ status, args, result }) => {
+      if (status === "executing") {
+        return (
+          <ToolProcessingIndicator message="Processing recipe" />
+        ) as React.ReactElement;
+      }
+      if (status === "complete") {
+        return <RecipeCard recipe={result} height={550} />;
+      }
+      return <></>;
+    },
+  });
+
+  useCopilotAction({
+    name: "save_recipe_tool",
+    available: "disabled",
+    render: ({ status, args, result }) => {
+      if (status === "executing") {
+        return (
+          <ToolProcessingIndicator message="Saving recipe" />
         ) as React.ReactElement;
       }
       return <></>;
