@@ -126,24 +126,22 @@ class RecipeRetriever:
                     recipe_data["total_time"] = scraper.total_time()
                 except Exception as e:
                     logger.warning(f"Failed to extract total_time: {e}")
-                    recipe_data["total_time"] = 0
 
                 try:
                     recipe_data["yields"] = scraper.yields()
                 except Exception as e:
                     logger.warning(f"Failed to extract yields: {e}")
-                    recipe_data["yields"] = ""
 
                 # Try to extract cook/prep times separately if available
                 try:
-                    recipe_data["prep_time"] = scraper.prep_time()
-                except Exception:
-                    recipe_data["prep_time"] = 0
+                    recipe_data["preparation_time"] = scraper.prep_time()
+                except Exception as e:
+                    logger.warning(f"Failed to extract preparation time: {e}")
 
                 try:
-                    recipe_data["cook_time"] = scraper.cook_time()
-                except Exception:
-                    recipe_data["cook_time"] = 0
+                    recipe_data["cooking_time"] = scraper.cook_time()
+                except Exception as e:
+                    logger.warning(f"Failed to extract cooking time: {e}")
 
                 # If we couldn't extract any useful data, consider this a failure
                 if not extraction_success:
@@ -165,11 +163,11 @@ class RecipeRetriever:
                 content_parts.append(recipe_data["instructions"])
 
                 # Add time information
-                if recipe_data.get("prep_time"):
-                    content_parts.append(f"\nPreparation Time: {recipe_data['prep_time']} minutes")
+                if recipe_data.get("preparation_time"):
+                    content_parts.append(f"\nPreparation Time: {recipe_data['preparation_time']} minutes")
 
-                if recipe_data.get("cook_time"):
-                    content_parts.append(f"Cooking Time: {recipe_data['cook_time']} minutes")
+                if recipe_data.get("cooking_time"):
+                    content_parts.append(f"Cooking Time: {recipe_data['cooking_time']} minutes")
 
                 if recipe_data.get("total_time"):
                     content_parts.append(f"Total Time: {recipe_data['total_time']} minutes")

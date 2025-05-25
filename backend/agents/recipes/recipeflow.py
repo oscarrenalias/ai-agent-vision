@@ -39,6 +39,8 @@ class Recipe(BaseModel):
     description: Optional[str] = Field(description="Description of the recipe")
     ingredients: Optional[List[str]] = Field(description="List of ingredients")
     steps: Optional[List[str]] = Field(description="List of steps to prepare the recipe")
+    yields: Optional[int] = Field(description="Number of yields for this recipe")
+    url: Optional[str] = Field(description="Original site with the source for this recipe")
 
     # min and max cooking and preparation times as dictionaries with minutes
     cooking_time_range: Optional[Dict[str, int]] = Field(

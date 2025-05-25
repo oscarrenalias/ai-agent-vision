@@ -27,9 +27,7 @@ class TestRecipeRetriever(unittest.TestCase):
         self.retriever = RecipeRetriever()
 
         # Common URLs for testing
-        self.recipe_scrapers_supported_url = (
-            "https://www.bettycrocker.com/recipes/traditional-beef-stroganoff/c17a904f-a8f6-48ae-bedb-5b301a8ea317"
-        )
+        self.recipe_scrapers_supported_url = "http://bbc.co.uk/food/recipes/tandoori_chickpeas_47491"
         self.json_ld_supported_url = "https://www.allrecipes.com/recipe/158968/spinach-and-feta-turkey-burgers/"
         self.fallback_url = "https://breaddad.com/easy-banana-bread-recipe/"
 
@@ -42,7 +40,6 @@ class TestRecipeRetriever(unittest.TestCase):
     def test_recipe_scrapers_strategy(self):
         """
         Integration test for extraction using recipe-scrapers library.
-        Tests the Betty Crocker site which should be supported by recipe-scrapers.
         """
         try:
             # Call the method with a site that should be supported by recipe-scrapers
@@ -50,22 +47,26 @@ class TestRecipeRetriever(unittest.TestCase):
 
             # Assertions to verify we got a valid result
             self.assertIsNotNone(result)
-            self.assertIn("page_content", result)
+            self.assertIn("recipe_content", result)
             self.assertIn("site_url", result)
             self.assertIn("description", result)
 
             # Check that we got a non-empty content with expected recipe components
-            self.assertTrue(len(result["page_content"]) > 100, "Recipe content should be substantial")
+            self.assertTrue(len(result["recipe_content"]) > 100, "Recipe content should be substantial")
             self.assertEqual(result["site_url"], self.recipe_scrapers_supported_url)
 
             # Look for common recipe elements in the content
-            content = result["page_content"].lower()
-            self.assertIn("beef stroganoff", content, "Recipe title should be present")
+            content = result["recipe_content"].lower()
+            self.assertIn("confit tandoori chickpeas", content, "Recipe title should be present")
             self.assertIn("ingredients", content, "Should contain ingredients section")
             self.assertIn("instructions", content, "Should contain instructions section")
 
-            # Verify the recipe-scrapers extraction was successful based on the description
-            self.assertIn("Successfully extracted recipe", result["description"])
+            # verify existence of prep time and cook time
+            self.assertIn("preparation time", content, "Recipe should have at least minimum preparation time")
+            self.assertIn("cooking time", content, "Recipe should have at least minimum cooking time")
+
+            # verify yields
+            self.assertIn("yields", content, "Recipe should have yields")
 
         except (requests.exceptions.RequestException, ConnectionError) as e:
             self.skipTest(f"Network error when accessing {self.recipe_scrapers_supported_url}: {str(e)}")
@@ -81,16 +82,16 @@ class TestRecipeRetriever(unittest.TestCase):
 
             # Assertions to verify we got a valid result
             self.assertIsNotNone(result)
-            self.assertIn("page_content", result)
+            self.assertIn("recipe_content", result)
             self.assertIn("site_url", result)
             self.assertIn("description", result)
 
             # Check that we got a non-empty content
-            self.assertTrue(len(result["page_content"]) > 100, "Recipe content should be substantial")
+            self.assertTrue(len(result["recipe_content"]) > 100, "Recipe content should be substantial")
             self.assertEqual(result["site_url"], self.json_ld_supported_url)
 
             # Look for expected recipe content
-            content = result["page_content"].lower()
+            content = result["recipe_content"].lower()
             self.assertIn("turkey burger", content, "Recipe title or ingredients should be present")
             self.assertIn("spinach", content, "Should contain key ingredient")
             self.assertIn("feta", content, "Should contain key ingredient")
@@ -116,16 +117,16 @@ class TestRecipeRetriever(unittest.TestCase):
 
             # Assertions to verify we got a valid result
             self.assertIsNotNone(result)
-            self.assertIn("page_content", result)
+            self.assertIn("recipe_content", result)
             self.assertIn("site_url", result)
             self.assertIn("description", result)
 
             # Check that we got a non-empty content
-            self.assertTrue(len(result["page_content"]) > 100, "Recipe content should be substantial")
+            self.assertTrue(len(result["recipe_content"]) > 100, "Recipe content should be substantial")
             self.assertEqual(result["site_url"], self.fallback_url)
 
             # Check for some banana bread content
-            content = result["page_content"].lower()
+            content = result["recipe_content"].lower()
             self.assertIn("banana", content, "Should contain key ingredient")
             self.assertIn("bread", content, "Should contain recipe type")
 
@@ -143,12 +144,12 @@ class TestRecipeRetriever(unittest.TestCase):
         """Test handling of invalid URLs"""
         # Test with empty URL
         result = self.retriever.retrieve_recipe("")
-        self.assertIn("Error:", result["page_content"])
+        self.assertIn("Error:", result["recipe_content"])
         self.assertIn("Invalid URL", result["description"])
 
         # Test with malformed URL
         result = self.retriever.retrieve_recipe("not-a-valid-url")
-        self.assertIn("Error:", result["page_content"])
+        self.assertIn("Error:", result["recipe_content"])
         self.assertIn("Invalid URL", result["description"])
 
     def test_nonexistent_url(self):
@@ -158,12 +159,12 @@ class TestRecipeRetriever(unittest.TestCase):
 
         # Should still return a result with error information
         self.assertIsNotNone(result)
-        self.assertIn("page_content", result)
+        self.assertIn("recipe_content", result)
         self.assertIn("site_url", result)
         self.assertIn("description", result)
 
         # The result should indicate an error occurred
-        self.assertIn("Error", result["page_content"])
+        self.assertIn("Error", result["recipe_content"])
         # Check for common error phrases in the description
         self.assertTrue(
             "Error" in result["description"] or "Failed" in result["description"],
