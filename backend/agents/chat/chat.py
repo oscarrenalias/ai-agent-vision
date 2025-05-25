@@ -14,7 +14,7 @@ from langgraph.prebuilt import tools_condition
 from agents.common.logging_utils import llm_response_to_log
 from agents.models import OpenAIModel
 from agents.pricecomparison import price_lookup_tools
-from agents.tools import receipttools
+from agents.tools import receipttools, recipetools
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class ChatFlow:
         self.max_messages = max_messages
 
     def get_tools(self) -> list:
-        return price_lookup_tools.get_tools() + receipttools.get_tools()
+        return [*price_lookup_tools.get_tools(), *receipttools.get_tools(), *recipetools.get_tools()]
 
     def get_primary_assistant_prompt(self) -> ChatPromptTemplate:
         return ChatPromptTemplate.from_messages(

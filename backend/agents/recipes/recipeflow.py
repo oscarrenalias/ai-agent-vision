@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from copilotkit import CopilotKitState
 from langchain.prompts import ChatPromptTemplate
@@ -10,9 +10,9 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import tools_condition
 from langgraph.types import interrupt
-from pydantic import BaseModel, Field
 
 from agents.models import OpenAIModel
+from agents.recipes.recipe import Recipe
 from agents.recipes.reciperetriever import RecipeRetriever
 
 """
@@ -30,25 +30,6 @@ print(f"Recipe: {result.recipe}")
 
 logger = logging.getLogger(__name__)
 
-# New format for time ranges: {"min": minutes, "max": minutes}
-# Both min and max are integer values representing minutes
-
-
-class Recipe(BaseModel):
-    name: Optional[str] = Field(description="Name of the recipe")
-    description: Optional[str] = Field(description="Description of the recipe")
-    ingredients: Optional[List[str]] = Field(description="List of ingredients")
-    steps: Optional[List[str]] = Field(description="List of steps to prepare the recipe")
-    yields: Optional[int] = Field(description="Number of yields for this recipe")
-    url: Optional[str] = Field(description="Original site with the source for this recipe")
-
-    # min and max cooking and preparation times as dictionaries with minutes
-    cooking_time: Optional[int] = Field(description="Cooking time in minutes")
-    preparation_time: Optional[int] = Field(description="Preparation time in minutes")
-
-    # list of tags
-    tags: List[str] = Field(description="List of tags for the recipe")
-
 
 class RecipeState(CopilotKitState):
     site_url: Optional[str]
@@ -59,10 +40,10 @@ class RecipeState(CopilotKitState):
         return RecipeState(
             site_url=None,
             recipe=Recipe(
-                name=None,
+                name="",
                 description=None,
                 ingredients=[],
-                steps=None,
+                steps=[],
                 cooking_time=None,
                 preparation_time=None,
                 yields=None,

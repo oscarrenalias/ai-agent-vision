@@ -19,27 +19,7 @@ def get_tools() -> List:
     """
     Returns a list of tools that can be used in the chat.
     """
-    return [fetch_and_store_recipe, get_recipe_by_id, search_recipes, get_recipes_by_tags, get_recipes_by_ingredients]
-
-
-def _recipe_to_dict(recipe: Recipe) -> Dict[str, Any]:
-    """Convert a Recipe model object to a dictionary for JSON serialization"""
-    recipe_dict = {
-        "name": recipe.name,
-        "description": recipe.description,
-        "ingredients": recipe.ingredients,
-        "steps": recipe.steps,
-        "tags": recipe.tags,
-    }
-
-    # Handle time range fields
-    if recipe.cooking_time_range:
-        recipe_dict["cooking_time_range"] = recipe.cooking_time_range
-
-    if recipe.preparation_time_range:
-        recipe_dict["preparation_time_range"] = recipe.preparation_time_range
-
-    return recipe_dict
+    return [get_recipe_by_id, search_recipes, get_recipes_by_tags, get_recipes_by_ingredients]
 
 
 @tool
@@ -59,7 +39,7 @@ def get_recipe_by_id(recipe_id: str) -> str:
     recipe = recipe_repo.get_recipe_by_id(recipe_id)
 
     if recipe:
-        return json.dumps({"success": True, "recipe": _recipe_to_dict(recipe), "recipe_id": recipe_id})
+        return json.dumps({"success": True, "recipe": recipe.model_dump(), "recipe_id": recipe_id})
     else:
         return json.dumps({"success": False, "error": "Recipe not found"})
 
@@ -81,7 +61,7 @@ def search_recipes(query: str) -> str:
     recipes = recipe_repo.search_recipes(query)
 
     # Convert Recipe objects to dictionaries for JSON serialization
-    recipe_dicts = [_recipe_to_dict(recipe) for recipe in recipes]
+    recipe_dicts = [recipe.model_dump() for recipe in recipes]
 
     return json.dumps({"success": True, "results": recipe_dicts, "count": len(recipes)})
 
@@ -104,7 +84,7 @@ def get_recipes_by_tags(tags: str) -> str:
     recipes = recipe_repo.get_recipes_by_tags(tag_list)
 
     # Convert Recipe objects to dictionaries for JSON serialization
-    recipe_dicts = [_recipe_to_dict(recipe) for recipe in recipes]
+    recipe_dicts = [recipe.model_dump() for recipe in recipes]
 
     return json.dumps({"success": True, "results": recipe_dicts, "count": len(recipes)})
 
@@ -127,7 +107,7 @@ def get_recipes_by_ingredients(ingredients: str) -> str:
     recipes = recipe_repo.get_recipes_by_ingredients(ingredient_list)
 
     # Convert Recipe objects to dictionaries for JSON serialization
-    recipe_dicts = [_recipe_to_dict(recipe) for recipe in recipes]
+    recipe_dicts = [recipe.model_dump() for recipe in recipes]
 
     return json.dumps({"success": True, "results": recipe_dicts, "count": len(recipes)})
 
@@ -154,11 +134,11 @@ def fetch_and_store_recipe(recipe_data: Dict[str, Any]) -> str:
         )
 
         # Handle time ranges if present (in the new dictionary format)
-        if "cooking_time_range" in recipe_data:
-            recipe.cooking_time_range = recipe_data["cooking_time_range"]
+        if "cooking_time" in recipe_data:
+            recipe.cooking_time = recipe_data["cooking_time"]
 
-        if "preparation_time_range" in recipe_data:
-            recipe.preparation_time_range = recipe_data["preparation_time_range"]
+        if "preparation_time" in recipe_data:
+            recipe.preparation_time = recipe_data["preparation_time"]
 
         # Store the recipe in the database
         recipe_repo = get_recipe_repository()
@@ -168,7 +148,7 @@ def fetch_and_store_recipe(recipe_data: Dict[str, Any]) -> str:
             # Fetch the stored recipe to return
             stored_recipe = recipe_repo.get_recipe_by_id(recipe_id)
             if stored_recipe:
-                return json.dumps({"success": True, "recipe": _recipe_to_dict(stored_recipe), "recipe_id": recipe_id})
+                return json.dumps({"success": True, "recipe": stored_recipe.model_dump(), "recipe_id": recipe_id})
             else:
                 return json.dumps(
                     {"success": True, "recipe_id": recipe_id, "message": "Recipe stored but could not retrieve details"}

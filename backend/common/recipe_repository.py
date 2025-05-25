@@ -352,10 +352,16 @@ class RecipeRepository:
         }
 
         # Handle optional time ranges
-        if "cooking_time_range" in document:
-            recipe_data["cooking_time_range"] = document["cooking_time_range"]
+        if "cooking_time" in document:
+            recipe_data["cooking_time"] = document["cooking_time"]
 
-        if "preparation_time_range" in document:
-            recipe_data["preparation_time_range"] = document["preparation_time_range"]
+        if "preparation_time" in document:
+            recipe_data["preparation_time"] = document["preparation_time"]
+
+        if "yields" in document:
+            recipe_data["yields"] = document["yields"]
+
+        if "url" in document:
+            recipe_data["url"] = document["url"]
 
         return Recipe(**recipe_data)
