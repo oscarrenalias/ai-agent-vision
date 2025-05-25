@@ -8,5 +8,8 @@
     "**/node_modules": true,
     "**/.next": true,
     "**/.venv": true
-  }
+  },
+  "python.testing.pytestArgs": ["backend/agents", "backend/common"],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }
