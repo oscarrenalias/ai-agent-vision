@@ -105,12 +105,12 @@ class RecipeRepository:
         """Create the recipes collection if it doesn't exist and set up indexes"""
         try:
             # Create the collection with a descending index on created_at
+            # For text indexes, MongoDB only allows one text index per collection, so create a compound text index
             self.mongo_connection.initialize_collection(
                 "recipes",
                 indexes=[
                     (("created_at", pymongo.DESCENDING),),
-                    (("name", pymongo.TEXT),),  # Text index for recipe name searching
-                    (("tags", pymongo.TEXT),),  # Text index for tag searching
+                    ([("name", pymongo.TEXT), ("tags", pymongo.TEXT)],),  # Compound text index for both name and tags
                 ],
             )
             logger.info("Recipe repository initialized successfully")

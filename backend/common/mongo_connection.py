@@ -84,14 +84,19 @@ class MongoConnection:
             db = self.get_database()
 
             # In MongoDB, collections are created automatically when first document is inserted
-            # We can create an index to optimize queries
-            if collection_name not in db.list_collection_names():
-                db.create_collection(collection_name)
+            # We can create indexes to optimize queries
+            collection = db[collection_name]
 
-                # Create indexes if specified
-                if indexes:
-                    for index_spec in indexes:
-                        db[collection_name].create_index(index_spec)
+            # Create indexes if specified
+            if indexes:
+                for index_spec in indexes:
+                    # Handle both single field and compound indexes
+                    if len(index_spec) == 1 and isinstance(index_spec[0], tuple):
+                        # Single field index: (('field_name', 1),)
+                        collection.create_index(*index_spec)
+                    else:
+                        # Compound index: ([('field1', 'text'), ('field2', 'text')],)
+                        collection.create_index(index_spec[0])
 
             logger.info(f"MongoDB collection '{collection_name}' initialized successfully")
         except PyMongoError as e:

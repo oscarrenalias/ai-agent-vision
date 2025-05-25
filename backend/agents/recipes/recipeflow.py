@@ -42,8 +42,8 @@ class Recipe(BaseModel):
     steps: Optional[List[str]] = Field(description="List of steps to prepare the recipe")
 
     # min and max cooking and preparation times
-    cooking_time_range: Optional[TimeRange] = Field(description="Cooking time range")
-    preparation_time_range: Optional[TimeRange] = Field(description="Preparation time range")
+    # cooking_time_range: Optional[TimeRange] = Field(description="Cooking time range")
+    # preparation_time_range: Optional[TimeRange] = Field(description="Preparation time range")
 
     # list of tags
     tags: List[str] = Field(description="List of tags for the recipe")
@@ -92,7 +92,7 @@ class RecipeFlow:
         return state
 
     def get_tools(self) -> list:
-        return [self.page_retriever, self.receipt_parser]
+        return [self.page_retriever, self.recipe_parser, self.save_recipe_tool]
 
     async def receipt_agent(self, state: RecipeState, config: RunnableConfig) -> RecipeState:
         prompt_template_messages = [
@@ -104,11 +104,15 @@ class RecipeFlow:
                     page_retriever tool to retrieve the page content.
 
                     If you are provided with a block of text that looks like a recipe, instead of a URL, your next task is to
-                    use the receipt_parser tool.
+                    use the recipe_parser tool.
 
                     After retrieving the content, or if the state already contains a recipe, your next task is to
-                    use the receipt_parser tool to generate a JSON object out of the recipe content. Do not call the page_retriever_tool again.
+                    use the recipe_parser tool to generate a JSON object out of the recipe content. Do not call the page_retriever_tool again.
                     Do not return the JSON payload in your response, just return a brief summary of the recipe for the user.
+
+                    After the recipe has been parsed, it can be saved to the database with the save_recipe_tool. Only do this when
+                    there is a JSON object representing the receipt in the state, do not attempt to save a receipt that is still
+                    in plain text format. After saving the receipt, you can end the flow.
 
                     If you are provided with text that does not look like a receipt, the page does not contain a recipe, or you cannot
                     retrieve the page content, please return a message indicating the nature of the issue and do not use the tools.
@@ -203,7 +207,7 @@ class RecipeFlow:
 
     @tool
     @staticmethod
-    def receipt_parser(recipe_content: str) -> Dict[str, Any]:
+    def recipe_parser(recipe_content: str) -> Dict[str, Any]:
         """
         Parse the page content to extract the recipe.
 
@@ -267,7 +271,7 @@ class RecipeFlow:
     @staticmethod
     def save_recipe_tool(recipe: Recipe) -> dict:
         """
-        This tool persists a Recipe to the data store.
+        This tool persists a Recipe object to the data store.
 
         Parameters:
         - recipe: an object of type Recipe
