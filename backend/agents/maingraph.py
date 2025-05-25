@@ -108,9 +108,14 @@ class MainGraph:
         # { "target node": "routing description, gets appended to the prompt for the LLM to decide." }
         classifier_routes = {
             "meal_planner": "If the message is about meal planning. Example: I want to plan my meals for the week.",
-            "receipt_processing": "If the message is a request to upload, scan or process a new receipt file, and only about that. Examples: I want to upload a receipt or can you help me process a receipt?",
-            "recipe_handler": "If the message looks like a recipe and the user is asking for help extracting a recipe. Example: 'I want to extract a recipe from this text' or ' please help me extract a recipe from a web site or URL'",
-            "chat": "Everything else, including questions about prices, or past receipts. Example: I want to chat with you.",
+            "receipt_processing": """If the message is a request to upload, scan or process a new receipt file, and only about that. Examples: I want to upload a receipt or can you help me process a receipt?""",
+            "recipe_handler": """If the message looks like a recipe and the user is asking for help extracting a recipe or saving a recipe.
+            Example: 'I want to extract a recipe from this text', 'please help me extract a recipe from a web site or URL', or 'can you save this recipe?""",
+            "chat": """Everything else, including:
+             - questions about prices. Example: 'how much does a banana cost?'
+             - searching for recipes. Example: 'can you find recipes with cinnamon?¡
+             - past groceries receipts, or questions about receipts. Example 'how much did we spend in March 2025?'
+             - general chat questions""",
         }
         main_flow.add_conditional_edges(START, make_classifier(routing_map=classifier_routes, default_node="chat"))
 
