@@ -309,11 +309,17 @@ class RecipeRepository:
         }
 
         # Handle optional time ranges
-        if recipe.cooking_time_range:
-            document["cooking_time_range"] = recipe.cooking_time_range
+        if recipe.cooking_time:
+            document["cooking_time"] = recipe.cooking_time
 
-        if recipe.preparation_time_range:
-            document["preparation_time_range"] = recipe.preparation_time_range
+        if recipe.preparation_time:
+            document["preparation_time"] = recipe.preparation_time
+
+        if recipe.yields:
+            document["yields"] = recipe.yields
+
+        if recipe.url:
+            document["url"] = recipe.url
 
         # For new documents, set created_at
         if existing_doc is None:

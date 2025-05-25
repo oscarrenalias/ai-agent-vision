@@ -43,12 +43,8 @@ class Recipe(BaseModel):
     url: Optional[str] = Field(description="Original site with the source for this recipe")
 
     # min and max cooking and preparation times as dictionaries with minutes
-    cooking_time_range: Optional[Dict[str, int]] = Field(
-        description="Cooking time range as a dictionary with 'min' and optional 'max' keys with values in minutes"
-    )
-    preparation_time_range: Optional[Dict[str, int]] = Field(
-        description="Preparation time range as a dictionary with 'min' and optional 'max' keys with values in minutes"
-    )
+    cooking_time: Optional[int] = Field(description="Cooking time in minutes")
+    preparation_time: Optional[int] = Field(description="Preparation time in minutes")
 
     # list of tags
     tags: List[str] = Field(description="List of tags for the recipe")
@@ -67,8 +63,10 @@ class RecipeState(CopilotKitState):
                 description=None,
                 ingredients=[],
                 steps=None,
-                cooking_time_range=None,
-                preparation_time_range=None,
+                cooking_time=None,
+                preparation_time=None,
+                yields=None,
+                url=None,
                 tags=[],
             ),
         )
