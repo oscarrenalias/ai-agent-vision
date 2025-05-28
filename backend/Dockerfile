@@ -22,10 +22,6 @@ WORKDIR /app
 COPY --from=build /usr/local /usr/local
 COPY . .
 
-# This should be passed as an environment variable
-ARG SETUPTOOLS_SCM_PRETEND_VERSION
-ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}
-
 # Sync the project and clean up cache
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked \

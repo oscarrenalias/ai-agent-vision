@@ -50,16 +50,9 @@ packages = ["agents", "common" ]
 ai-agent-vision-server = "server:main"
 ai-agent-vision-cli = "cli:entry_point"
 
-[build-system]
-requires = [
-    "setuptools>=61",
-    "setuptools_scm"
-]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "ai-agent-vision"
-dynamic = ["version"]
+version = "1.0.0"
 description = ""
 authors = [
     {name = "Oscar Renalias",email = "oscar@renalias.net"}
@@ -90,10 +83,3 @@ dependencies = [
     "cachetools (>=5.2.0)",
     "recipe-scrapers>=15.7.1",
 ]
-
-[tool.setuptools_scm]
-version_scheme = "guess-next-dev"
-local_scheme = "node-and-date"
-version_file = "VERSION.txt"
-root = ".."
-tag_regex = "^v?(\\d+\\.\\d+\\.\\d+)$"

@@ -1,0 +1,33 @@
+name: Get Version
+description: Reads the VERSION file from the repo root and outputs it.
+inputs:
+  build-type:
+    description: "Type of build: ci or release"
+    required: false
+    default: ci
+outputs:
+  version:
+    description: "The version string for this build (ci or release)"
+    value: ${{ steps.read_version.outputs.version }}
+  base_version:
+    description: "The base version from the VERSION file"
+    value: ${{ steps.read_version.outputs.base_version }}
+  full_version:
+    description: "The version from the VERSION file with the run number appended"
+    value: ${{ steps.read_version.outputs.full_version }}
+runs:
+  using: "composite"
+  steps:
+    - id: read_version
+      shell: bash
+      run: |
+        BASE_VERSION=$(cat $GITHUB_WORKSPACE/VERSION)
+        FULL_VERSION="${BASE_VERSION}-${GITHUB_RUN_NUMBER}"
+        if [ "${{ inputs.build-type }}" = "release" ]; then
+          VERSION="$BASE_VERSION"
+        else
+          VERSION="$FULL_VERSION"
+        fi
+        echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
+        echo "full_version=$FULL_VERSION" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
