@@ -82,3 +82,4 @@ backend/.langgraph_api
 data/samples/*
 .chat_history
 backend/VERSION.txt
+pkg/
