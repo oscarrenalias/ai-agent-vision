@@ -33,6 +33,7 @@ jobs:
       - name: Prepare package root
         run: |
           # Copy the pre-structured debian package root
+          mkdir -p pkg
           cp -r deploy/pkg/debian pkg/ai-agent-vision
           # Copy docker-compose.release.yml to the correct location
           cp docker-compose.release.yml pkg/ai-agent-vision/opt/ai-agent-vision/
