@@ -18,6 +18,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v4
@@ -36,6 +39,7 @@ jobs:
         run: |
           cd backend
           echo "version=$(uv run python -m setuptools_scm)" >> $GITHUB_OUTPUT
+          echo "image_version=$(uv run python -m setuptools_scm | sed 's/+/\./g')" >> $GITHUB_OUTPUT
       - name: Print build version
         run: |
           echo "🚧🚧🚧 Building version: ${{ steps.get_version.outputs.version }} 🚧🚧🚧"
@@ -71,7 +75,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/backend:latest
             ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/backend:${{ steps.get_version.outputs.version }}
+            ghcr.io/${{ github.repository }}/backend:${{ steps.get_version.outputs.image_version }}
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=min
