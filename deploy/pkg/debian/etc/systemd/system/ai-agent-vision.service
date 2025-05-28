@@ -1,0 +1,16 @@
+# ai-agent-vision systemd service file
+# (copied from deploy/ai-agent-vision.service)
+[Unit]
+Description=AI Agent Vision Service
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/ai-agent-vision
+ExecStart=/usr/bin/docker-compose -f /opt/ai-agent-vision/docker-compose.release.yml up
+ExecStop=/usr/bin/docker-compose -f /opt/ai-agent-vision/docker-compose.release.yml down
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

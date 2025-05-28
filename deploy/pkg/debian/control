@@ -1,0 +1,8 @@
+Package: ai-agent-vision
+Version: REPLACE_VERSION
+Section: base
+Priority: optional
+Architecture: arm64
+Depends: docker.io, docker-compose
+Maintainer: Oscar Renalias <oscar@renalias.net>
+Description: AI Agent Vision application

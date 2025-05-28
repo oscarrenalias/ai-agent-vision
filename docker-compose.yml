@@ -10,9 +10,10 @@ services:
       - mongo
     environment:
       - MONGO_URI=mongodb://mongo:27017/receipts
-    # Uncomment the next lines to map an external .env file
-    # volumes:
-    #   - ./path/to/your/.env:/app/.env
+    # Uncomment the following lines to enable volumes
+    #volumes:
+    #  - /opt/ai-agent-vision/conf/.env:/app/.env
+    #  - /opt/ai-agent-vision/uploads:/app/uploads
 
   ui:
     image: ghcr.io/OWNER/REPO/ui:latest # will be replaced with the correct tag in CI
@@ -28,9 +29,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/data/db
-      # Uncomment the next line to map a local folder for MongoDB data persistence
-      # - ./mongo-data:/data/db
+      - /opt/ai-agent-vision/mongo:/data/db
 
 volumes:
   mongo-data:

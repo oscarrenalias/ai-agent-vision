@@ -1,0 +1,79 @@
+name: Deb Package Release
+
+on:
+  workflow_dispatch:
+
+  workflow_run:
+    workflows: ["Docker Release"]
+    types:
+      - completed
+
+jobs:
+  build-deb:
+    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: get_version
+        uses: ./.github/actions/get-version
+        with:
+          build-type: ci
+
+      - name: Download docker-compose.release.yml from latest release
+        id: get_compose
+        uses: robinraju/release-downloader@v1.8
+        with:
+          repository: ${{ github.repository }}
+          latest: true
+          fileName: docker-compose.release.yml
+
+      - name: Prepare package root
+        run: |
+          # Copy the pre-structured debian package root
+          cp -r deploy/pkg/debian pkg/ai-agent-vision
+          # Copy docker-compose.release.yml to the correct location
+          cp docker-compose.release.yml pkg/ai-agent-vision/opt/ai-agent-vision/
+
+      - name: Prepare control file with version
+        run: |
+          sed "s/REPLACE_VERSION/${{ steps.get_version.outputs.version }}/g" deploy/pkg/debian/DEBIAN/control > pkg/ai-agent-vision/DEBIAN/control
+
+      - name: Patch docker-compose.release.yml for deployment
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -i '(.services.backend.volumes //= []) |= . + ["/opt/ai-agent-vision/conf/.env:/app/.env", "/opt/ai-agent-vision/uploads:/app/uploads"]' docker-compose.release.yml
+
+      - name: Patch mongo service volumes
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -i '(.services.mongo.volumes //= []) |= . + ["/opt/ai-agent-vision/mongo:/data/db"]' docker-compose.release.yml
+
+      - name: Remove any existing mongo-data volume definition
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -i 'del(.volumes["mongo-data"])' docker-compose.release.yml
+
+      - name: Redefine mongo-data as an external bind mount
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -i '.volumes."mongo-data".driver = "local" | .volumes."mongo-data".driver_opts.type = "none" | .volumes."mongo-data".driver_opts.o = "bind" | .volumes."mongo-data".driver_opts.device = "/opt/ai-agent-vision/mongo"' docker-compose.release.yml
+
+      - name: Copy default .env file
+        run: |
+          mkdir -p pkg/ai-agent-vision/opt/ai-agent-vision/conf
+          cp backend/.env.example pkg/ai-agent-vision/opt/ai-agent-vision/conf/.env
+
+      - name: Build .deb package
+        run: |
+          dpkg-deb --build pkg/ai-agent-vision
+          mv pkg/ai-agent-vision.deb ai-agent-vision_${{ steps.get_version.outputs.version }}_arm64.deb
+
+      - name: Upload .deb to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ai-agent-vision_${{ steps.get_version.outputs.version }}_arm64.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
