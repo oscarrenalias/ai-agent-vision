@@ -52,7 +52,7 @@ ai-agent-vision-cli = "cli:entry_point"
 
 [project]
 name = "ai-agent-vision"
-version = "1.0.0"
+version = "0.1.0"
 description = ""
 authors = [
     {name = "Oscar Renalias",email = "oscar@renalias.net"}
