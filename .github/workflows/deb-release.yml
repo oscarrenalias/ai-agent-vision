@@ -1,16 +1,14 @@
 name: Deb Package Release
 
 on:
-  workflow_dispatch:
-
   workflow_run:
-    workflows: ["Docker Release"]
+    workflows: ["Release"]
     types:
       - completed
 
 jobs:
   build-deb:
-    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

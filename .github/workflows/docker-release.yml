@@ -1,4 +1,4 @@
-name: Docker Release
+name: Release
 
 env:
   PYTHON_VERSION: "3.12"
@@ -171,8 +171,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: docker-release-${{ steps.get_version.outputs.version }}
-          name: Docker Compose Release ${{ steps.get_version.outputs.version }}
+          tag_name: release-${{ steps.get_version.outputs.version }}
+          name: Release ${{ steps.get_version.outputs.version }}
           body: |
             Docker images for backend and ui are published to GitHub Container Registry with tags `latest` and `${{ steps.get_version.outputs.version }}`.
             This release contains the docker-compose.yml for deployment.
