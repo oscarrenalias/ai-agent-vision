@@ -61,7 +61,6 @@ readme = "README.md"
 requires-python = ">=3.10,<3.13"
 dependencies = [
     "copilotkit (==0.1.44)",
-    "langchain-huggingface (>=0.2.0,<0.3.0)",
     "langchain-openai (>=0.3.17,<0.4.0)",
     "langchain-community (>=0.3.24,<0.4.0)",
     "langchain-core (>=0.3.60,<0.4.0)",
@@ -81,5 +80,5 @@ dependencies = [
     "beautifulsoup4 (>=4.11.0)",
     "lxml (>=4.9.0)",
     "cachetools (>=5.2.0)",
-    "recipe-scrapers>=15.7.1",
+    "recipe-scrapers>=15.7.1"
 ]

@@ -1,3 +1,3 @@
-from .models import HuggingFaceModel, Model, OpenAIModel
+from .models import Model, OpenAIModel
 
-__all__ = ["HuggingFaceModel", "OpenAIModel", "Model"]
+__all__ = ["OpenAIModel", "Model"]
