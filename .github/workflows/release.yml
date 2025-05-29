@@ -201,25 +201,25 @@ jobs:
         run: |
           sed "s/REPLACE_VERSION/${{ steps.get_version.outputs.debian_version }}/g" deploy/pkg/debian/DEBIAN/control > pkg/ai-agent-vision/DEBIAN/control
 
-      - name: Patch docker-compose.release.yml for deployment
+      - name: Remove any existing backend-uploads volume definition
         uses: mikefarah/yq@v4
         with:
-          cmd: yq -i '.services.backend.volumes = (.services.backend.volumes // []) | .services.backend.volumes += ["/opt/ai-agent-vision/conf/.env:/app/.env", "/opt/ai-agent-vision/uploads:/app/uploads"]' pkg/ai-agent-vision/opt/ai-agent-vision/docker-compose.release.yml
-
-      - name: Patch mongo service volumes
-        uses: mikefarah/yq@v4
-        with:
-          cmd: yq -i '(.services.mongo.volumes // []) += ["/opt/ai-agent-vision/mongo:/data/db"]' pkg/ai-agent-vision/opt/ai-agent-vision/docker-compose.release.yml
+          cmd: yq -i 'del(.volumes["backend-uploads"])' pkg/ai-agent-vision/opt/ai-agent-vision/docker-compose.release.yml
 
       - name: Remove any existing mongo-data volume definition
         uses: mikefarah/yq@v4
         with:
           cmd: yq -i 'del(.volumes["mongo-data"])' pkg/ai-agent-vision/opt/ai-agent-vision/docker-compose.release.yml
 
+      - name: Redefine backend-uploads as an external bind mount
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -i '.volumes."backend-uploads".driver = "local" | .volumes."backend-uploads".driver_opts.type = "none" | .volumes."backend-uploads".driver_opts.o = "bind" | .volumes."backend-uploads".driver_opts.device = "/opt/ai-agent-vision/uploads"' pkg/ai-agent-vision/opt/ai-agent-vision/docker-compose.release.yml
+
       - name: Redefine mongo-data as an external bind mount
         uses: mikefarah/yq@v4
         with:
-          cmd: yq -i '.volumes."mongo-data".driver = "local" | .volumes."mongo-data".driver_opts.type = "none" | .volumes."mongo-data".driver_opts.o = "bind" | .volumes."mongo-data".driver_opts.device = "/opt/ai-agent-vision/mongo"' pkg/ai-agent-vision/opt/ai-agent-vision/docker-compose.release.yml
+          cmd: yq -i '.volumes."mongo-data".driver = "local" | .volumes."mongo-data".driver_opts.type = "none" | .volumes."mongo-data".driver_opts.o = "bind" | .volumes."mongo-data".driver_opts.device = "/opt/ai-agent-vision/data"' pkg/ai-agent-vision/opt/ai-agent-vision/docker-compose.release.yml
 
       - name: Copy default .env file
         run: |

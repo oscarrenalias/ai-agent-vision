@@ -10,10 +10,10 @@ services:
       - mongo
     environment:
       - MONGO_URI=mongodb://mongo:27017/receipts
-    # Uncomment the following lines to enable volumes
-    #volumes:
-    #  - /opt/ai-agent-vision/conf/.env:/app/.env
-    #  - /opt/ai-agent-vision/uploads:/app/uploads
+    volumes:
+      # it's a single file, we need to use a direct bind mount
+      - /opt/ai-agent-vision/conf/.env:/app/.env
+      - backend-uploads:/app/uploads
 
   ui:
     image: ghcr.io/OWNER/REPO/ui:latest # will be replaced with the correct tag in CI
@@ -29,7 +29,8 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - /opt/ai-agent-vision/mongo:/data/db
+      - mongo-data:/data/db
 
 volumes:
   mongo-data:
+  backend-uploads:
