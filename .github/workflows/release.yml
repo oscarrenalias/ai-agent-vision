@@ -166,6 +166,11 @@ jobs:
         uses: ./.github/actions/get-version
         with:
           build-type: ci
+      - name: Print build version
+        run: |
+          echo "::group::Debian package Build version info"
+          echo "🚧🚧🚧 Debian version: ${{ steps.get_version.outputs.debian_version }}"
+          echo "::endgroup::"
 
       - name: Download docker-compose.release.yml from artifacts
         uses: actions/download-artifact@v4
