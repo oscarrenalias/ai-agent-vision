@@ -30,11 +30,16 @@ runs:
         if [ "${{ inputs.build-type }}" = "release" ]; then
           VERSION="$BASE_VERSION"
           DEBIAN_VERSION="$BASE_VERSION"
+          UV_VERSION="$BASE_VERSION"
         else
+          # it's really fun when different components require different version naming conventions,
+          # and not all support each other's formats
           VERSION="${BASE_VERSION}-ci${DATE_STR}.${SHORT_SHA}"
           DEBIAN_VERSION="${BASE_VERSION}~ci${DATE_STR}.${SHORT_SHA}"
+          UV_VERSION="${BASE_VERSION}+ci${DATE_STR}.${SHORT_SHA}"
         fi
         echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
         echo "full_version=$VERSION" >> $GITHUB_OUTPUT
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "debian_version=$DEBIAN_VERSION" >> $GITHUB_OUTPUT
+        echo "uv_version=$UV_VERSION" >> $GITHUB_OUTPUT
