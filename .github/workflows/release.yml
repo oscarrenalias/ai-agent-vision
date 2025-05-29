@@ -274,8 +274,6 @@ jobs:
           body: |
             Docker images are published to the registry with tags `latest` and `${{ steps.get_version.outputs.version }}`.
             This release contains Debian package for Raspbian as well as a docker-compose file for easy deployment.
-          files: |
-            ./release/docker-compose.release.yml
-            ./release/ai-agent-vision_${{ steps.get_version.outputs.debian_version }}_arm64.deb
+          files: ./release/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
