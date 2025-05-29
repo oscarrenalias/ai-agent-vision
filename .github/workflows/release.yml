@@ -26,9 +26,10 @@ jobs:
 
       - name: Print build version
         run: |
-          echo "::group::Backend Build version info"
+          echo "::group::Debian package Build version info"
           echo "🚧🚧🚧 Main version: ${{ steps.get_version.outputs.version }}"
           echo "🚧🚧🚧 Full version: ${{ steps.get_version.outputs.full_version }}"
+          echo "🚧🚧🚧 Debian version: ${{ steps.get_version.outputs.debian_version }}"
           echo "::endgroup::"
 
       - name: Log in to GitHub Container Registry
@@ -82,9 +83,10 @@ jobs:
 
       - name: Print build version
         run: |
-          echo "::group::UI Build version info"
+          echo "::group::Debian package Build version info"
           echo "🚧🚧🚧 Main version: ${{ steps.get_version.outputs.version }}"
           echo "🚧🚧🚧 Full version: ${{ steps.get_version.outputs.full_version }}"
+          echo "🚧🚧🚧 Debian version: ${{ steps.get_version.outputs.debian_version }}"
           echo "::endgroup::"
 
       - name: Log in to GitHub Container Registry
@@ -138,6 +140,13 @@ jobs:
       - name: Get build version
         id: get_version
         uses: ./.github/actions/get-version
+      - name: Print build version
+        run: |
+          echo "::group::Debian package Build version info"
+          echo "🚧🚧🚧 Main version: ${{ steps.get_version.outputs.version }}"
+          echo "🚧🚧🚧 Full version: ${{ steps.get_version.outputs.full_version }}"
+          echo "🚧🚧🚧 Debian version: ${{ steps.get_version.outputs.debian_version }}"
+          echo "::endgroup::"
 
       - name: Prepare docker-compose.yml for release
         run: |
@@ -169,6 +178,8 @@ jobs:
       - name: Print build version
         run: |
           echo "::group::Debian package Build version info"
+          echo "🚧🚧🚧 Main version: ${{ steps.get_version.outputs.version }}"
+          echo "🚧🚧🚧 Full version: ${{ steps.get_version.outputs.full_version }}"
           echo "🚧🚧🚧 Debian version: ${{ steps.get_version.outputs.debian_version }}"
           echo "::endgroup::"
 
