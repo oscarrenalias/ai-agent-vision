@@ -9,12 +9,14 @@ on:
     paths:
       - "backend/**"
       - ".github/workflows/**"
+      - ".github/actions/**"
       - "deploy/**"
   pull_request:
     branches: [main]
     paths:
       - "backend/**"
       - ".github/workflows/**"
+      - ".github/actions/**"
       - "deploy/**"
 
 jobs:
