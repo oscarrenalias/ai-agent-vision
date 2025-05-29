@@ -9,7 +9,7 @@ outputs:
   version:
     description: "The version string for this build (ci or release)"
     value: ${{ steps.read_version.outputs.version }}
-  debia_version:
+  debian_version:
     description: "The Debian version string for this build (ci or release). Replaces '-' with '~' for Debian packaging."
     value: ${{ steps.read_version.outputs.debian_version }}
   base_version:
