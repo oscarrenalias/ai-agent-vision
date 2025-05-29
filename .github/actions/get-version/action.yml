@@ -9,6 +9,9 @@ outputs:
   version:
     description: "The version string for this build (ci or release)"
     value: ${{ steps.read_version.outputs.version }}
+  debia_version:
+    description: "The Debian version string for this build (ci or release). Replaces '-' with '~' for Debian packaging."
+    value: ${{ steps.read_version.outputs.debian_version }}
   base_version:
     description: "The base version from the VERSION file"
     value: ${{ steps.read_version.outputs.base_version }}
@@ -22,12 +25,16 @@ runs:
       shell: bash
       run: |
         BASE_VERSION=$(cat $GITHUB_WORKSPACE/VERSION)
-        FULL_VERSION="${BASE_VERSION}-${GITHUB_RUN_NUMBER}"
+        SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+        DATE_STR=$(date -u +"%Y%m%d%H%M%S")
         if [ "${{ inputs.build-type }}" = "release" ]; then
           VERSION="$BASE_VERSION"
+          DEBIAN_VERSION="$BASE_VERSION"
         else
-          VERSION="$FULL_VERSION"
+          VERSION="${BASE_VERSION}-ci${DATE_STR}.${SHORT_SHA}"
+          DEBIAN_VERSION="${BASE_VERSION}~ci${DATE_STR}.${SHORT_SHA}"
         fi
         echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
-        echo "full_version=$FULL_VERSION" >> $GITHUB_OUTPUT
+        echo "full_version=$VERSION" >> $GITHUB_OUTPUT
         echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "debian_version=$DEBIAN_VERSION" >> $GITHUB_OUTPUT

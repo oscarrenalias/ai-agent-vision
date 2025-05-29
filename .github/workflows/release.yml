@@ -1,4 +1,4 @@
-name: Release
+name: Application Release
 
 env:
   PYTHON_VERSION: "3.12"
@@ -144,11 +144,81 @@ jobs:
           sed -e "s|ghcr.io/OWNER/REPO/backend:latest|ghcr.io/${{ github.repository }}/backend:${{ steps.get_version.outputs.version }}|g" \
               -e "s|ghcr.io/OWNER/REPO/ui:latest|ghcr.io/${{ github.repository }}/ui:${{ steps.get_version.outputs.version }}|g" \
               docker-compose.yml > docker-compose.release.yml
+
       - name: Upload docker-compose release artifact
         uses: actions/upload-artifact@v4
         with:
           name: docker-compose-release
           path: docker-compose.release.yml
+
+  build-deb:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: get_version
+        uses: ./.github/actions/get-version
+        with:
+          build-type: ci
+
+      - name: Download docker-compose.release.yml from artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-compose-release
+
+      - name: Prepare package root
+        run: |
+          # Copy the pre-structured debian package root
+          mkdir -p pkg
+          cp -r deploy/pkg/debian pkg/ai-agent-vision
+          # Copy docker-compose.release.yml to the correct location
+          cp docker-compose.release.yml pkg/ai-agent-vision/opt/ai-agent-vision/
+          mkdir -p pkg/ai-agent-vision/DEBIAN
+
+      - name: Prepare control file with version
+        run: |
+          sed "s/REPLACE_VERSION/${{ steps.get_version.outputs.debian_version }}/g" deploy/pkg/debian/DEBIAN/control > pkg/ai-agent-vision/DEBIAN/control
+
+      - name: Patch docker-compose.release.yml for deployment
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -i '.services.backend.volumes = (.services.backend.volumes // []) | .services.backend.volumes += ["/opt/ai-agent-vision/conf/.env:/app/.env", "/opt/ai-agent-vision/uploads:/app/uploads"]' pkg/ai-agent-vision/opt/ai-agent-vision/docker-compose.release.yml
+
+      - name: Patch mongo service volumes
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -i '(.services.mongo.volumes // []) += ["/opt/ai-agent-vision/mongo:/data/db"]' pkg/ai-agent-vision/opt/ai-agent-vision/docker-compose.release.yml
+
+      - name: Remove any existing mongo-data volume definition
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -i 'del(.volumes["mongo-data"])' pkg/ai-agent-vision/opt/ai-agent-vision/docker-compose.release.yml
+
+      - name: Redefine mongo-data as an external bind mount
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -i '.volumes."mongo-data".driver = "local" | .volumes."mongo-data".driver_opts.type = "none" | .volumes."mongo-data".driver_opts.o = "bind" | .volumes."mongo-data".driver_opts.device = "/opt/ai-agent-vision/mongo"' pkg/ai-agent-vision/opt/ai-agent-vision/docker-compose.release.yml
+
+      - name: Copy default .env file
+        run: |
+          mkdir -p pkg/ai-agent-vision/opt/ai-agent-vision/conf
+          cp backend/.env.example pkg/ai-agent-vision/opt/ai-agent-vision/conf/.env
+
+      - name: Fix permissions
+        run: chmod 755 pkg/ai-agent-vision/DEBIAN/postinst
+
+      - name: Build .deb package
+        run: |
+          dpkg-deb --build pkg/ai-agent-vision
+          mv pkg/ai-agent-vision.deb ai-agent-vision_${{ steps.get_version.outputs.debian_version }}_arm64.deb
+
+      - name: Upload .deb package as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-package-release
+          path: ai-agent-vision_${{ steps.get_version.outputs.debian_version }}_arm64.deb
 
   release:
     runs-on: ubuntu-latest
@@ -159,6 +229,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Get build version
         id: get_version
         uses: ./.github/actions/get-version
@@ -168,14 +239,23 @@ jobs:
         with:
           name: docker-compose-release
           path: ./release
+
+      - name: Download .deb package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deb-package-release
+          path: ./release
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: release-${{ steps.get_version.outputs.version }}
           name: Release ${{ steps.get_version.outputs.version }}
           body: |
-            Docker images for backend and ui are published to GitHub Container Registry with tags `latest` and `${{ steps.get_version.outputs.version }}`.
-            This release contains the docker-compose.yml for deployment.
-          files: ./release/docker-compose.release.yml
+            Docker images are published to the registry with tags `latest` and `${{ steps.get_version.outputs.version }}`.
+            This release contains Debian package for Raspbian as well as a docker-compose file for easy deployment.
+          files: |
+            ./release/docker-compose.release.yml
+            ./release/ai-agent-vision_${{ steps.get_version.outputs.debian_version }}_arm64.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
