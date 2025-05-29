@@ -22,6 +22,9 @@ WORKDIR /app
 COPY --from=build /usr/local /usr/local
 COPY . .
 
+# Ensure uploads directory exists
+RUN mkdir -p /app/uploads
+
 # Sync the project and clean up cache
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked \
