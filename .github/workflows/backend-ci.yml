@@ -58,7 +58,6 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    needs: lint
     steps:
       - uses: actions/checkout@v4
 
@@ -77,21 +76,14 @@ jobs:
           cd backend
           uv sync --group dev
 
-      - name: Test with pytest
+      - name: Test with pytest s s
         run: |
           cd backend
           uv run pytest --cov=. --cov-report=xml
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./backend/coverage.xml
-          flags: backend
-          fail_ci_if_error: false
-
   build:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, lint]
     steps:
       - uses: actions/checkout@v4
 

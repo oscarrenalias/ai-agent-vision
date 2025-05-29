@@ -68,7 +68,7 @@ jobs:
 
   build-and-push-ui:
     runs-on: ubuntu-latest
-    needs: build-and-push-backend
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: read
       packages: write
