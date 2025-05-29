@@ -24,22 +24,36 @@ runs:
     - id: read_version
       shell: bash
       run: |
-        BASE_VERSION=$(cat $GITHUB_WORKSPACE/VERSION)
-        SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
-        DATE_STR=$(date -u +"%Y%m%d%H%M%S")
-        if [ "${{ inputs.build-type }}" = "release" ]; then
-          VERSION="$BASE_VERSION"
-          DEBIAN_VERSION="$BASE_VERSION"
-          UV_VERSION="$BASE_VERSION"
+        BUILD_FILE="$GITHUB_WORKSPACE/build_number.txt"
+        if [ -f "$BUILD_FILE" ]; then
+          echo "[get-version] ✅ Found build_number.txt, using existing version info:"
+          cat "$BUILD_FILE"
+          while IFS= read -r line; do
+            echo "$line" >> $GITHUB_OUTPUT
+          done < "$BUILD_FILE"
         else
-          # it's really fun when different components require different version naming conventions,
-          # and not all support each other's formats
-          VERSION="${BASE_VERSION}-ci${DATE_STR}.${SHORT_SHA}"
-          DEBIAN_VERSION="${BASE_VERSION}~ci${DATE_STR}.${SHORT_SHA}"
-          UV_VERSION="${BASE_VERSION}+ci${DATE_STR}.${SHORT_SHA}"
+          echo "[get-version] ⚠️ build_number.txt not found, generating version info..."
+          BASE_VERSION=$(cat $GITHUB_WORKSPACE/VERSION)
+          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+          DATE_STR=$(date -u +"%Y%m%d%H%M%S")
+          if [ "${{ inputs.build-type }}" = "release" ]; then
+            VERSION="$BASE_VERSION"
+            DEBIAN_VERSION="$BASE_VERSION"
+            UV_VERSION="$BASE_VERSION"
+          else
+            VERSION="${BASE_VERSION}-ci${DATE_STR}.${SHORT_SHA}"
+            DEBIAN_VERSION="${BASE_VERSION}~ci${DATE_STR}.${SHORT_SHA}"
+            UV_VERSION="${BASE_VERSION}+ci${DATE_STR}.${SHORT_SHA}"
+          fi
+          echo "[get-version] ℹ️ base_version=$BASE_VERSION"
+          echo "[get-version] ℹ️ full_version=$VERSION"
+          echo "[get-version] ℹ️ version=$VERSION"
+          echo "[get-version] ℹ️ debian_version=$DEBIAN_VERSION"
+          echo "[get-version] ℹ️ uv_version=$UV_VERSION"
+          echo "base_version=$BASE_VERSION" | tee -a $GITHUB_OUTPUT > "$BUILD_FILE"
+          echo "full_version=$VERSION" | tee -a $GITHUB_OUTPUT >> "$BUILD_FILE"
+          echo "version=$VERSION" | tee -a $GITHUB_OUTPUT >> "$BUILD_FILE"
+          echo "debian_version=$DEBIAN_VERSION" | tee -a $GITHUB_OUTPUT >> "$BUILD_FILE"
+          echo "uv_version=$UV_VERSION" | tee -a $GITHUB_OUTPUT >> "$BUILD_FILE"
+          echo "[get-version] Saved version info to $BUILD_FILE"
         fi
-        echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
-        echo "full_version=$VERSION" >> $GITHUB_OUTPUT
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "debian_version=$DEBIAN_VERSION" >> $GITHUB_OUTPUT
-        echo "uv_version=$UV_VERSION" >> $GITHUB_OUTPUT
