@@ -17,13 +17,25 @@ logger = logging.getLogger(__name__)
 # overall global state
 class GlobalState(CopilotKitState):
     last_receipt: None
-    last_meal_plan: None
-    last_shopping_list: None
+    # last_meal_plan: None
+    # last_shopping_list: None
+    shopping_list: None
+    meals: None
     items_lookup: List[dict] = None
     image_file_path: str = None
 
+    @staticmethod
     def make_instance():
-        return GlobalState(messages=[], last_meal_plan=None, last_shopping_list=None, last_receipt=None, image_file_path=None)
+        return GlobalState(
+            messages=[],
+            last_meal_plan=None,
+            last_shopping_list=None,
+            last_receipt=None,
+            shopping_list=[],
+            meals=[],
+            items_lookup=None,
+            image_file_path=None,
+        )
 
 
 class MainGraph:
@@ -49,6 +61,8 @@ class MainGraph:
             chat_state = ChatState.make_instance()
             chat_state["messages"] = global_state["messages"].copy()
             chat_state["input"] = global_state["messages"][-1]
+            chat_state["shopping_list"] = global_state.get("shopping_list", [])
+            chat_state["meals"] = global_state.get("meals", [])
 
             # Run the chat_graph with the converted state
             chat_result = await chat_graph.ainvoke(chat_state, config=self.config)
@@ -57,6 +71,8 @@ class MainGraph:
             return {
                 "messages": chat_result["messages"],
                 "items_lookup": chat_result["items"],
+                "shopping_list": chat_result.get("shopping_list", []),
+                "meals": chat_result.get("meals", []),
             }
 
         async def meal_planner_graph_node(global_state: GlobalState) -> dict:
@@ -107,7 +123,7 @@ class MainGraph:
         # Routing configuration for the decider, as a dictionary:
         # { "target node": "routing description, gets appended to the prompt for the LLM to decide." }
         classifier_routes = {
-            "meal_planner": "If the message is about meal planning. Example: I want to plan my meals for the week.",
+            # "meal_planner": "If the message is about meal planning. Example: I want to plan my meals for the week.",
             "receipt_processing": """If the message is a request to upload, scan or process a new receipt file, and only about that. Examples: I want to upload a receipt or can you help me process a receipt?""",
             "recipe_handler": """If the message looks like a recipe and the user is asking for help extracting a recipe or saving a recipe.
             Example: 'I want to extract a recipe from this text', 'please help me extract a recipe from a web site or URL', or 'can you save this recipe?""",
