@@ -1,47 +1,35 @@
-## Running the app as a service in Raspbian
+# Running the app as a service in Raspberry Pi OS
 
-1. Copy file `ai-agent-vision.service` to `/etc/systemd/system/`:
+# Deploying the application
+
+Download the latest release of the .deb package from the repository: https://github.com/oscarrenalias/ai-agent-vision/releases
 
 ```bash
-sudo cp ai-agent-vision.service /etc/systemd/system/
+wget https://github.com/oscarrenalias/ai-agent-vision/releases/download/release-0.1.0-ci20250602172918.086f521/ai-agent-vision_0.1.0.ci20250602172918.086f521_arm64.deb
+
+apt-get install ./ai-agent-vision_0.1.0.ci20250602172918.086f521_arm64.deb
 ```
 
-Alternatively, it can be linked from the project's source code:
+# Application location
+
+The application is installed under /opt/ai-agent-vision, with the following folders:
+
+- conf: location of the env file that contains the configuration keys and values for the application
+- data: location of the Mongo data files; mounted as a volume into the Mongo container
+- uploads: location of all file uploads; mounted as a volume into the backend container, can be configured in the env file but that's not recommended
+- backup: location of Mongo backups created by the mongo-backup container, which run every day at 2am
+
+# Services
+
+The appication is deployed as a system service so that it's automatically started and stopped together with the system. The service file is under `/etc/systemd/system/ai-agent-vision.service`, and can be operated as follows:
 
 ```bash
-cd /etc/systemd/system && sudo ln -s /home/admin/ai-agent-vision/deploy/ai-agent-vision.service .
-```
-
-2. Download the docker-compose.release.yml file from the latest GitHub release: [GitHub Releases](https://github.com/oscarrenalias/ai-agent-vision/releases)
-
-The file should be stored in `/root/ai-agent-vision/docker-compose.release.yml`. If a different location or filename should be used, update both the file path in the systemd service file and ensure the file is present at that location.
-
-3. Create a configuration file for the application, use `backend/.env.example`as a template. Place it in the same location as the `docker-compose.release.yml` file:
-
-```bash
-cp ../backend/.env.example .env
-```
-
-Adapt accordingly.
-
-4. Edit `docker-compose.release.yml`:
-
-```bash
-xxx
-```
-
-At this point, you can test the entire setup with docker-compose:
-
-```bash
-docker-compose -f docker-compose.release.yml up
-```
-
-Container logs will be printed to the standard output, errors and issues should be easy to spot.
-
-5. Reload systemd, enable and start the service:
-
-```bash
+# reload the system service if changes are made
 sudo systemctl daemon-reload
+
+# enable the service (use "disable" for the opposite effect)
 sudo systemctl enable ai-agent-vision
+
+# start the service (or stop)
 sudo systemctl start ai-agent-vision
 ```

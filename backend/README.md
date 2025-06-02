@@ -1,19 +1,24 @@
-# 🚧 Preparations for local development 🚧
+# Backend
+
+This is the Python backend for the application.
+
+## 🧰 Pre-requisites
+
+The following are required to run the application:
+
+- Visual Studio Code
+- A Docker runtime – in MacOS, `colima` works great: https://github.com/abiosoft/colima
+- An OpenAI API key, required for making calls to the OpenAPI models. Please sign up at https://platform.openai.com and load some credit into your account (5-10€/$ recommended)
 
 ## 🧱 DevContainer
 
 The preferred way to run the application to use the DevContainer in VSCode, which is preconfigured with the right components and dependencies.
 
-Pre-requisites:
-
-- Visual Studio Code
-- A Docker runtime – Docker CLI from brew and Podman Desktop work well together on MacOS
-
 The following instructions assume that they're being executed inside the DevContainer.
 
 ## 💻 Virtual environment and dependencies
 
-Initialy virtual environment and install dependencies:
+Initiate virtual environment and install dependencies:
 
 ```bash
 # Create and load virtual environment
@@ -24,6 +29,8 @@ source .venv/bin/activate
 uv sync
 uv sync --group dev
 ```
+
+This shoud be taken care by the DevContainer as part of the initialization.
 
 ## 💻 Configure the application for local development
 
@@ -38,13 +45,21 @@ cp .env.example .env
 
 ## ⚙️ Running the application
 
-Run the application:
+Run the application in server mode:
 
 ```bash
-python server.py
+uv run python server.py
 ```
 
 Application will be available at http://localhost:8000.
+
+The application can also be run as a text-based command line chatbot:
+
+```bash
+uv run python cli.py
+```
+
+Please note that some features do not work in chatbot mode, such as automatic udpates of analytics data when contents of Mongo database change
 
 ## 🔎 Pre-Commit hooks
 
@@ -71,7 +86,5 @@ The pre-commit configuration includes:
 Run with pytest from the backend folder:
 
 ```
-pytest -v
+uv run pytest
 ```
-
-⚠️ Please note that tests do not work yet.
