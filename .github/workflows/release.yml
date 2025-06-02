@@ -335,10 +335,10 @@ jobs:
         with:
           cmd: yq -i '.volumes."mongo-backup".driver = "local" | .volumes."mongo-backup".driver_opts.type = "none" | .volumes."mongo-backup".driver_opts.o = "bind" | .volumes."mongo-backup".driver_opts.device = "/opt/ai-agent-vision/backup"' pkg/ai-agent-vision/opt/ai-agent-vision/docker-compose.release.yml
 
-      - name: Copy default .env file
+      - name: Copy default .env.example file
         run: |
           mkdir -p pkg/ai-agent-vision/opt/ai-agent-vision/conf
-          cp backend/.env.example pkg/ai-agent-vision/opt/ai-agent-vision/conf/.env
+          cp backend/.env.example pkg/ai-agent-vision/opt/ai-agent-vision/conf/.env.example
 
       - name: Fix permissions
         run: chmod 755 pkg/ai-agent-vision/DEBIAN/postinst
