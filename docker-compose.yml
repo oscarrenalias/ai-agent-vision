@@ -22,6 +22,8 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://backend:8000 # do not change this unless you know what you're doing
 
   mongo:
     image: mongo:7

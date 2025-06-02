@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getBackendUrl } from "../../getBackendUrl";
 
 export async function GET(req: NextRequest) {
   // Proxy GET requests to the backend analytics endpoint
   const backendRes = await fetch(
-    "http://localhost:8000/api/analytics/weekly_spend",
+    `${getBackendUrl()}/api/analytics/weekly_spend`,
     {
       method: "GET",
       headers: {

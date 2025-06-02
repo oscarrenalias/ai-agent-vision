@@ -4,6 +4,7 @@ import {
   copilotRuntimeNextJSAppRouterEndpoint,
 } from "@copilotkit/runtime";
 import { NextRequest } from "next/server";
+import { getBackendUrl } from "../getBackendUrl";
 
 // You can use any service adapter here for multi-agent support.
 const serviceAdapter = new ExperimentalEmptyAdapter();
@@ -11,7 +12,7 @@ const serviceAdapter = new ExperimentalEmptyAdapter();
 const runtime = new CopilotRuntime({
   remoteEndpoints: [
     // Our FastAPI endpoint URL
-    { url: "http://localhost:8000/copilotkit" },
+    { url: `${getBackendUrl()}/copilotkit` },
   ],
 });
 

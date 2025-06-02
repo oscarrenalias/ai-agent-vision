@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getBackendUrl } from "../getBackendUrl";
 
 export async function POST(req: NextRequest) {
   // Only handle /api/upload
-  const backendRes = await fetch("http://localhost:8000/api/upload", {
+  const backendRes = await fetch(`${getBackendUrl()}/api/upload`, {
     method: "POST",
     headers: {
       // Forward only the content-type header for multipart/form-data
@@ -10,7 +11,7 @@ export async function POST(req: NextRequest) {
     },
     body: req.body,
     // Only add duplex in Node.js (development), and bypass type error
-    ...(typeof process !== "undefined" && process.versions?.node
+    ...(typeof process !== "undefined" && (process as any).versions?.node
       ? { duplex: "half" as any }
       : {}),
   });

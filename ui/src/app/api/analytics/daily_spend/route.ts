@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getBackendUrl } from "../../getBackendUrl";
 
 export async function GET(req: NextRequest) {
   // Extract year and month from query params
@@ -7,7 +8,7 @@ export async function GET(req: NextRequest) {
   const month = searchParams.get("month");
 
   // Build backend URL with query params
-  let backendUrl = "http://localhost:8000/api/analytics/daily_spend";
+  let backendUrl = `${getBackendUrl()}/api/analytics/daily_spend`;
   if (year && month) {
     backendUrl += `?year=${encodeURIComponent(year)}&month=${encodeURIComponent(
       month
