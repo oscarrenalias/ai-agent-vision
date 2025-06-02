@@ -83,3 +83,4 @@ data/samples/*
 .chat_history
 backend/VERSION.txt
 pkg/
+!deploy/pkg/
