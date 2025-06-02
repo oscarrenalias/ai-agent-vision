@@ -4,13 +4,14 @@ systemctl enable ai-agent-vision.service
 systemctl restart ai-agent-vision.service
 
 # Only copy .env if it does not already exist
+echo "[POSTINST] Running post-installation script for ai-agent-vision package."
 ENV_PATH="/opt/ai-agent-vision/conf/.env"
 ENV_EXAMPLE_PATH="/opt/ai-agent-vision/conf/.env.example"
 if [ ! -f "$ENV_PATH" ] && [ -f "$ENV_EXAMPLE_PATH" ]; then
     cp "$ENV_EXAMPLE_PATH" "$ENV_PATH"
-    echo ".env file created from .env.example. Please review and update as needed."
+    echo "[POSTINST] .env file created from .env.example. Please review and update as needed."
 elif [ -f "$ENV_PATH" ]; then
-    echo ".env file already exists and has not been updated."
+    echo "[POSTINST] .env file already exists and has not been updated."
 fi
 
-echo "Post-installation script executed successfully."
+echo "[POSTINST] Post-installation script executed successfully."
