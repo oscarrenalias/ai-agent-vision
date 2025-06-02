@@ -251,6 +251,7 @@ jobs:
         run: |
           sed -e "s|ghcr.io/OWNER/REPO/backend:latest|ghcr.io/${{ github.repository }}/backend:${{ steps.get_version.outputs.version }}|g" \
               -e "s|ghcr.io/OWNER/REPO/ui:latest|ghcr.io/${{ github.repository }}/ui:${{ steps.get_version.outputs.version }}|g" \
+              -e "s|ghcr.io/OWNER/REPO/mongo-backup:latest|ghcr.io/${{ github.repository }}/mongo-backup:${{ steps.get_version.outputs.version }}|g" \
               docker-compose.yml > docker-compose.release.yml
 
       - name: Upload docker-compose release artifact
