@@ -7,8 +7,8 @@ export type AgentState = {
   messages: string[] | null;
 
   last_receipt: Receipt | null;
-  last_meal_plan: MealPlanItem | null;
-  last_shopping_list: {} | null;
+  meal_plan: MealPlanItem | null;
+  shopping_list: {} | null;
 
   // for receipt processing
   receipt_image_path: string | null;

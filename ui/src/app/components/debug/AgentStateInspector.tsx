@@ -14,8 +14,8 @@ const AgentStateInspector: React.FC<AgentStateInspectorProps> = ({ state }) => {
       <button
         style={{
           position: "fixed",
-          top: 10,
-          left: 10,
+          top: 5,
+          left: 60,
           zIndex: 1100,
           background: "#222",
           color: "#fff",
@@ -42,7 +42,7 @@ const AgentStateInspector: React.FC<AgentStateInspectorProps> = ({ state }) => {
           style={{
             position: "fixed",
             top: 50,
-            left: 0,
+            left: 60,
             zIndex: 1000,
             padding: "1rem",
             borderBottomRightRadius: "8px",

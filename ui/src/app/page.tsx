@@ -13,6 +13,7 @@ import RecipeCard from "./components/chat/RecipeCard";
 import PriceLookupCard from "./components/chat/PriceLookupCard";
 import { ToolProcessingIndicator } from "./components/ToolProcessingIndicator";
 import React, { useState } from "react";
+import AgentStateInspector from "./components/debug/AgentStateInspector";
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -26,15 +27,6 @@ export default function Home() {
   // Get agent state for meal plan and shopping list
   const { getAgentState } = useAgentState();
   const state = getAgentState();
-  const mealPlan = Array.isArray(state.last_meal_plan)
-    ? state.last_meal_plan
-    : [];
-  const shoppingList =
-    state.last_shopping_list &&
-    typeof state.last_shopping_list === "object" &&
-    Array.isArray((state.last_shopping_list as any).shopping_list)
-      ? (state.last_shopping_list as any).shopping_list
-      : [];
 
   // Copilot actions for chat and tool feedback (needed for chat panel)
   useCopilotAction({
@@ -157,14 +149,13 @@ export default function Home() {
         month={month}
         setYear={setYear}
         setMonth={setMonth}
-        mealPlan={mealPlan}
-        shoppingList={shoppingList}
       />
     );
   }
 
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
+      <AgentStateInspector state={state} />
       <Sidebar
         open={sidebarOpen}
         onToggle={() => setSidebarOpen((o) => !o)}

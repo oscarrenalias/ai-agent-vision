@@ -22,12 +22,13 @@ export const AgentStateProvider = ({
 }) => {
   const { state, setState } = useCoAgent<AgentState>({
     name: AGENT_NAME,
-    initialState: {
-      last_receipt: "",
-      last_meal_plan: "",
-      last_shopping_list: "",
+    /*initialState: {
+      last_receipt: [],
+      meal_plan: [],
+      shopping_list: [],
       receipt_image_path: "",
-    },
+    }*/
+    initialState: {},
   });
 
   useLangGraphInterrupt({
