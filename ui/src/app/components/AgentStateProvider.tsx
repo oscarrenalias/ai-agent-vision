@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext } from "react";
 import { useCoAgent, useLangGraphInterrupt } from "@copilotkit/react-core";
 import { AGENT_NAME, AgentState } from "../lib/types";
