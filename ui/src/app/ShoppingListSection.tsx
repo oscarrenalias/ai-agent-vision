@@ -6,7 +6,9 @@ import ShoppingList from "./components/ShoppingList";
 export default function ShoppingListSection() {
   const { getAgentState, setAgentState } = useAgentState();
   const state = getAgentState();
-  const shoppingList: string[] = Array.isArray(state.shopping_list) ? state.shopping_list : [];
+  const shoppingList: string[] = Array.isArray(state.shopping_list)
+    ? state.shopping_list
+    : [];
 
   const handleAdd = (item: string) => {
     const newList = [...shoppingList, item];
@@ -26,7 +28,11 @@ export default function ShoppingListSection() {
 
   return (
     <div style={{ padding: 24 }}>
-      <ShoppingList items={shoppingList} onAdd={handleAdd} onDelete={handleDelete} />
+      <ShoppingList
+        items={shoppingList}
+        onAdd={handleAdd}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }
