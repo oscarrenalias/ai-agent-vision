@@ -21,19 +21,18 @@ class GlobalState(CopilotKitState):
     # last_shopping_list: None
     shopping_list: None
     meals: None
-    items_lookup: List[dict] = None
+    items: List[dict] = None
     image_file_path: str = None
 
     @staticmethod
     def make_instance():
         return GlobalState(
             messages=[],
-            last_meal_plan=None,
-            last_shopping_list=None,
+            meal_plan=None,
             last_receipt=None,
             shopping_list=[],
             meals=[],
-            items_lookup=None,
+            items=None,
             image_file_path=None,
         )
 
@@ -70,7 +69,7 @@ class MainGraph:
             # let langgraph update the state with the new messages
             return {
                 "messages": chat_result["messages"],
-                "items_lookup": chat_result["items"],
+                "items": chat_result["items"],
                 "shopping_list": chat_result.get("shopping_list", []),
                 "meals": chat_result.get("meals", []),
             }
