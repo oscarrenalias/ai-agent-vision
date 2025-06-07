@@ -69,7 +69,12 @@ def convert_meal_plan_to_shopping_list(state: dict, meals: List[Meal]) -> dict:
 @tool
 def add_to_shopping_list(state: dict, item: str) -> dict:
     """
-    Tool to add an item to the shopping list.
+    Tool to add an item to the shopping list. When using this tool, the agent should try
+    to rewrite the item to be as specific as possible based on the description provided by the
+    user, e.g.,
+
+    - "beer, 2 cans" instead of "two cans of beer"
+    - "minced beef, 500g" instead of "500g of minced beef"
 
     Inputs:
     - item: The item to add to the shopping list

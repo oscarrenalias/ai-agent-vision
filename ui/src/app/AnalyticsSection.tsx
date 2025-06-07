@@ -1,10 +1,7 @@
 import React from "react";
-import { YearlySpendChart } from "./components/charts/YearlySpendChart";
 import { YearlyMonthlySpendChart } from "./components/charts/YearlyMonthlySpendChart";
 import { MonthlySpendChart } from "./components/charts/MonthlySpendChart";
 import { DailySpendChart } from "./components/charts/DailySpendChart";
-import { MealPlanCard } from "./components/MealPlanCard";
-import { ShoppingListCard } from "./components/ShoppingListCard";
 
 interface AnalyticsSectionProps {
   year: number;

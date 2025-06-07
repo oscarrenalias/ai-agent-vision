@@ -96,11 +96,7 @@ export type Receipt = {
  * Types for a shopping list
  */
 export type ShoppingListItem = {
-  description: string;
-  matched_product_name: string;
-  price: number;
-  quantity_needed: number;
-  unit_of_measurement: string;
+  item: string;
 };
 
 export type ShoppingList = {
