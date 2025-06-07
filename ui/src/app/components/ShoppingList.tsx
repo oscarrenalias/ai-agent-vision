@@ -18,7 +18,11 @@ interface ShoppingListProps {
   onDelete: (index: number) => void;
 }
 
-export default function ShoppingList({ items, onAdd, onDelete }: ShoppingListProps) {
+export default function ShoppingList({
+  items,
+  onAdd,
+  onDelete,
+}: ShoppingListProps) {
   const [input, setInput] = useState("");
 
   const handleAdd = () => {
@@ -35,7 +39,15 @@ export default function ShoppingList({ items, onAdd, onDelete }: ShoppingListPro
   };
 
   return (
-    <Card sx={{ maxWidth: 400, width: "100%", borderRadius: 3, boxShadow: 2, bgcolor: "background.paper" }}>
+    <Card
+      sx={{
+        maxWidth: 400,
+        width: "100%",
+        borderRadius: 3,
+        boxShadow: 2,
+        bgcolor: "background.paper",
+      }}
+    >
       <CardContent>
         <Typography variant="h6" sx={{ mb: 2 }}>
           Shopping List
@@ -46,33 +58,54 @@ export default function ShoppingList({ items, onAdd, onDelete }: ShoppingListPro
             size="small"
             placeholder="Add an item..."
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             variant="outlined"
             sx={{ mr: 1 }}
           />
-          <IconButton color="primary" onClick={handleAdd} aria-label="Add item" sx={{ bgcolor: "primary.main", color: "#fff", '&:hover': { bgcolor: "primary.dark" } }}>
+          <IconButton
+            color="primary"
+            onClick={handleAdd}
+            aria-label="Add item"
+            sx={{
+              bgcolor: "primary.main",
+              color: "#fff",
+              "&:hover": { bgcolor: "primary.dark" },
+            }}
+          >
             <AddIcon />
           </IconButton>
         </Box>
         <List dense>
           {items.map((item, idx) => (
-            <ListItem key={idx} secondaryAction={
-              <IconButton edge="end" aria-label={`Delete ${item}`} onClick={() => onDelete(idx)}>
-                <DeleteIcon />
-              </IconButton>
-            }>
+            <ListItem
+              key={idx}
+              secondaryAction={
+                <IconButton
+                  edge="end"
+                  aria-label={`Delete ${item}`}
+                  onClick={() => onDelete(idx)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              }
+            >
               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>
-                <span style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: "50%",
-                  border: "2px solid #1976d2",
-                  display: "inline-block",
-                  background: "transparent"
-                }} />
+                <span
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    border: "2px solid #1976d2",
+                    display: "inline-block",
+                    background: "transparent",
+                  }}
+                />
               </ListItemIcon>
-              <ListItemText primary={item} primaryTypographyProps={{ fontSize: 18 }} />
+              <ListItemText
+                primary={item}
+                primaryTypographyProps={{ fontSize: 18 }}
+              />
             </ListItem>
           ))}
         </List>
