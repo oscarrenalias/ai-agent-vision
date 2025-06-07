@@ -177,16 +177,28 @@ export default function Home() {
       <div
         style={{
           flex: 4,
-          height: "100%",
+          height: "calc(100vh - 32px)", // fit within viewport minus margin
           minWidth: 320,
           display: "flex",
           flexDirection: "column",
-          overflowY: "auto",
-          background: "#181a1b",
-          boxShadow: "-4px 0 12px -4px rgba(0,0,0,0.15)",
+          overflow: "hidden", // prevent overflow
+          background: "rgb(255, 255, 255)",
+          borderRadius: 20,
+          margin: 16,
+          boxShadow: "none",
+          border: "1px solid #e0e3eb",
         }}
       >
-        <div style={{ marginTop: "auto", paddingBottom: 24 }}>
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+            padding: 5,
+            overflowY: "auto",
+          }}
+        >
           <CopilotChat
             instructions={
               "You are assisting the user as best as you can. Answer in the best way possible given the data you have."
