@@ -171,7 +171,14 @@ export default function Home() {
         activeSection={activeSection}
         setActiveSection={setActiveSection}
       />
-      <div style={{ flex: 6, overflowY: "auto", padding: 24, height: "100%" }}>
+      <div
+        style={{
+          flex: 6,
+          overflowY: "auto",
+          padding: "24px 24px 24px 72px", // Add left padding to main content
+          height: "100%",
+        }}
+      >
         {MainSection}
       </div>
       <div
