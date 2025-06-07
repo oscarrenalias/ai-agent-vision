@@ -11,6 +11,8 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import tools_condition
 
+from agents.chat import shoppinglist
+from agents.chat.shoppinglist import Meal
 from agents.common.logging_utils import llm_response_to_log
 from agents.models import OpenAIModel
 from agents.pricecomparison import price_lookup_tools
@@ -22,6 +24,9 @@ logger = logging.getLogger(__name__)
 class ChatState(CopilotKitState):
     input: HumanMessage = None
     items: List[dict] = None
+
+    meals: List[Meal]
+    shopping_list: List[str] = []
 
     def make_instance():
         return ChatState(
@@ -47,7 +52,12 @@ class ChatFlow:
         self.max_messages = max_messages
 
     def get_tools(self) -> list:
-        return [*price_lookup_tools.get_tools(), *receipttools.get_tools(), *recipetools.get_tools()]
+        return [
+            *price_lookup_tools.get_tools(),
+            *receipttools.get_tools(),
+            *recipetools.get_tools(),
+            *shoppinglist.get_tools(),
+        ]
 
     def get_primary_assistant_prompt(self) -> ChatPromptTemplate:
         return ChatPromptTemplate.from_messages(
@@ -62,7 +72,26 @@ class ChatFlow:
                 If asked to perform a price lookup, you will use the tools to perform the lookup and return the results. Do
                 not return the results of the tool calls in the response, but instead do an analysis and return the
                 most relevant information to the user such as the highest price, lowest price. The rest of items from the
-                tools call will be presented to the user in a specifi format, hence you do not need to return them.
+                tools call will be presented to the user in a specific format, hence you do not need to return them.
+
+                You also have tools available at your disposal to:
+
+                - initialize or reset a meal plan
+                - add a meal to the plan
+                - get the current meal plan
+                - query for recipes in the database
+                - convert a meal plan to a shopping list
+                - add items to the shopping list
+                - get the current shopping list
+
+                If asked to do a meal plan, you should plan the days one by one, ask the user if they have any preferences
+                for this day, find matching recipes, ask which one the user would prefer and when the selection is made,
+                add it to the list and move to the next day. All of this should be explained to the user as they are
+                helped through the process. At the end, when the user is satisfied, you should call the tool to convert
+                the meal into items for the shopping list.
+
+                The user may also want to add items to the shopping list, you should allow them to do that at any point
+                in the conversation.
 
                 Current time: {time}.
                 """
@@ -148,7 +177,7 @@ class ChatFlow:
 
     # Custom tool node so that we can return the items from the price lookup tool
     # and use them in the next steps through the state, if needed
-    def chat_tool_node(self, state: ChatState) -> dict:
+    async def chat_tool_node(self, state: ChatState) -> dict:
         last_message = state["messages"][-1]
         logger.info(f"Processing {len(last_message.tool_calls)} tool calls")
 
@@ -157,18 +186,32 @@ class ChatFlow:
         messages = []
         items = []
         for tool_call in last_message.tool_calls:
+
             tool_name = tool_call["name"]
             tool = tools_by_name[tool_name]
-            tool_msg = tool.invoke(tool_call["args"])
-            logger.debug(f"Tool call {tool_name}, result: {tool_msg}")
+            tool_args = tool_call["args"]
+
+            # inject state into every tool call
+            tool_result = await tool.ainvoke({"state": state, **tool_args})
+            # tool_msg = tool.invoke(tool_call["args"])
+            logger.debug(f"Tool call {tool_name}, result: {tool_result}")
             if "price_lookup" in tool_name:
                 logger.debug(f"Processing results from price lookup tool: {tool}")
-
-                content = json.dumps(tool_msg["items"])
+                content = json.dumps(tool_result["items"])
                 # messages.append(ToolMessage(content=tool_msg["message"], tool_call_id=tool_call["id"]))
                 messages.append(ToolMessage(content=content, tool_call_id=tool_call["id"]))
-                items.append(tool_msg["items"])
+                items.append(tool_result["items"])
             else:
+                # Process the tool result
+                if isinstance(tool_result, dict):
+                    # Update state with the tool's result
+                    for key, value in tool_result.items():
+                        if key != "messages" and key != "description":
+                            state[key] = value
+                        tool_msg = tool_result.get("description", str(tool_result))
+                else:
+                    tool_msg = str(tool_result)
+
                 messages.append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
 
         logger.info(f"Tool execution complete. State now has {len(messages)} messages")
@@ -176,6 +219,8 @@ class ChatFlow:
         return {
             "messages": messages,
             "items": items,
+            "shopping_list": state.get("shopping_list", []),
+            "meals": state.get("meals", []),
         }
 
     def as_subgraph(self):

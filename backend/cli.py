@@ -391,17 +391,24 @@ async def main():
             # Update the state with the result
             state = result
 
-            # Display the AI's response (last message)can
+            # Display the AI's response (last message)
             if state["messages"] and len(state["messages"]) > 0:
                 last_message = state["messages"][-1]
-                console.print("[bold yellow]=== 🤖 AI response ===[/bold yellow]")
+                # console.print("[bold yellow]=== 🤖 AI response ===[/bold yellow]")
                 if last_message.type == "ai":
-                    console.print(Markdown(last_message.content))
+                    console.print(
+                        Panel(
+                            Markdown(last_message.content),
+                            title="[bold green]🤖 AI Response[/bold green]",
+                            border_style="green",
+                            expand=True,
+                        )
+                    )
                 elif last_message.type == "tools":
                     console.print("[bold yellow]Tool call. Not implemented yet.[/bold yellow]")
                 else:
                     console.print("[bold yellow][No response][/bold yellow]")
-                console.print("\n")
+                # console.print("\n")
 
             # Display additional state information
             display_state_info(state, debug_mode)
