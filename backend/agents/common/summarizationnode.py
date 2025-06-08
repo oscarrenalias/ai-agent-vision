@@ -1,6 +1,7 @@
 import logging
 from typing import Any
 
+from copilotkit.langgraph import copilotkit_customize_config
 from langmem.short_term import SummarizationNode
 
 from agents.models import OpenAIModel
@@ -40,12 +41,10 @@ class SummarizationNode(SummarizationNode):
             output_messages_key=self.OUTPUT_MESSAGES_KEY,
         )
 
-    def _func(self, *args, **kwargs) -> dict[str, Any]:
-        logger.info("SummarizationNode _func called. Parameters: %s, %s", args, kwargs)
-        result = super()._func(*args, **kwargs)
-        return result
-
-    def _afunc(self, *args, **kwargs) -> dict[str, Any]:
-        logger.info("SummarizationNode _afunc called. Parameters: %s, %s", args, kwargs)
-        result = super()._afunc(*args, **kwargs)
+    # Override the default method so that we can inject our custom config and prevent
+    # emtting the summarized version of the message, since it should not be visible to the user
+    async def ainvoke(self, input: Any, config, **kwargs: Any) -> Any:
+        logger.info("SummarizationNode ainvoke called. Input: %s, Config: %s", input, config)
+        modified_config = copilotkit_customize_config(config, emit_messages=False)
+        result = await super().ainvoke(input, config=modified_config, **kwargs)
         return result
