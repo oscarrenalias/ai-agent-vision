@@ -136,6 +136,30 @@ export default function Home() {
       return <></>;
     },
   });
+  useCopilotAction({
+    name: "add_to_shopping_list",
+    available: "disabled",
+    render: ({ status, args, result }) => {
+      if (status === "executing") {
+        return (
+          <ToolProcessingIndicator message="Adding to shopping list" />
+        ) as React.ReactElement;
+      }
+      return <></>;
+    },
+  });
+  useCopilotAction({
+    name: "get_shopping_list",
+    available: "disabled",
+    render: ({ status, args, result }) => {
+      if (status === "executing") {
+        return (
+          <ToolProcessingIndicator message="Getting shopping list" />
+        ) as React.ReactElement;
+      }
+      return <></>;
+    },
+  });
 
   let MainSection: React.ReactNode = null;
   if (activeSection === "shopping") {
