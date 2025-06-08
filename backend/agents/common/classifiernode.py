@@ -1,7 +1,9 @@
 import logging
 
+from copilotkit.langgraph import copilotkit_customize_config
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import SystemMessage
+from langchain_core.runnables import RunnableConfig
 
 from agents.models import OpenAIModel
 
@@ -52,11 +54,17 @@ def get_prompt_template(routing_map: dict, default_node: str):
     return prompt
 
 
-def _classify_message(state: dict, routing_map: dict, default_node: str):
+def _classify_message(state: dict, config: RunnableConfig, routing_map: dict, default_node: str):
     logger = logging.getLogger(__name__)
 
     # GPT-4.1-nano model is fast and cost-effective for this task
     llm_model = OpenAIModel(use_cache=False, openai_model="gpt-4.1-mini").get_model()
+
+    # configure copilotkit so that it doesn't emit intermediate messages
+    internal_config = copilotkit_customize_config(
+        config,
+        emit_messages=False,
+    )
 
     # return default node if no messages are present (should rarely happen)
     if len(state["messages"]) == 0:
@@ -73,7 +81,7 @@ def _classify_message(state: dict, routing_map: dict, default_node: str):
     prompt_str = get_prompt_template(routing_map=routing_map, default_node=default_node).invoke({"input": user_input})
     logger.info(f"Prompt string: {prompt_str}")
 
-    classification = llm_model.invoke(prompt_str).content.strip()
+    classification = llm_model.invoke(prompt_str, config=internal_config).content.strip()
     # Check if the classification is in the routing map
     if classification in routing_map:
         # If it is, return the corresponding node
@@ -84,7 +92,7 @@ def _classify_message(state: dict, routing_map: dict, default_node: str):
 
 
 def make_classifier(routing_map: dict, default_node: str):
-    def classifier(state: dict):
-        return _classify_message(state=state, routing_map=routing_map, default_node=default_node)
+    def classifier(state: dict, config: RunnableConfig):
+        return _classify_message(state=state, config=config, routing_map=routing_map, default_node=default_node)
 
     return classifier
