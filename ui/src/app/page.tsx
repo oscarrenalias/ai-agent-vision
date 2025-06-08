@@ -14,6 +14,8 @@ import PriceLookupCard from "./components/chat/PriceLookupCard";
 import { ToolProcessingIndicator } from "./components/ToolProcessingIndicator";
 import React, { useState } from "react";
 import AgentStateInspector from "./components/debug/AgentStateInspector";
+import { useTheme } from "@mui/material";
+import "./copilotchat-custom.css";
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // default to slid in
@@ -161,6 +163,9 @@ export default function Home() {
     },
   });
 
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
+
   let MainSection: React.ReactNode = null;
   if (activeSection === "shopping") {
     MainSection = <ShoppingListSection />;
@@ -190,26 +195,47 @@ export default function Home() {
         style={{
           flex: 6,
           overflowY: "auto",
-          padding: "24px 24px 24px 72px", // Add left padding to main content
+          padding: "24px 24px 24px 72px",
           height: "100%",
         }}
       >
         {MainSection}
       </div>
       <div
-        style={{
-          flex: 4,
-          height: "calc(100vh - 32px)", // fit within viewport minus margin
-          minWidth: 320,
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden", // prevent overflow
-          background: "rgb(255, 255, 255)",
-          borderRadius: 20,
-          margin: 16,
-          boxShadow: "none",
-          border: "1px solid #e0e3eb",
-        }}
+        style={
+          {
+            flex: 4,
+            height: "calc(100vh - 32px)",
+            minWidth: 320,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            background: isDarkMode ? theme.palette.background.paper : "#fff",
+            borderRadius: 20,
+            margin: 16,
+            boxShadow: "none",
+            border: `1px solid ${
+              isDarkMode ? theme.palette.divider : "#e0e3eb"
+            }`,
+            // CopilotChat theme variables
+            "--copilot-kit-background-color": isDarkMode
+              ? theme.palette.background.paper
+              : "#fff",
+            "--copilot-kit-contrast-color": isDarkMode
+              ? theme.palette.text.primary
+              : "#23272f",
+            "--copilot-kit-input-background-color": isDarkMode
+              ? "#23272f"
+              : "#f5f5f5",
+            "--copilot-kit-secondary-color": isDarkMode ? "#23272f" : "#fafafa",
+            "--copilot-kit-secondary-contrast-color": isDarkMode
+              ? "#e0e0e0"
+              : "#333333",
+            "--copilot-kit-separator-color": isDarkMode ? "#35373a" : "#e0e3eb",
+            "--copilot-kit-muted-color": isDarkMode ? "#44474a" : "#717171",
+          } as React.CSSProperties
+        }
+        className={isDarkMode ? "dark-mode" : "light-mode"}
       >
         <div
           style={{
@@ -219,6 +245,7 @@ export default function Home() {
             justifyContent: "flex-end",
             padding: 5,
             overflowY: "auto",
+            color: isDarkMode ? theme.palette.text.primary : "inherit",
           }}
         >
           <CopilotChat

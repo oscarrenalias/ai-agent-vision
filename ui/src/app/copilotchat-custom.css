@@ -9,3 +9,18 @@
   --copilot-kit-separator-color: #35373a;
   --copilot-kit-muted-color: #44474a;
 }
+
+.copilotkit-chat-message-human {
+  background-color: var(--copilot-kit-input-background-color) !important;
+  color: var(--copilot-kit-contrast-color) !important;
+}
+
+.dark-mode .copilotkit-chat-message-human {
+  background-color: #23272f !important;
+  color: #e0e0e0 !important;
+}
+
+.light-mode .copilotkit-chat-message-human {
+  background-color: #f5f5f5 !important;
+  color: #23272f !important;
+}
