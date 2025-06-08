@@ -110,8 +110,12 @@ def get_shopping_list(state: dict) -> dict:
 
     # Assuming state has a 'shopping_list' field
     shopping_list = state.get("shopping_list", [])
+    if len(shopping_list) == 0:
+        description = "Shopping list is empty"
+    else:
+        description = "Current shopping list:\n" + "\n".join(shopping_list)
 
-    return {"description": "Current shopping list retrieved", "shopping_list": shopping_list}
+    return {"description": description, "shopping_list": shopping_list}
 
 
 @tool
@@ -131,7 +135,12 @@ def get_meal_plan(state: dict) -> dict:
     # Assuming state has a 'meals' field
     meals = state.get("meals", [])
 
-    return {"description": "Current meal plan retrieved", "meals": meals}
+    if len(meals) == 0:
+        description = "Meal plan is empty"
+    else:
+        description = "Current meal plan:\n" + "\n".join(f"{meal['day']} {meal['type']}: {meal['recipe']}" for meal in meals)
+
+    return {"description": description, "meals": meals}
 
 
 def get_tools():
