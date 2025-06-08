@@ -16,7 +16,7 @@ import React, { useState } from "react";
 import AgentStateInspector from "./components/debug/AgentStateInspector";
 
 export default function Home() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // default to slid in
   const [activeSection, setActiveSection] = useState("analytics");
 
   // State for analytics section
