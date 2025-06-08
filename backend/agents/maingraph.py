@@ -6,6 +6,7 @@ from langgraph.graph import START, StateGraph
 
 from agents.chat import ChatFlow, ChatState
 from agents.common import make_classifier
+from agents.common.summarizationnode import SummarizationNode
 from agents.mealplanner import MealPlannerFlow, MealPlannerState
 from agents.receiptanalyzer import ReceiptState
 from agents.receiptanalyzer.receiptanalysis import ReceiptAnalysisFlow
@@ -17,12 +18,12 @@ logger = logging.getLogger(__name__)
 # overall global state
 class GlobalState(CopilotKitState):
     last_receipt: None
-    # last_meal_plan: None
-    # last_shopping_list: None
     shopping_list: None
     meals: None
     items: List[dict] = None
     image_file_path: str = None
+    # used to keep track of the summarized conversation history
+    messages_summary: List[dict] = None
 
     @staticmethod
     def make_instance():
@@ -55,10 +56,19 @@ class MainGraph:
 
         main_flow = StateGraph(state_schema=GlobalState)
 
+        def get_messages_from_state(global_state: GlobalState) -> List[dict]:
+            # retrieves either the list of messages or the summary if available
+            context_messages = (
+                global_state.get("messages_summary") if global_state.get("messages_summary") else global_state["messages"]
+            )
+            return context_messages
+
         async def chat_graph_node(global_state: GlobalState) -> dict:
-            # initialize the new state
+            # Use summary if available, else full messages - this is to avoid sending too much
+            # context to the chat model.
+            context_messages = get_messages_from_state(global_state)
             chat_state = ChatState.make_instance()
-            chat_state["messages"] = global_state["messages"].copy()
+            chat_state["messages"] = context_messages.copy()
             chat_state["input"] = global_state["messages"][-1]
             chat_state["shopping_list"] = global_state.get("shopping_list", [])
             chat_state["meals"] = global_state.get("meals", [])
@@ -99,9 +109,7 @@ class MainGraph:
         async def receipt_processing_graph_node(global_state: GlobalState) -> dict:
             # initialize the new state and harcode the image path for now
             receipt_processing_state = ReceiptState.make_instance()
-
             receipt_processing_state["receipt_image_path"] = global_state.get("image_file_path", "")
-
             logger.info(f"Image file path: {receipt_processing_state['receipt_image_path']}")
 
             # Run the meal_planner with the converted state
@@ -113,7 +121,8 @@ class MainGraph:
                 "last_receipt": receipt_processing_result["receipt"],
             }
 
-        # main_flow.add_node("chat", chat_graph)
+        summarization_node = SummarizationNode()
+        main_flow.add_node("summarization", summarization_node)
         main_flow.add_node("chat", chat_graph_node)
         # main_flow.add_node("meal_planner", meal_planner_graph_node)
         main_flow.add_node("receipt_processing", receipt_processing_graph_node)
@@ -132,6 +141,7 @@ class MainGraph:
              - past groceries receipts, or questions about receipts. Example 'how much did we spend in March 2025?'
              - general chat questions""",
         }
-        main_flow.add_conditional_edges(START, make_classifier(routing_map=classifier_routes, default_node="chat"))
+        main_flow.add_edge(START, "summarization")
+        main_flow.add_conditional_edges("summarization", make_classifier(routing_map=classifier_routes, default_node="chat"))
 
         return main_flow

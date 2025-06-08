@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import List
 
 from copilotkit import CopilotKitState
-from copilotkit.langgraph import copilotkit_customize_config
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
@@ -101,28 +100,6 @@ class ChatFlow:
             ]
         ).partial(time=datetime.now)
 
-    async def summarize_messages(self, messages: list, config: RunnableConfig) -> str:
-        """
-        Summarize a list of messages using the LLM. Returns a summary string.
-        """
-        modifiedConfig = copilotkit_customize_config(
-            config,
-            emit_messages=False,  # if you want to disable message streaming
-        )
-
-        summary_prompt = ChatPromptTemplate.from_messages(
-            [
-                SystemMessage(
-                    content="Summarize the following conversation history for future context. Be concise but preserve important facts, decisions, and user preferences."
-                ),
-                ("placeholder", "{messages}"),
-            ]
-        )
-        prompt = summary_prompt.invoke({"messages": messages})
-        model = OpenAIModel(use_cache=False, openai_model="gpt-4.1-nano").get_model()
-        summary = await model.ainvoke(prompt, config=modifiedConfig)
-        return str(summary.content) if hasattr(summary, "content") else str(summary)
-
     async def chat_agent(self, state: ChatState, config: RunnableConfig) -> dict:
         logger.debug(f"run invoked with state: {llm_response_to_log(state)}")
 
@@ -138,42 +115,6 @@ class ChatFlow:
         # store the response and return the modified state object
         messages.append(result)
         return {"messages": messages}
-
-    async def chat_summarize_node(self, state: ChatState, config: RunnableConfig) -> dict:
-        """
-        Summarize old messages in the chat history if needed, and return updated state.
-        """
-        messages = state["messages"].copy()
-        if len(messages) > self.max_messages:
-            logger.debug(f"Chat history is too long, summarizing the last {len(messages)} messages")
-            old_messages = messages[: -self.max_messages]
-            recent_messages = messages[-self.max_messages :]
-            if old_messages:
-                from langchain_core.messages import AIMessage, ToolMessage
-
-                last_turn_idx = None
-                for i in reversed(range(len(old_messages))):
-                    if isinstance(old_messages[i], (AIMessage, ToolMessage)):
-                        last_turn_idx = i
-                        break
-                if last_turn_idx is not None:
-                    to_summarize = old_messages[: last_turn_idx + 1]
-                    to_keep = old_messages[last_turn_idx + 1 :] + recent_messages
-                else:
-                    to_summarize = old_messages
-                    to_keep = recent_messages
-
-                def msg_to_str(msg):
-                    if hasattr(msg, "content"):
-                        return str(msg.content)
-                    return str(msg)
-
-                old_messages_str = [msg_to_str(m) for m in to_summarize]
-                summary_text = await self.summarize_messages(old_messages_str, config=config)
-                summary_message = SystemMessage(content=f"Summary of previous conversation and tool results: {summary_text}")
-                messages = [summary_message] + to_keep
-
-        return {"messages": messages, "input": state["input"], "items": state.get("items", [])}
 
     # Custom tool node so that we can return the items from the price lookup tool
     # and use them in the next steps through the state, if needed
@@ -228,13 +169,11 @@ class ChatFlow:
         Returns the workflow (StateGraph) before compilation, so it can be used as a subgraph in other graphs.
         """
         workflow = StateGraph(state_schema=ChatState)
-        workflow.add_node("chat_summarize", self.chat_summarize_node)
         workflow.add_node("chat_agent", self.chat_agent)
         workflow.add_node("tools", self.chat_tool_node)
 
-        workflow.add_edge(START, "chat_summarize")
-        workflow.add_edge("chat_summarize", "chat_agent")
-        workflow.add_edge("tools", "chat_summarize")
+        workflow.add_edge(START, "chat_agent")
+        workflow.add_edge("tools", "chat_agent")
         workflow.add_conditional_edges("chat_agent", tools_condition)
 
         return workflow

@@ -80,5 +80,6 @@ dependencies = [
     "beautifulsoup4 (>=4.11.0)",
     "lxml (>=4.9.0)",
     "cachetools (>=5.2.0)",
-    "recipe-scrapers>=15.7.1"
+    "recipe-scrapers>=15.7.1",
+    "langmem>=0.0.27",
 ]
