@@ -10,17 +10,41 @@
   --copilot-kit-muted-color: #44474a;
 }
 
+/* User message bubble: fallback to variable, but override for light/dark mode for best contrast */
 .copilotkit-chat-message-human {
-  background-color: var(--copilot-kit-input-background-color) !important;
-  color: var(--copilot-kit-contrast-color) !important;
+  background-color: var(
+    --copilot-kit-input-background-color,
+    #f5f5f5
+  ) !important;
+  color: var(--copilot-kit-contrast-color, #23272f) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .dark-mode .copilotkit-chat-message-human {
   background-color: #23272f !important;
   color: #e0e0e0 !important;
+  border: 1px solid #35373a !important;
 }
 
 .light-mode .copilotkit-chat-message-human {
   background-color: #f5f5f5 !important;
   color: #23272f !important;
+  border: 1px solid #e0e3eb !important;
+}
+
+/* Ensure AI message bubble is also readable in both modes */
+.copilotkit-chat-message-ai {
+  background-color: var(--copilot-kit-secondary-color, #fafafa) !important;
+  color: var(--copilot-kit-secondary-contrast-color, #23272f) !important;
+}
+
+.dark-mode .copilotkit-chat-message-ai {
+  background-color: #23272f !important;
+  color: #e0e0e0 !important;
+}
+
+.light-mode .copilotkit-chat-message-ai {
+  background-color: #fafafa !important;
+  color: #23272f !important;
+  border: 1px solid #e0e3eb !important;
 }
