@@ -1,6 +1,15 @@
 {
   "configurations": [
     {
+      "name": "Run frontend",
+      "request": "launch",
+      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "npm",
+      "type": "node",
+      "cwd": "${workspaceFolder}/ui",
+      "console": "integratedTerminal"
+    },
+    {
       "name": "Run server.py",
       "type": "debugpy",
       "request": "launch",
