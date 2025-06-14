@@ -238,6 +238,7 @@ export function MonthlySpendChart({
                 },
               ]}
               height={260}
+              hideLegend={true}
             >
               <CustomPieTooltip level3Map={level3Map} />
             </PieChart>
