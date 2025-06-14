@@ -121,15 +121,29 @@
     background: #35373a;
     color: #90caf9;
   }
-  .main-content,
-  .chat-box {
+  .main-content {
+    display: block !important;
     margin-left: 0 !important;
+    margin-bottom: 64px !important;
     width: 100vw !important;
     min-width: 0 !important;
     margin-top: 0 !important;
     padding: 0 0 16px 0 !important;
     height: calc(100vh - 64px) !important;
+    overflow: visible !important;
+  }
+  .chat-box {
+    flex: 1 1 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: calc(100vh - 64px) !important;
     overflow-y: auto !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    background: inherit;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
   }
 }
 
