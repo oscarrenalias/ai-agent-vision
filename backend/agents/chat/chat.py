@@ -124,8 +124,9 @@ class ChatFlow:
 
         # process each tool call and record their results in the messages
         tools_by_name = {tool.name: tool for tool in self.get_tools()}
-        messages = []
-        items = []
+
+        updated_state = {"messages": [], "items": []}
+
         for tool_call in last_message.tool_calls:
 
             tool_name = tool_call["name"]
@@ -140,29 +141,24 @@ class ChatFlow:
                 logger.debug(f"Processing results from price lookup tool: {tool}")
                 content = json.dumps(tool_result["items"])
                 # messages.append(ToolMessage(content=tool_msg["message"], tool_call_id=tool_call["id"]))
-                messages.append(ToolMessage(content=content, tool_call_id=tool_call["id"]))
-                items.append(tool_result["items"])
+                updated_state["messages"].append(ToolMessage(content=content, tool_call_id=tool_call["id"]))
+                updated_state["items"].append(tool_result["items"])
             else:
                 # Process the tool result
                 if isinstance(tool_result, dict):
                     # Update state with the tool's result
                     for key, value in tool_result.items():
                         if key != "messages" and key != "description":
-                            state[key] = value
+                            updated_state[key] = value
                         tool_msg = tool_result.get("description", str(tool_result))
                 else:
                     tool_msg = str(tool_result)
 
-                messages.append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
+                updated_state["messages"].append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
 
-        logger.info(f"Tool execution complete. State now has {len(messages)} messages")
+        logger.info(f"Tool execution complete. State now has {len(updated_state["messages"])} messages")
 
-        return {
-            "messages": messages,
-            "items": items,
-            "shopping_list": state.get("shopping_list", []),
-            "meals": state.get("meals", []),
-        }
+        return updated_state
 
     def as_subgraph(self):
         """
