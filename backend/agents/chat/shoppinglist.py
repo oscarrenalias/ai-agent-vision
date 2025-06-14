@@ -37,7 +37,8 @@ def add_to_meal_plan(state: dict, day: str, type: str, recipe: str) -> dict:
     Inputs:
     - day: The day of the week for which to add the meal
     - type: type of meal: dinner, or lunch
-    - recipe: the recipe to add to the meal plan
+    - recipe: the recipe to add to the meal plan. The recipe should include the list of ingredients
+    and instructions. If the recipe is not available, the agent should try to find it using the recipe search tool.
 
     Outputs:
     - description: A human-readable description of the action taken
