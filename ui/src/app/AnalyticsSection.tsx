@@ -26,7 +26,7 @@ export default function AnalyticsSection({
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 24, marginBottom: 24 }}>
+      <div className="analytics-charts-row">
         <div style={{ flex: 1 }}>
           {/* YearlyMonthlySpendChart does not accept setYear, so just pass year */}
           <YearlyMonthlySpendChart year={year} />

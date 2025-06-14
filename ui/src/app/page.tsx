@@ -183,15 +183,18 @@ export default function Home() {
   }
 
   return (
-    <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
+    <div className="app-container" style={{ display: "flex", height: "100vh", width: "100vw" }}>
       <AgentStateInspector state={state} />
-      <Sidebar
-        open={sidebarOpen}
-        onToggle={() => setSidebarOpen((o) => !o)}
-        activeSection={activeSection}
-        setActiveSection={setActiveSection}
-      />
+      <div className="sidebar">
+        <Sidebar
+          open={sidebarOpen}
+          onToggle={() => setSidebarOpen((o) => !o)}
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+        />
+      </div>
       <div
+        className="main-content"
         style={{
           flex: 6,
           overflowY: "auto",
@@ -202,40 +205,38 @@ export default function Home() {
         {MainSection}
       </div>
       <div
-        style={
-          {
-            flex: 4,
-            height: "calc(100vh - 32px)",
-            minWidth: 320,
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            background: isDarkMode ? theme.palette.background.paper : "#fff",
-            borderRadius: 20,
-            margin: 16,
-            boxShadow: "none",
-            border: `1px solid ${
-              isDarkMode ? theme.palette.divider : "#e0e3eb"
-            }`,
-            // CopilotChat theme variables
-            "--copilot-kit-background-color": isDarkMode
-              ? theme.palette.background.paper
-              : "#fff",
-            "--copilot-kit-contrast-color": isDarkMode
-              ? theme.palette.text.primary
-              : "#23272f",
-            "--copilot-kit-input-background-color": isDarkMode
-              ? "#23272f"
-              : "#f5f5f5",
-            "--copilot-kit-secondary-color": isDarkMode ? "#23272f" : "#fafafa",
-            "--copilot-kit-secondary-contrast-color": isDarkMode
-              ? "#e0e0e0"
-              : "#333333",
-            "--copilot-kit-separator-color": isDarkMode ? "#35373a" : "#e0e3eb",
-            "--copilot-kit-muted-color": isDarkMode ? "#44474a" : "#717171",
-          } as React.CSSProperties
-        }
-        className={isDarkMode ? "dark-mode" : "light-mode"}
+        className={`chat-box ${isDarkMode ? "dark-mode" : "light-mode"}`}
+        style={{
+          flex: 4,
+          height: "calc(100vh - 32px)",
+          minWidth: 320,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          background: isDarkMode ? theme.palette.background.paper : "#fff",
+          borderRadius: 20,
+          margin: 16,
+          boxShadow: "none",
+          border: `1px solid ${
+            isDarkMode ? theme.palette.divider : "#e0e3eb"
+          }`,
+          // CopilotChat theme variables
+          "--copilot-kit-background-color": isDarkMode
+            ? theme.palette.background.paper
+            : "#fff",
+          "--copilot-kit-contrast-color": isDarkMode
+            ? theme.palette.text.primary
+            : "#23272f",
+          "--copilot-kit-input-background-color": isDarkMode
+            ? "#23272f"
+            : "#f5f5f5",
+          "--copilot-kit-secondary-color": isDarkMode ? "#23272f" : "#fafafa",
+          "--copilot-kit-secondary-contrast-color": isDarkMode
+            ? "#e0e0e0"
+            : "#333333",
+          "--copilot-kit-separator-color": isDarkMode ? "#35373a" : "#e0e3eb",
+          "--copilot-kit-muted-color": isDarkMode ? "#44474a" : "#717171",
+        } as React.CSSProperties}
       >
         <div
           style={{
