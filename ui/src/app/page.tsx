@@ -29,7 +29,7 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // default to slid in
   const [activeSection, setActiveSection] = useState("analytics");
   const [activeMobileView, setActiveMobileView] = useState<string>("chat");
-  const isMobile = useMediaQuery("(max-width: 430px)");
+  const isMobile = useMediaQuery("(max-width: 810px)");
 
   // State for analytics section
   const now = new Date();
