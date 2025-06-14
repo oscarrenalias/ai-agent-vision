@@ -220,7 +220,6 @@ export default function Home() {
         <MobileNavigationBar
           active={activeMobileView}
           setActive={setActiveMobileView}
-          isDarkMode={isDarkMode}
         />
       ) : (
         <div className="sidebar">
@@ -289,25 +288,6 @@ export default function Home() {
                 border: `1px solid ${
                   isDarkMode ? theme.palette.divider : "#e0e3eb"
                 }`,
-                "--copilot-kit-background-color": isDarkMode
-                  ? theme.palette.background.paper
-                  : "#fff",
-                "--copilot-kit-contrast-color": isDarkMode
-                  ? theme.palette.text.primary
-                  : "#23272f",
-                "--copilot-kit-input-background-color": isDarkMode
-                  ? "#23272f"
-                  : "#f5f5f5",
-                "--copilot-kit-secondary-color": isDarkMode
-                  ? "#23272f"
-                  : "#fafafa",
-                "--copilot-kit-secondary-contrast-color": isDarkMode
-                  ? "#e0e0e0"
-                  : "#333333",
-                "--copilot-kit-separator-color": isDarkMode
-                  ? "#35373a"
-                  : "#e0e3eb",
-                "--copilot-kit-muted-color": isDarkMode ? "#44474a" : "#717171",
               }}
             >
               <div

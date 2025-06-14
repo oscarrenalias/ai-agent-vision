@@ -213,6 +213,24 @@
     align-self: flex-start;
     padding-right: 10px !important;
   }
+  .chat-box.dark-mode {
+    --copilot-kit-background-color: #23272f;
+    --copilot-kit-contrast-color: #e0e0e0;
+    --copilot-kit-input-background-color: #23272f;
+    --copilot-kit-secondary-color: #23272f;
+    --copilot-kit-secondary-contrast-color: #e0e0e0;
+    --copilot-kit-separator-color: #35373a;
+    --copilot-kit-muted-color: #44474a;
+  }
+  .chat-box.light-mode {
+    --copilot-kit-background-color: #fff;
+    --copilot-kit-contrast-color: #23272f;
+    --copilot-kit-input-background-color: #f5f5f5;
+    --copilot-kit-secondary-color: #fafafa;
+    --copilot-kit-secondary-contrast-color: #333333;
+    --copilot-kit-separator-color: #e0e3eb;
+    --copilot-kit-muted-color: #717171;
+  }
   .analytics-charts-row {
     display: flex !important;
     flex-direction: column !important;
