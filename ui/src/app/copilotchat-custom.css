@@ -199,9 +199,9 @@
     max-width: 100% !important;
   }
   .chat-box {
-    flex: 0 0 400px !important;
-    min-width: 320px !important;
-    max-width: 480px !important;
+    flex: 0 0 520px !important;
+    min-width: 400px !important;
+    max-width: 600px !important;
     height: calc(100vh - 48px);
     display: flex !important;
     flex-direction: column !important;
@@ -211,6 +211,7 @@
     box-shadow: none;
     border: 1px solid #e0e3eb;
     align-self: flex-start;
+    padding-right: 10px !important;
   }
   .analytics-charts-row {
     display: flex !important;
