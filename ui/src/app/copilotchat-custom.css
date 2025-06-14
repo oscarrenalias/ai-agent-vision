@@ -78,9 +78,10 @@
   .mobile-tab-bar {
     position: fixed;
     left: 0;
-    bottom: 0;
+    right: 0;
+    bottom: env(safe-area-inset-bottom, 0);
     width: 100vw;
-    height: 64px;
+    height: calc(64px + env(safe-area-inset-bottom, 0));
     background: #fff;
     border-top: 1px solid #e0e3eb;
     display: flex;
@@ -90,6 +91,9 @@
     z-index: 200;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
     padding: 0;
+    /* Ensure tab bar is always visible above iOS home indicator */
+    /* Use inset for Safari on iOS 15+ */
+    inset-inline: 0;
   }
   .mobile-tab-bar.dark-mode {
     background: #23272f;
@@ -122,21 +126,22 @@
     color: #90caf9;
   }
   .main-content {
+    /* Account for dynamic tab bar height */
+    margin-bottom: calc(64px + env(safe-area-inset-bottom, 0)) !important;
+    height: calc(100vh - 64px - env(safe-area-inset-bottom, 0)) !important;
     display: block !important;
     margin-left: 0 !important;
-    margin-bottom: 64px !important;
-    width: 100vw !important;
-    min-width: 0 !important;
     margin-top: 0 !important;
     padding: 0 0 16px 0 !important;
-    height: calc(100vh - 64px) !important;
+    width: 100vw !important;
+    min-width: 0 !important;
     overflow: visible !important;
   }
   .chat-box {
     flex: 1 1 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    height: calc(100vh - 64px) !important;
+    height: calc(100vh - 64px - env(safe-area-inset-bottom, 0)) !important;
     overflow-y: auto !important;
     min-width: 0 !important;
     margin: 0 !important;
