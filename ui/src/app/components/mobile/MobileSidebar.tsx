@@ -11,26 +11,39 @@ interface MobileSidebarProps {
 }
 
 export default function MobileSidebar({ active, setActive }: MobileSidebarProps) {
-  // Add dark-mode/light-mode class to sidebar for theme CSS targeting
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
-  // Debugging output
-  console.log("[MobileSidebar] theme.palette.mode:", theme.palette.mode, "isDarkMode:", isDarkMode);
-  const sidebarClass = `sidebar ${isDarkMode ? "dark-mode" : "light-mode"}`;
+  const tabBarClass = `mobile-tab-bar ${isDarkMode ? "dark-mode" : "light-mode"}`;
   return (
-    <div className={sidebarClass}>
-      <button onClick={() => setActive("chat")} aria-label="Chat" style={{ background: active === "chat" ? "#4285f4" : "none", color: "#fff", border: "none", fontSize: 24, margin: 12, borderRadius: 8 }}>
+    <nav className={tabBarClass}>
+      <button
+        className={active === "chat" ? "active" : ""}
+        onClick={() => setActive("chat")}
+        aria-label="Chat"
+      >
         <ChatBubbleOutlineIcon />
       </button>
-      <button onClick={() => setActive("analytics")} aria-label="Analytics" style={{ background: active === "analytics" ? "#4285f4" : "none", color: "#fff", border: "none", fontSize: 24, margin: 12, borderRadius: 8 }}>
+      <button
+        className={active === "analytics" ? "active" : ""}
+        onClick={() => setActive("analytics")}
+        aria-label="Analytics"
+      >
         <BarChartIcon />
       </button>
-      <button onClick={() => setActive("shopping")} aria-label="Shopping List" style={{ background: active === "shopping" ? "#4285f4" : "none", color: "#fff", border: "none", fontSize: 24, margin: 12, borderRadius: 8 }}>
+      <button
+        className={active === "shopping" ? "active" : ""}
+        onClick={() => setActive("shopping")}
+        aria-label="Shopping List"
+      >
         <ShoppingCartIcon />
       </button>
-      <button onClick={() => setActive("meal")} aria-label="Meal Planning" style={{ background: active === "meal" ? "#4285f4" : "none", color: "#fff", border: "none", fontSize: 24, margin: 12, borderRadius: 8 }}>
+      <button
+        className={active === "meal" ? "active" : ""}
+        onClick={() => setActive("meal")}
+        aria-label="Meal Planning"
+      >
         <RestaurantMenuIcon />
       </button>
-    </div>
+    </nav>
   );
 }

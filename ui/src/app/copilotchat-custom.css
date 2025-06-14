@@ -72,90 +72,64 @@
 
 /* Responsive layout for iPhone 16 Pro Max (430px x 932px) */
 @media (max-width: 430px) {
-  .app-container {
-    flex-direction: row !important;
-    width: 100vw !important;
-    min-width: 0 !important;
-    padding: 0 !important;
-    overflow-x: hidden !important;
-    height: 100vh !important;
-    position: relative !important;
-  }
   .sidebar {
-    display: flex !important;
-    flex-direction: column !important;
-    position: fixed !important;
-    left: 0;
-    top: 0;
-    width: 72px !important;
-    min-width: 72px !important;
-    height: 100vh !important;
-    z-index: 100;
-    background: #fff !important;
-    border-right: 1px solid #e0e3eb !important;
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
-    align-items: center;
-    padding: 8px 0 !important;
-    gap: 8px !important;
+    display: none !important;
   }
-  .sidebar button,
-  .sidebar .sidebar-btn {
-    width: 56px !important;
-    height: 56px !important;
-    margin: 0 0 8px 0 !important;
-    border-radius: 16px !important;
-    font-size: 24px !important;
+  .mobile-tab-bar {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 64px;
+    background: #fff;
+    border-top: 1px solid #e0e3eb;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 200;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+    padding: 0;
+  }
+  .mobile-tab-bar.dark-mode {
+    background: #23272f;
+    border-top: 1px solid #35373a;
+  }
+  .mobile-tab-bar button {
+    flex: 1 1 0;
+    height: 100%;
+    background: none;
+    border: none;
+    outline: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: none;
-    border: none;
-    transition: background 0.2s;
+    font-size: 28px;
+    color: #23272f;
+    transition: background 0.2s, color 0.2s;
+    border-radius: 0;
   }
-  .sidebar button:active,
-  .sidebar .sidebar-btn:active,
-  .sidebar button:focus,
-  .sidebar .sidebar-btn:focus {
-    background: #e3f0fd !important;
-    outline: 2px solid #4285f4 !important;
+  .mobile-tab-bar.dark-mode button {
+    color: #e0e0e0;
+  }
+  .mobile-tab-bar button.active {
+    background: #e3f0fd;
+    color: #4285f4;
+    border-radius: 0;
+  }
+  .mobile-tab-bar.dark-mode button.active {
+    background: #35373a;
+    color: #90caf9;
   }
   .main-content,
   .chat-box {
-    margin-left: 72px !important;
-    width: calc(100vw - 72px) !important;
+    margin-left: 0 !important;
+    width: 100vw !important;
     min-width: 0 !important;
     margin-top: 0 !important;
     padding: 0 0 16px 0 !important;
-    height: 100vh !important;
+    height: calc(100vh - 64px) !important;
     overflow-y: auto !important;
-  }
-  .analytics-charts-row {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 16px !important;
-    margin-bottom: 16px !important;
-  }
-  .analytics-charts-row > div {
-    width: 100% !important;
-    min-width: 0 !important;
-    margin-bottom: 0 !important;
-  }
-  .copilotKitInput {
-    min-height: 60px !important;
-    font-size: 18px !important;
-    padding: 8px 8px 8px 8px !important;
-  }
-  .copilotKitMessage,
-  .copilotKitUserMessage,
-  .copilotkit-chat-message-human,
-  .copilotkit-chat-message-ai {
-    font-size: 18px !important;
-    border-radius: 18px !important;
-    padding: 12px 16px !important;
-  }
-  .copilotKitInputControls {
-    bottom: 8px !important;
-    right: 8px !important;
   }
 }
 
