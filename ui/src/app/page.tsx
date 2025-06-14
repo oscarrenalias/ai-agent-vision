@@ -16,7 +16,7 @@ import React, { useState } from "react";
 import AgentStateInspector from "./components/debug/AgentStateInspector";
 import { useTheme } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import MobileSidebar from "./components/mobile/MobileSidebar";
+import MobileNavigationBar from "./components/mobile/MobileNavigationBar";
 import "./copilotchat-custom.css";
 
 // Helper to determine dark mode
@@ -211,10 +211,17 @@ export default function Home() {
   }
 
   return (
-    <div className="app-container" style={{ display: "flex", height: "100vh", width: "100vw" }}>
+    <div
+      className="app-container"
+      style={{ display: "flex", height: "100vh", width: "100vw" }}
+    >
       <AgentStateInspector state={state} />
       {isMobile ? (
-        <MobileSidebar active={activeMobileView} setActive={setActiveMobileView} isDarkMode={isDarkMode} />
+        <MobileNavigationBar
+          active={activeMobileView}
+          setActive={setActiveMobileView}
+          isDarkMode={isDarkMode}
+        />
       ) : (
         <div className="sidebar">
           <Sidebar
@@ -236,7 +243,18 @@ export default function Home() {
       >
         {isMobile ? (
           activeMobileView === "chat" ? (
-            <div className={`chat-box ${isDarkMode ? "dark-mode" : "light-mode"}`} style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: 5, overflowY: "auto", color: isDarkMode ? theme.palette.text.primary : "inherit" }}>
+            <div
+              className={`chat-box ${isDarkMode ? "dark-mode" : "light-mode"}`}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                padding: 5,
+                overflowY: "auto",
+                color: isDarkMode ? theme.palette.text.primary : "inherit",
+              }}
+            >
               <CopilotChat
                 instructions={
                   "You are assisting the user as best as you can. Answer in the best way possible given the data you have."
@@ -253,8 +271,56 @@ export default function Home() {
         ) : (
           <>
             {MainSection}
-            <div className={`chat-box ${isDarkMode ? "dark-mode" : "light-mode"}`} style={{ flex: 4, height: "calc(100vh - 32px)", minWidth: 320, display: "flex", flexDirection: "column", overflow: "hidden", background: isDarkMode ? theme.palette.background.paper : "#fff", borderRadius: 20, margin: 16, boxShadow: "none", border: `1px solid ${isDarkMode ? theme.palette.divider : "#e0e3eb"}`, "--copilot-kit-background-color": isDarkMode ? theme.palette.background.paper : "#fff", "--copilot-kit-contrast-color": isDarkMode ? theme.palette.text.primary : "#23272f", "--copilot-kit-input-background-color": isDarkMode ? "#23272f" : "#f5f5f5", "--copilot-kit-secondary-color": isDarkMode ? "#23272f" : "#fafafa", "--copilot-kit-secondary-contrast-color": isDarkMode ? "#e0e0e0" : "#333333", "--copilot-kit-separator-color": isDarkMode ? "#35373a" : "#e0e3eb", "--copilot-kit-muted-color": isDarkMode ? "#44474a" : "#717171" }}>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: 5, overflowY: "auto", color: isDarkMode ? theme.palette.text.primary : "inherit" }}>
+            <div
+              className={`chat-box ${isDarkMode ? "dark-mode" : "light-mode"}`}
+              style={{
+                flex: 4,
+                height: "calc(100vh - 32px)",
+                minWidth: 320,
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+                background: isDarkMode
+                  ? theme.palette.background.paper
+                  : "#fff",
+                borderRadius: 20,
+                margin: 16,
+                boxShadow: "none",
+                border: `1px solid ${
+                  isDarkMode ? theme.palette.divider : "#e0e3eb"
+                }`,
+                "--copilot-kit-background-color": isDarkMode
+                  ? theme.palette.background.paper
+                  : "#fff",
+                "--copilot-kit-contrast-color": isDarkMode
+                  ? theme.palette.text.primary
+                  : "#23272f",
+                "--copilot-kit-input-background-color": isDarkMode
+                  ? "#23272f"
+                  : "#f5f5f5",
+                "--copilot-kit-secondary-color": isDarkMode
+                  ? "#23272f"
+                  : "#fafafa",
+                "--copilot-kit-secondary-contrast-color": isDarkMode
+                  ? "#e0e0e0"
+                  : "#333333",
+                "--copilot-kit-separator-color": isDarkMode
+                  ? "#35373a"
+                  : "#e0e3eb",
+                "--copilot-kit-muted-color": isDarkMode ? "#44474a" : "#717171",
+              }}
+            >
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "flex-end",
+                  padding: 5,
+                  overflowY: "auto",
+                  color: isDarkMode ? theme.palette.text.primary : "inherit",
+                }}
+              >
                 <CopilotChat
                   instructions={
                     "You are assisting the user as best as you can. Answer in the best way possible given the data you have."

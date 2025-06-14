@@ -5,15 +5,20 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import { useTheme } from "@mui/material";
 
-interface MobileSidebarProps {
+interface MobileNavigationBarProps {
   active: string;
   setActive: (section: string) => void;
 }
 
-export default function MobileSidebar({ active, setActive }: MobileSidebarProps) {
+export default function MobileNavigationBar({
+  active,
+  setActive,
+}: MobileNavigationBarProps) {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
-  const tabBarClass = `mobile-tab-bar ${isDarkMode ? "dark-mode" : "light-mode"}`;
+  const tabBarClass = `mobile-tab-bar ${
+    isDarkMode ? "dark-mode" : "light-mode"
+  }`;
   return (
     <nav className={tabBarClass}>
       <button
