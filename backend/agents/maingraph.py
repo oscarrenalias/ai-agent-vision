@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class GlobalState(CopilotKitState):
     last_receipt: None
     shopping_list: None
-    meals: None
+    meal_plan: None
     items: List[dict] = None
     image_file_path: str = None
     # used to keep track of the summarized conversation history
@@ -71,7 +71,7 @@ class MainGraph:
             chat_state["messages"] = context_messages.copy()
             chat_state["input"] = global_state["messages"][-1]
             chat_state["shopping_list"] = global_state.get("shopping_list", [])
-            chat_state["meals"] = global_state.get("meals", [])
+            chat_state["meal_plan"] = global_state.get("meal_plan")
 
             # Run the chat_graph with the converted state
             chat_result = await chat_graph.ainvoke(chat_state, config=self.config)
@@ -81,7 +81,7 @@ class MainGraph:
                 "messages": chat_result["messages"],
                 "items": chat_result["items"],
                 "shopping_list": chat_result.get("shopping_list", []),
-                "meals": chat_result.get("meals", []),
+                "meal_plan": chat_result.get("meal_plan"),
             }
 
         async def meal_planner_graph_node(global_state: GlobalState) -> dict:

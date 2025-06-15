@@ -57,10 +57,11 @@ const AgentStateInspector: React.FC<AgentStateInspectorProps> = ({ state }) => {
             minWidth: "400px",
             maxWidth: "600px",
             minHeight: "400px",
+            color: "white",
           }}
         >
           <h3 style={{ marginTop: 0, fontSize: "14px" }}>Agent State:</h3>
-          <pre style={{ margin: 0, fontSize: "12px" }}>
+          <pre style={{ margin: 0, fontSize: "12px", color: "white" }}>
             {JSON.stringify(state, null, 2)}
           </pre>
         </div>

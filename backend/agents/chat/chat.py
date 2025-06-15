@@ -10,8 +10,8 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import tools_condition
 
-from agents.chat import shoppinglist
-from agents.chat.shoppinglist import Meal
+from agents.chat import mealplanning, shoppinglist
+from agents.chat.mealplanning import MealPlan
 from agents.common.logging_utils import llm_response_to_log
 from agents.models import OpenAIModel
 from agents.pricecomparison import price_lookup_tools
@@ -24,7 +24,7 @@ class ChatState(CopilotKitState):
     input: HumanMessage = None
     items: List[dict] = None
 
-    meals: List[Meal]
+    meal_plan: MealPlan = None
     shopping_list: List[str] = []
 
     def make_instance():
@@ -56,6 +56,7 @@ class ChatFlow:
             *receipttools.get_tools(),
             *recipetools.get_tools(),
             *shoppinglist.get_tools(),
+            *mealplanning.get_tools(),
         ]
 
     def get_primary_assistant_prompt(self) -> ChatPromptTemplate:
