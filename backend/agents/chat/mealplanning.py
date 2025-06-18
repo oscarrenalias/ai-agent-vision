@@ -82,26 +82,47 @@ def add_to_meal_plan(state: dict, day: str, type: str, name: str, ingredients: L
 @tool
 def get_meal_plan(state: dict) -> dict:
     """
-    Tool to get the current meal plan.
+    Use this tool to retrieve the contents of the current meal plan so far.
+
+    Use the description of the meal plan to understand what the meal plan is about, e.g., "Weekly Meal plan (only weekday dinners)",
+    and use that to continue planning at the right point in the plan.
+
+    If the meal plan is empty so far, the tool will report that the meal plan is empty in its response
+    and will not return any more results or data.
+
+    If the meal plan has not been initialized yet, the tool will report that it has not been initialized yet. In that case,
+    please ask the user to initialize the meal plan before proceeding.
 
     Inputs:
     None
 
     Outputs:
     - description: A human-readable description of the action taken
-    - meals: The current meal plan
+    - meals: The current meal plan. Keep the following in mind:
+        - If the meal plan is empty, the meals list will be empty.
+        - If the meal plan has not been initialized yet, the meals list will be empty and the description will indicate that.
+        - If the meal plan has been initialized, the meals list will contain the meals added so far.
     """
     logger.info("Getting current meal plan")
 
-    # Assuming state has a 'meals' field
-    meals = state.get("meals", [])
+    meal_plan = state.get("meal_plan")
+    result = {}
 
-    if len(meals) == 0:
-        description = "Meal plan is empty"
+    if meal_plan is None:
+        description = "Meal plan has not been initialized yet."
     else:
-        description = "Current meal plan:\n" + "\n".join(f"{meal['day']} {meal['type']}: {meal['recipe']}" for meal in meals)
+        meals = meal_plan.get("meals", [])
+        if not meals:
+            description = "Meal plan is empty."
+        else:
+            # Create a human-readable description of the meals
+            description = f"Meal plan: '{meal_plan['name']}'" + "\n".join(
+                f"{meal['day']} {meal['type']}: {meal['name']}" for meal in meals
+            )
 
-    return {"description": description, "meals": meals}
+    result["description"] = description
+
+    return result
 
 
 @tool
