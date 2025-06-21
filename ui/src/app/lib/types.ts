@@ -7,7 +7,7 @@ export type AgentState = {
   messages: string[] | null;
 
   last_receipt: Receipt | null;
-  meal_plan: MealPlanItem | null;
+  meal_plan: MealPlanData | null;
   shopping_list: {} | null;
 
   // for receipt processing
@@ -101,4 +101,15 @@ export type ShoppingListItem = {
 
 export type ShoppingList = {
   shopping_list: ShoppingListItem[];
+};
+
+export type MealPlanData = {
+  name: string;
+  meals: Array<{
+    day: string;
+    type: string;
+    name: string;
+    steps: string[];
+    ingredients: string[];
+  }>;
 };
