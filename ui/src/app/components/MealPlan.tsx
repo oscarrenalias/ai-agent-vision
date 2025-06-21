@@ -41,7 +41,12 @@ export default function MealPlan({ mealPlan, onDeleteMeal }: MealPlanProps) {
     <Box>
       <Typography
         variant="h5"
-        sx={{ mb: 2, fontWeight: 700, color: "primary.main", letterSpacing: 0.5 }}
+        sx={{
+          mb: 2,
+          fontWeight: 700,
+          color: "primary.main",
+          letterSpacing: 0.5,
+        }}
       >
         {mealPlan.name}
       </Typography>
@@ -57,39 +62,73 @@ export default function MealPlan({ mealPlan, onDeleteMeal }: MealPlanProps) {
             sx={{
               display: "flex",
               alignItems: "center",
-              bgcolor: openIdx === idx ? "#f0f7fa" : "#f7fafd",
+              bgcolor: (theme) =>
+                openIdx === idx
+                  ? theme.palette.action.selected
+                  : theme.palette.background.paper,
               borderRadius: 2,
               boxShadow: 1,
               px: 2,
               py: 1.5,
               cursor: "pointer",
               transition: "background 0.2s",
-              '&:hover': { bgcolor: "#e3f2fd" },
+              "&:hover": {
+                bgcolor: (theme) => theme.palette.action.hover,
+              },
             }}
             onClick={() => handleToggle(idx)}
           >
             <IconButton
               edge="start"
               size="small"
-              sx={{ mr: 1, transform: openIdx === idx ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-              onClick={e => { e.stopPropagation(); handleToggle(idx); }}
-              aria-label={openIdx === idx ? 'Collapse' : 'Expand'}
+              sx={{
+                mr: 1,
+                transform: openIdx === idx ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.2s",
+                color: (theme) => theme.palette.text.primary,
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggle(idx);
+              }}
+              aria-label={openIdx === idx ? "Collapse" : "Expand"}
             >
               <ExpandMoreIcon />
             </IconButton>
-            <Typography component="span" sx={{ fontSize: 18, fontWeight: 500, color: '#222', flex: 1 }}>
-              {meal.day}{meal.type ? ` (${meal.type})` : ''} <span style={{ color: '#1976d2', fontWeight: 600 }}>{meal.name}</span>
+            <Typography
+              component="span"
+              sx={{
+                fontSize: 18,
+                fontWeight: 500,
+                color: (theme) => theme.palette.text.primary,
+                flex: 1,
+              }}
+            >
+              {meal.day}
+              {meal.type ? ` (${meal.type})` : ""}{" "}
+              <span style={{ color: "#1976d2", fontWeight: 600 }}>
+                {meal.name}
+              </span>
             </Typography>
             <IconButton
               edge="end"
-              aria-label={`Delete meal for ${meal.day}${meal.type ? ` (${meal.type})` : ""}`}
-              onClick={e => { e.stopPropagation(); onDeleteMeal(idx); }}
+              aria-label={`Delete meal for ${meal.day}${
+                meal.type ? ` (${meal.type})` : ""
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteMeal(idx);
+              }}
               sx={{
                 color: "error.main",
-                bgcolor: "#fff",
+                bgcolor: (theme) =>
+                  theme.palette.mode === "dark" ? "#2a2a2a" : "#fff",
                 boxShadow: 1,
                 zIndex: 2,
-                '&:hover': { bgcolor: "#fdecea" },
+                "&:hover": {
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "dark" ? "#442222" : "#fdecea",
+                },
               }}
             >
               <DeleteIcon />
@@ -107,7 +146,7 @@ export default function MealPlan({ mealPlan, onDeleteMeal }: MealPlanProps) {
                   url: null,
                   cooking_time: null,
                   preparation_time: null,
-                  tags: [meal.day, (meal.type ?? "")],
+                  tags: [meal.day, meal.type ?? ""],
                 }}
                 height={320}
               />
@@ -115,11 +154,6 @@ export default function MealPlan({ mealPlan, onDeleteMeal }: MealPlanProps) {
           </Collapse>
         </Box>
       ))}
-      <Box sx={{ textAlign: "right", mt: 2 }}>
-        <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
-          Total meals: {mealPlan.meals.length}
-        </Typography>
-      </Box>
     </Box>
   );
 }
