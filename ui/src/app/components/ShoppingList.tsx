@@ -41,7 +41,7 @@ export default function ShoppingList({
   return (
     <Card
       sx={{
-        maxWidth: 400,
+        maxWidth: "70%",
         width: "100%",
         borderRadius: 3,
         boxShadow: 2,
