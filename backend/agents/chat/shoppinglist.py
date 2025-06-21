@@ -16,7 +16,8 @@ def add_to_shopping_list(state: dict, item: str, emoji: str) -> dict:
     - "minced beef, 500g" instead of "500g of minced beef"
 
     Inputs:
-    - item: The item to add to the shopping list
+    - item: The item to add to the shopping list. Provided item or description should be as specific as possible, as well
+    as properly capitalized (e.g., "Minced Beef, 500g" instead of "minced beef, 500g") as needed
     - emoji: emoji to associate with the item (e.g., 🍺 for beer).
 
     Outputs:
