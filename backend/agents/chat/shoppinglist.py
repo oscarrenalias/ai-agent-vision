@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 @tool
-def add_to_shopping_list(state: dict, item: str) -> dict:
+def add_to_shopping_list(state: dict, item: str, emoji: str) -> dict:
     """
     Tool to add an item to the shopping list. When using this tool, the agent should try
     to rewrite the item to be as specific as possible based on the description provided by the
@@ -17,6 +17,7 @@ def add_to_shopping_list(state: dict, item: str) -> dict:
 
     Inputs:
     - item: The item to add to the shopping list
+    - emoji: emoji to associate with the item (e.g., 🍺 for beer).
 
     Outputs:
     - description: A human-readable description of the action taken
@@ -24,13 +25,12 @@ def add_to_shopping_list(state: dict, item: str) -> dict:
     """
     logger.info(f"Adding item '{item}' to shopping list")
 
-    # Assuming state has a 'shopping_list' field
+    full_item = f"{emoji} {item}"
     shopping_list = state.get("shopping_list", [])
-    shopping_list.append(item)
-
+    shopping_list.append(full_item)
     logger.debug(f"Updated shopping list: {shopping_list}")
 
-    return {"description": f"Item '{item}' added to shopping list", "shopping_list": shopping_list}
+    return {"description": f"Item '{full_item}' added to shopping list", "shopping_list": shopping_list}
 
 
 @tool
