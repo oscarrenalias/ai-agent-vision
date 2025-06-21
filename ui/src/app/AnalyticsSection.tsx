@@ -28,10 +28,6 @@ export default function AnalyticsSection({
     <div>
       <div className="analytics-charts-row">
         <div style={{ flex: 1 }}>
-          {/* YearlyMonthlySpendChart does not accept setYear, so just pass year */}
-          <YearlyMonthlySpendChart year={year} />
-        </div>
-        <div style={{ flex: 1 }}>
           <MonthlySpendChart
             year={year}
             month={month}
@@ -41,6 +37,10 @@ export default function AnalyticsSection({
         </div>
       </div>
       <DailySpendChart year={year} month={month} />
+      <div style={{ flex: 1 }}>
+        {/* YearlyMonthlySpendChart does not accept setYear, so just pass year */}
+        <YearlyMonthlySpendChart year={year} />
+      </div>
     </div>
   );
 }
