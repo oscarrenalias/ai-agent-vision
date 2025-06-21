@@ -30,6 +30,7 @@ def get_tools():
         initialize_meal_plan,
         add_to_meal_plan,
         get_meal_plan,
+        get_meal_plan_with_ingredients,
         convert_meal_plan_to_shopping_list,
     ]
 
@@ -37,10 +38,12 @@ def get_tools():
 @tool
 def initialize_meal_plan(state: dict, name: str) -> dict:
     """
-    Tool to initialize a meal plan.
+    Initializes a meal plan with a given name. This tool should be when the user requests that a new meal plan be created, e.g.,
+    "can you create a meal plan for me?", "I want to plan my meals for the week", "please help me plan my meals for the next week", etc.
+    The meal plan will be initialized with an empty list of meals, which can then be added to using the add_to_meal_plan tool.
 
     Inputs:
-    - name: A description of the meal plan, e.g., "Weekly Meal plan (only weekday dinners)
+    - name: A description of the meal plan, e.g., "Weekly Meal plan (only weekday dinners)"
 
     Outputs:
     - description: A human-readable description of the action taken
@@ -126,17 +129,84 @@ def get_meal_plan(state: dict) -> dict:
 
 
 @tool
-def convert_meal_plan_to_shopping_list(state: dict, meals: List[Meal]) -> dict:
+def get_meal_plan_with_ingredients(state: dict) -> dict:
     """
-    Tool to convert the meal plan to a shopping list.
+    Use this tool to retrieve the contents of the current meal plan so far, including the ingredients for each meal.
+
+    If the meal plan is empty so far, the tool will report that the meal plan is empty in its response
+    and will not return any more results or data.
+
+    If the meal plan has not been initialized yet, the tool will report that it has not been initialized yet. In that case,
+    please ask the user to initialize the meal plan before proceeding.
 
     Inputs:
-    - meals: List of meals in the meal plan
+    None
 
     Outputs:
-    - description: A human-readable description of the action taken
-    - shopping_list: A shopping list of items
+    - description: The list of ingredients for each meal in the meal plan, formatted as a human-readable string.
+
+    """
+    logger.info("Getting current meal plan with ingredients")
+
+    meal_plan = state.get("meal_plan")
+    result = {}
+
+    if meal_plan is None:
+        description = "Meal plan has not been initialized yet."
+        result["meals"] = []
+    else:
+        meals = meal_plan.get("meals", [])
+        if not meals:
+            description = "Meal plan is empty."
+            result["meals"] = []
+        else:
+            # Create a human-readable description of the meals with ingredients
+            description = f"Meal plan: '{meal_plan['name']}'" + "\n".join(
+                f"{meal['day']} {meal['type']}: {meal['name']} - Ingredients: {', '.join(meal['ingredients'])}"
+                for meal in meals
+            )
+
+    result["description"] = description
+
+    return result
+
+
+@tool
+def convert_meal_plan_to_shopping_list(state: dict, items: List[str]) -> dict:
+    """
+    This tool converts the meal plan to items in the shopping list. Every item in the meal plan is
+    added to the shopping list, so that the user can easily purchase the ingredients needed for the meals.
+    This function should be when the user confirms that the meal plan is complete and that they want to add
+    the items to the shopping list; this tool should be preferread instead of adding the items one by one as the
+    process will be faster with it.
+
+    If the shopping list already exists and has items, ingredients from the meal plan will be added to it.
+
+    Inputs:
+    - items: the list of ingredients from each one of the meals in the current meal plan. This is a list of strings and should be
+    formatted in a way that is easy to read and understand, e.g., "2 cans of beer", "500g of minced beef". The list of items should
+    also be normalized; in case of duplicates because the same ingredient is used in multiple meals, items should be combined, e.g.,
+    "100g of cheese" and "0.5kg of cheese" should be combined into "600g of cheese".
+
+    Outputs:
+    - description: A human-readable description with a summary of the action taken, e.g., number of items
+    added to the shopping list.
+    - shopping_list: Updated shopping list with the items from the meal plan added.
     """
     logger.info("convert_meal_plan_to_shopping_list")
 
-    return {"description": "Meal plan converted to shopping list", "shopping_list": []}
+    # loop through the meals and extract ingredients
+    shopping_list = state.get("shopping_list", [])
+    meal_plan = state.get("meal_plan")
+
+    if not meal_plan:
+        logger.debug("The meal plan has not been initialized yet. This should not happen.")
+        return {"description": "Meal plan has not been initialized yet. Please create one, add some meals and try again."}
+
+    logger.info(f"Processing meal plan: {meal_plan['name']}")
+
+    for ingredient in items:
+        logger.debug(f"Adding ingredient '{ingredient}' to shopping list")
+        shopping_list.append(ingredient)
+
+    return {"description": "Meal plan converted to shopping list", "shopping_list": shopping_list}
