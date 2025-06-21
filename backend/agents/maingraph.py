@@ -7,7 +7,6 @@ from langgraph.graph import START, StateGraph
 from agents.chat import ChatFlow, ChatState
 from agents.common import make_classifier
 from agents.common.summarizationnode import SummarizationNode
-from agents.mealplanner import MealPlannerFlow, MealPlannerState
 from agents.receiptanalyzer import ReceiptState
 from agents.receiptanalyzer.receiptanalysis import ReceiptAnalysisFlow
 from agents.recipes.recipeflow import RecipeFlow, RecipeState
@@ -47,8 +46,6 @@ class MainGraph:
         chat_flow = ChatFlow()
         chat_graph = chat_flow.as_subgraph().compile()
 
-        # meal planner graph
-        meal_planner_graph = MealPlannerFlow().as_subgraph().compile()
         # receipt processing graph
         receipt_analysis_graph = ReceiptAnalysisFlow().as_subgraph().compile()
         # recipe analysis graph
@@ -84,21 +81,6 @@ class MainGraph:
                 "meal_plan": chat_result.get("meal_plan"),
             }
 
-        async def meal_planner_graph_node(global_state: GlobalState) -> dict:
-            # initialize the new state
-            meal_planner_state = MealPlannerState.make_instance()
-            meal_planner_state["messages"] = global_state["messages"].copy()
-
-            # Run the meal_planner with the converted state
-            meal_planner_result = await meal_planner_graph.ainvoke(meal_planner_state, config=self.config)
-
-            # let langgraph update the state with the new messages
-            return {
-                "last_meal_plan": meal_planner_result["plan"],
-                "last_shopping_list": meal_planner_result["shopping_list"],
-                "messages": meal_planner_result["messages"],
-            }
-
         async def recipe_handler_graph_node(global_state: GlobalState) -> dict:
             state = RecipeState.make_instance()
             state["messages"] = global_state["messages"].copy()
@@ -112,7 +94,6 @@ class MainGraph:
             receipt_processing_state["receipt_image_path"] = global_state.get("image_file_path", "")
             logger.info(f"Image file path: {receipt_processing_state['receipt_image_path']}")
 
-            # Run the meal_planner with the converted state
             receipt_processing_result = await receipt_analysis_graph.ainvoke(receipt_processing_state, config=self.config)
 
             # let langgraph update the state with the new messages
@@ -124,14 +105,12 @@ class MainGraph:
         summarization_node = SummarizationNode()
         main_flow.add_node("summarization", summarization_node)
         main_flow.add_node("chat", chat_graph_node)
-        # main_flow.add_node("meal_planner", meal_planner_graph_node)
         main_flow.add_node("receipt_processing", receipt_processing_graph_node)
         main_flow.add_node("recipe_handler", recipe_handler_graph_node)
 
         # Routing configuration for the decider, as a dictionary:
         # { "target node": "routing description, gets appended to the prompt for the LLM to decide." }
         classifier_routes = {
-            # "meal_planner": "If the message is about meal planning. Example: I want to plan my meals for the week.",
             "receipt_processing": """If the message is a request to upload, scan or process a new receipt file, and only about that. Examples: I want to upload a receipt or can you help me process a receipt?""",
             "recipe_handler": """If the message looks like a recipe and the user is asking for help extracting a recipe or saving a recipe.
             Example: 'I want to extract a recipe from this text', 'please help me extract a recipe from a web site or URL', or 'can you save this recipe?""",
