@@ -1,22 +1,40 @@
 import React, { useEffect } from "react";
+import RecipeList from "./components/RecipeList";
+import { Recipe } from "./components/chat/RecipeCard";
 
 export default function RecipesSection() {
-  useEffect(() => {
-    // Fetch all recipes on mount
+  const [recipes, setRecipes] = React.useState<Recipe[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setLoading(true);
     fetch("/api/recipes")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch recipes");
+        return res.json();
+      })
       .then((data) => {
-        // For now, do nothing with the data
-        // You can add state and display logic later
+        setRecipes(data.recipes || []);
+        setError(null);
       })
       .catch((err) => {
-        // Handle error (optional for now)
-      });
+        setError(err.message || "Unknown error");
+        setRecipes([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) {
+    return <div style={{ padding: 24 }}>Loading recipes...</div>;
+  }
+  if (error) {
+    return <div style={{ color: "red", padding: 24 }}>Error: {error}</div>;
+  }
 
   return (
     <div>
-      {/* RecipesSection: Will display recipes here in the future */}
+      <RecipeList recipes={recipes} />
     </div>
   );
 }
