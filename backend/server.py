@@ -18,6 +18,7 @@ from agents.langgraphapp import main_graph
 from common.analytics import listen_for_receipt_changes
 from common.logging import configure_logging
 from common.server.analytics_router import analytics_router
+from common.server.recipes_router import recipes_router
 from common.server.upload_router import upload_router
 
 configure_logging(logging.DEBUG)
@@ -35,9 +36,10 @@ async def lifespan(app):
 # instantiate the FastAPI app with a lifespan context manager
 app = FastAPI(lifespan=lifespan)
 
-# Register the upload router
+# Register the application routers with API endpoints
 app.include_router(upload_router, prefix="/api")
 app.include_router(analytics_router, prefix="/api")
+app.include_router(recipes_router, prefix="/api")
 
 # CopilotKit integration
 sdk = CopilotKitRemoteEndpoint(
