@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import RecipeList from "./components/RecipeList";
 import { Recipe } from "./components/chat/RecipeCard";
+import Typography from "@mui/material/Typography";
 
 export default function RecipesSection() {
   const [recipes, setRecipes] = React.useState<Recipe[]>([]);
@@ -34,6 +35,13 @@ export default function RecipesSection() {
 
   return (
     <div>
+      <Typography
+        variant="h5"
+        component="h2"
+        sx={{ mt: 2, mb: 1, fontWeight: 600 }}
+      >
+        Recipes
+      </Typography>
       <RecipeList recipes={recipes} />
     </div>
   );

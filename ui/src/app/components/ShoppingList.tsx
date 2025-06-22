@@ -49,9 +49,9 @@ export default function ShoppingList({
       }}
     >
       <CardContent>
-        <Typography variant="h6" sx={{ mb: 2 }}>
+        {/*<Typography variant="h6" sx={{ mb: 2 }}>
           Shopping List
-        </Typography>
+        </Typography>*/}
         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <TextField
             fullWidth

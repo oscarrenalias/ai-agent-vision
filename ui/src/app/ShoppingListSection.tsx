@@ -1,7 +1,7 @@
 import React from "react";
-import { useCoAgentStateRender } from "@copilotkit/react-core";
 import { useAgentState } from "./components/AgentStateProvider";
 import ShoppingList from "./components/ShoppingList";
+import Typography from "@mui/material/Typography";
 
 export default function ShoppingListSection() {
   const { getAgentState, setAgentState } = useAgentState();
@@ -27,7 +27,14 @@ export default function ShoppingListSection() {
   };
 
   return (
-    <div style={{ padding: 24 }}>
+    <div>
+      <Typography
+        variant="h5"
+        component="h2"
+        sx={{ mt: 2, mb: 1, fontWeight: 600 }}
+      >
+        Shopping List
+      </Typography>
       <ShoppingList
         items={shoppingList}
         onAdd={handleAdd}

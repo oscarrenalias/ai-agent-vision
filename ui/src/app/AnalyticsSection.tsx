@@ -2,6 +2,7 @@ import React from "react";
 import { YearlyMonthlySpendChart } from "./components/charts/YearlyMonthlySpendChart";
 import { MonthlySpendChart } from "./components/charts/MonthlySpendChart";
 import { DailySpendChart } from "./components/charts/DailySpendChart";
+import Typography from "@mui/material/Typography";
 
 interface AnalyticsSectionProps {
   year: number;
@@ -26,6 +27,13 @@ export default function AnalyticsSection({
 
   return (
     <div>
+      <Typography
+        variant="h5"
+        component="h2"
+        sx={{ mt: 2, mb: 1, fontWeight: 600 }}
+      >
+        Analytics
+      </Typography>
       <div className="analytics-charts-row">
         <div style={{ flex: 1 }}>
           <MonthlySpendChart

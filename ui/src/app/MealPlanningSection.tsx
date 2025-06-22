@@ -1,6 +1,7 @@
 import React from "react";
 import { useAgentState } from "./components/AgentStateProvider";
 import MealPlan, { MealPlanData } from "./components/MealPlan";
+import Typography from "@mui/material/Typography";
 
 export default function MealPlanningSection() {
   const { getAgentState, setAgentState } = useAgentState();
@@ -16,13 +17,20 @@ export default function MealPlanningSection() {
     });
   };
 
-  if (!mealPlan) {
-    return <div style={{ padding: 24 }}>No meal plan available.</div>;
-  }
-
   return (
-    <div style={{ padding: 24 }}>
-      <MealPlan mealPlan={mealPlan} onDeleteMeal={handleDeleteMeal} />
+    <div>
+      <Typography
+        variant="h5"
+        component="h2"
+        sx={{ mt: 2, mb: 1, fontWeight: 600 }}
+      >
+        Meal Plan
+      </Typography>
+      {mealPlan ? (
+        <MealPlan mealPlan={mealPlan} onDeleteMeal={handleDeleteMeal} />
+      ) : (
+        <div>No meal plan available.</div>
+      )}
     </div>
   );
 }
