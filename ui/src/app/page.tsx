@@ -7,6 +7,7 @@ import Sidebar from "./Sidebar";
 import ShoppingListSection from "./ShoppingListSection";
 import MealPlanningSection from "./MealPlanningSection";
 import AnalyticsSection from "./AnalyticsSection";
+import RecipesSection from "./RecipesSection";
 import { useCopilotAction } from "@copilotkit/react-core";
 import ReceiptCard from "./components/chat/ReceiptCard";
 import RecipeCard from "./components/chat/RecipeCard";
@@ -182,6 +183,8 @@ export default function Home() {
     MainSection = <ShoppingListSection />;
   } else if (activeSection === "meal") {
     MainSection = <MealPlanningSection />;
+  } else if (activeSection === "recipes") {
+    MainSection = <RecipesSection />;
   } else {
     MainSection = (
       <AnalyticsSection
@@ -199,6 +202,8 @@ export default function Home() {
     MobileMainSection = <ShoppingListSection />;
   } else if (activeMobileView === "meal") {
     MobileMainSection = <MealPlanningSection />;
+  } else if (activeMobileView === "recipes") {
+    MobileMainSection = <RecipesSection />;
   } else if (activeMobileView === "analytics") {
     MobileMainSection = (
       <AnalyticsSection

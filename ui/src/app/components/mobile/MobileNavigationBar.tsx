@@ -3,6 +3,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 import { useTheme } from "@mui/material";
 
 interface MobileNavigationBarProps {
@@ -48,6 +49,13 @@ export default function MobileNavigationBar({
         aria-label="Meal Planning"
       >
         <RestaurantMenuIcon />
+      </button>
+      <button
+        className={active === "recipes" ? "active" : ""}
+        onClick={() => setActive("recipes")}
+        aria-label="Recipes"
+      >
+        <MenuBookIcon />
       </button>
     </nav>
   );

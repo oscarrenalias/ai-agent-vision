@@ -11,6 +11,7 @@ import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 
 interface SidebarProps {
   open: boolean;
@@ -23,6 +24,7 @@ const sections = [
   { key: "shopping", icon: <ShoppingCartIcon />, label: "Shopping List" },
   { key: "meal", icon: <RestaurantMenuIcon />, label: "Meal Planning" },
   { key: "analytics", icon: <BarChartIcon />, label: "Analytics" },
+  { key: "recipes", icon: <MenuBookIcon />, label: "Recipes" },
 ];
 
 export default function Sidebar({
