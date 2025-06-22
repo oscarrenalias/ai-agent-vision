@@ -8,6 +8,7 @@ import Chip from "@mui/material/Chip";
 
 // Define the Recipe type
 export type Recipe = {
+  id: string;
   name: string;
   description: string | null;
   ingredients: string[];

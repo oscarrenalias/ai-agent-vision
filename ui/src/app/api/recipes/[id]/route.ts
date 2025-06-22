@@ -20,16 +20,12 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = await context.params;
   const backendRes = await fetch(`${getBackendUrl()}/api/recipes/${id}`, {
     method: "DELETE",
   });
-  // 204 returns no content, so don't try to parse JSON
-  if (backendRes.status === 204) {
-    return new NextResponse(null, { status: 204 });
-  }
   const data = await backendRes.json();
   return NextResponse.json(data, { status: backendRes.status });
 }

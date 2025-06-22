@@ -68,7 +68,7 @@ async def delete_recipe(recipe_id: str):
         result = await db[RECIPES_COLLECTION].delete_one({"_id": oid})
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Recipe not found.")
-        return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content={})
+        return JSONResponse(status_code=status.HTTP_200_OK, content={"message": f"Recipe {recipe_id} deleted successfully"})
     except HTTPException:
         raise
     except Exception as e:
