@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBackendUrl } from "../../getBackendUrl";
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
+export async function PUT(req: NextRequest) {
+  // Extract ID from URL path
+  const pathParts = req.nextUrl.pathname.split('/');
+  const id = pathParts[pathParts.length - 1];
+
   const body = await req.text();
   const backendRes = await fetch(`${getBackendUrl()}/api/recipes/${id}`, {
     method: "PUT",
@@ -18,11 +18,11 @@ export async function PUT(
   return NextResponse.json(data, { status: backendRes.status });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  context: { params: { id: string } }
-) {
-  const { id } = await context.params;
+export async function DELETE(req: NextRequest) {
+  // Extract ID from URL path
+  const pathParts = req.nextUrl.pathname.split('/');
+  const id = pathParts[pathParts.length - 1];
+
   const backendRes = await fetch(`${getBackendUrl()}/api/recipes/${id}`, {
     method: "DELETE",
   });

@@ -138,6 +138,7 @@ export default function MealPlan({ mealPlan, onDeleteMeal }: MealPlanProps) {
             <Box sx={{ mt: 1 }}>
               <RecipeCard
                 recipe={{
+                  id: "", // No uniqueness required
                   name: meal.name,
                   description: null,
                   ingredients: meal.ingredients,
