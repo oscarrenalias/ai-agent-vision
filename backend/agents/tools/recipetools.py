@@ -47,7 +47,10 @@ def get_recipe_by_id(recipe_id: str) -> str:
 @tool
 def search_recipes(query: str) -> str:
     """
-    Search for recipes by name or tag.
+    This tool can be used to search for recipes based on a string. The search can include keywords, ingredients, the name of the
+    recipe, or tags associated with the recipe. This recipe can be used by a user to find recipes that match their interests or dietary preferences.
+    For example, a user might ask "Can you find recipes with chicken?" or "I want to search for vegan recipes". The tool will return
+    a list of recipes that match the search criteria, including their names, descriptions, ingredients, and steps.
 
     Args:
         query (str): The search query.
@@ -69,10 +72,14 @@ def search_recipes(query: str) -> str:
 @tool
 def get_recipes_by_tags(tags: str) -> str:
     """
-    Get recipes that match any of the specified tags.
+    This tool can be used to find recipes that are categorized under specific tags, such as "vegan", "gluten-free", "meat", "pasta", etc.
+    This is useful for users who want to filter recipes based on dietary preferences or specific themes. This tool can be called when
+    the user asks for recipes with certain tags or when they want to explore recipes that fit a particular category, e.g.,
+    "can you please find recipes with pasta", or "I'd like to see vegan recipes". The tool will return
+    a list of recipes that match the search criteria, including their names, descriptions, ingredients, and steps.
 
     Args:
-        tags (str): Comma-separated list of tags.
+        tags (str): Comma-separated list of tags, e.g., "vegan, gluten-free, pasta".
 
     Returns:
         str: A JSON string containing a list of matching recipes.
