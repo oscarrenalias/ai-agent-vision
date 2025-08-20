@@ -83,7 +83,7 @@ export function CustomInput({ inProgress, onSend, isVisible }: InputProps) {
       </button>
       <input
         type="file"
-        accept="image/*"
+        accept="image/*,.pdf"
         style={{ display: "none" }}
         ref={fileInputRef}
         onChange={(e) => {

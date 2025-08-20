@@ -73,11 +73,11 @@ def setup_chain():
 
     load_image_chain = TransformChain(
         input_variables=["receipt_image_path"],
-        output_variables=["image"],
+        output_variables=["image", "mime_type"],
         transform=load_image,
     )
 
-    # build custom chain that includes an image
+    # build custom chain that includes an image or PDF
     @chain
     def receipt_model_chain(inputs: dict) -> dict:
         msg = extraction_model.invoke(
@@ -88,7 +88,7 @@ def setup_chain():
                         {"type": "text", "text": parser.get_format_instructions()},
                         {
                             "type": "image_url",
-                            "image_url": {"url": f"data:image/jpeg;base64,{inputs['image']}"},  # noqa: E231, E702
+                            "image_url": {"url": f"data:{inputs['mime_type']};base64,{inputs['image']}"},
                         },
                     ]
                 )
@@ -100,12 +100,34 @@ def setup_chain():
 
 
 def load_image(path: dict) -> dict:
-    def encode_image(path):
-        with open(path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode("utf-8")
+    def encode_image_or_pdf(path):
+        with open(path, "rb") as file:
+            return base64.b64encode(file.read()).decode("utf-8")
 
-    image_base64 = encode_image(path["receipt_image_path"].strip())
-    return {"image": image_base64}
+    def get_mime_type(path):
+        """Determine MIME type based on file extension"""
+        file_path = path.lower()
+        if file_path.endswith('.pdf'):
+            return "application/pdf"
+        elif file_path.endswith(('.jpg', '.jpeg')):
+            return "image/jpeg"
+        elif file_path.endswith('.png'):
+            return "image/png"
+        elif file_path.endswith(('.gif', '.bmp', '.webp')):
+            # Default to jpeg for other image types
+            return "image/jpeg"
+        else:
+            # Default to jpeg if we can't determine
+            return "image/jpeg"
+
+    file_path = path["receipt_image_path"].strip()
+    file_base64 = encode_image_or_pdf(file_path)
+    mime_type = get_mime_type(file_path)
+    
+    return {
+        "image": file_base64,
+        "mime_type": mime_type
+    }
 
 
 class ReceiptAnalysisFlow:

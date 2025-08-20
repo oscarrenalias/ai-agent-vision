@@ -93,7 +93,7 @@ export default function UploadCard({
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <input
                 type="file"
-                accept=".jpg,.jpeg,.png"
+                accept=".jpg,.jpeg,.png,.pdf"
                 style={{ display: "none" }}
                 ref={fileInputRef}
                 onChange={handleFileChange}
@@ -106,7 +106,7 @@ export default function UploadCard({
                 disabled={uploading}
                 sx={{ minWidth: 120, mr: 1 }}
               >
-                Select Image
+                Select File
               </Button>
               {selectedFile && (
                 <Typography variant="body2" color="text.secondary">
