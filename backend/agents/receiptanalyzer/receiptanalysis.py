@@ -1,6 +1,5 @@
 import base64
 import logging
-import os
 from datetime import UTC, datetime
 from pprint import pformat
 
@@ -46,7 +45,7 @@ def receipt_analyzer_tool(image_path: str) -> Receipt:
     else:
         logger.info(f"Processing image file: {image_path}")
         chain = setup_chain()
-    
+
     response = chain.invoke({"receipt_image_path": image_path})
     logger.debug("response = " + pformat(response, indent=2))
 
@@ -153,17 +152,17 @@ def load_image(path: dict) -> dict:
 def extract_pdf_text(path: dict) -> dict:
     """Extract text from PDF file with layout preservation."""
     pdf_path = path["receipt_image_path"].strip()
-    
+
     # Configure layout analysis parameters for better text extraction
     laparams = LAParams(line_margin=0.1, char_margin=2.0, word_margin=0.1)
     text = extract_text(pdf_path, laparams=laparams)
-    
+
     return {"text": text}
 
 
 def is_pdf_file(file_path: str) -> bool:
     """Check if the file is a PDF based on extension."""
-    return file_path.lower().endswith('.pdf')
+    return file_path.lower().endswith(".pdf")
 
 
 class ReceiptAnalysisFlow:
