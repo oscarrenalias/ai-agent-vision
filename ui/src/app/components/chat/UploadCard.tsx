@@ -5,7 +5,7 @@ import Alert from "@mui/material/Alert";
 import Typography from "@mui/material/Typography";
 import UploadIcon from "@mui/icons-material/Upload";
 import CancelIcon from "@mui/icons-material/Cancel";
-import ImageIcon from "@mui/icons-material/Image";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
@@ -93,7 +93,7 @@ export default function UploadCard({
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <input
                 type="file"
-                accept=".jpg,.jpeg,.png"
+                accept="image/*,application/pdf"
                 style={{ display: "none" }}
                 ref={fileInputRef}
                 onChange={handleFileChange}
@@ -101,12 +101,12 @@ export default function UploadCard({
               <Button
                 variant="contained"
                 color="primary"
-                startIcon={<ImageIcon />}
+                startIcon={<AttachFileIcon />}
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
                 sx={{ minWidth: 120, mr: 1 }}
               >
-                Select Image
+                Select File
               </Button>
               {selectedFile && (
                 <Typography variant="body2" color="text.secondary">
