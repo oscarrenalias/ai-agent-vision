@@ -130,7 +130,7 @@ def setup_pdf_chain():
                     content=[
                         {"type": "text", "text": prompt.template},
                         {"type": "text", "text": parser.get_format_instructions()},
-                        {"type": "text", "text": f"Receipt text content:\n{inputs['text']}"},
+                        {"type": "text", "text": f"Receipt text content: \n{inputs['text']}"},
                     ]
                 )
             ]
@@ -156,6 +156,9 @@ def extract_pdf_text(path: dict) -> dict:
     # Configure layout analysis parameters for better text extraction
     laparams = LAParams(line_margin=0.1, char_margin=2.0, word_margin=0.1)
     text = extract_text(pdf_path, laparams=laparams)
+
+    # debug the extracted text
+    logger.debug(f"Extracted text from PDF {pdf_path}: \n{text}")
 
     return {"text": text}
 
