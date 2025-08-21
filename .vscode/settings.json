@@ -11,5 +11,6 @@
   },
   "python.testing.pytestArgs": ["backend/agents", "backend/common"],
   "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true
+  "python.testing.pytestEnabled": true,
+  "chat.promptFiles": true
 }
