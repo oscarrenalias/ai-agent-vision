@@ -12,6 +12,8 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableConfig, chain
 from langgraph.graph import START, StateGraph
 from langgraph.types import Command, interrupt
+from pdfminer.high_level import extract_text
+from pdfminer.layout import LAParams
 
 # from agents.common import make_tool_node
 from agents.models import OpenAIModel
@@ -26,17 +28,24 @@ logger = logging.getLogger(__name__)
 @tool
 def receipt_analyzer_tool(image_path: str) -> Receipt:
     """
-    Analyze a receipt image and return the extracted information.
+    Analyze a receipt file (image or PDF) and return the extracted information.
 
     Input parameters:
-    - image_path (str): The path to the receipt image.
+    - image_path (str): The path to the receipt file (image or PDF).
 
     Returns:
     - Receipt: An object containing the extracted information from the receipt in JSON format.
     """
     logger.info(f"receipt_analyzer_tool called: {image_path}")
 
-    chain = setup_chain()
+    # Detect file type and use appropriate chain
+    if is_pdf_file(image_path):
+        logger.info(f"Processing PDF file: {image_path}")
+        chain = setup_pdf_chain()
+    else:
+        logger.info(f"Processing image file: {image_path}")
+        chain = setup_chain()
+
     response = chain.invoke({"receipt_image_path": image_path})
     logger.debug("response = " + pformat(response, indent=2))
 
@@ -67,6 +76,7 @@ def persist_receipt_tool(receipt: Receipt) -> dict:
 
 
 def setup_chain():
+    """Setup processing chain for image files."""
     extraction_model = OpenAIModel(use_cache=True).get_model()
     prompt = ReceiptAnalyzerPrompt()
     parser = JsonOutputParser(pydantic_object=Receipt)
@@ -99,6 +109,37 @@ def setup_chain():
     return load_image_chain | receipt_model_chain | parser
 
 
+def setup_pdf_chain():
+    """Setup processing chain for PDF files."""
+    extraction_model = OpenAIModel(use_cache=True).get_model()
+    prompt = ReceiptAnalyzerPrompt()
+    parser = JsonOutputParser(pydantic_object=Receipt)
+
+    extract_pdf_chain = TransformChain(
+        input_variables=["receipt_image_path"],
+        output_variables=["text"],
+        transform=extract_pdf_text,
+    )
+
+    # build custom chain that processes text only (no image)
+    @chain
+    def pdf_model_chain(inputs: dict) -> dict:
+        msg = extraction_model.invoke(
+            [
+                HumanMessage(
+                    content=[
+                        {"type": "text", "text": prompt.template},
+                        {"type": "text", "text": parser.get_format_instructions()},
+                        {"type": "text", "text": f"Receipt text content: \n{inputs['text']}"},
+                    ]
+                )
+            ]
+        )
+        return msg.content
+
+    return extract_pdf_chain | pdf_model_chain | parser
+
+
 def load_image(path: dict) -> dict:
     def encode_image(path):
         with open(path, "rb") as image_file:
@@ -106,6 +147,25 @@ def load_image(path: dict) -> dict:
 
     image_base64 = encode_image(path["receipt_image_path"].strip())
     return {"image": image_base64}
+
+
+def extract_pdf_text(path: dict) -> dict:
+    """Extract text from PDF file with layout preservation."""
+    pdf_path = path["receipt_image_path"].strip()
+
+    # Configure layout analysis parameters for better text extraction
+    laparams = LAParams(line_margin=0.1, char_margin=2.0, word_margin=0.1)
+    text = extract_text(pdf_path, laparams=laparams)
+
+    # debug the extracted text
+    logger.debug(f"Extracted text from PDF {pdf_path}: \n{text}")
+
+    return {"text": text}
+
+
+def is_pdf_file(file_path: str) -> bool:
+    """Check if the file is a PDF based on extension."""
+    return file_path.lower().endswith(".pdf")
 
 
 class ReceiptAnalysisFlow:
