@@ -242,7 +242,9 @@ class ReceiptAnalysisFlow:
             tool = tools_by_name[tool_call["name"]]
             tool_msg = tool.invoke(tool_call["args"])
             logger.debug(f"Tool call {tool_call['name']}, result: {tool_msg}")
-            state["messages"].append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
+            # Do not append the verbose tool result to messages that get sent to the client
+            # The LLM will generate a summary instead based on the system prompt instructions
+            state["messages"].append(ToolMessage(content="Tool executed successfully", tool_call_id=tool_call["id"]))
 
         return state
 
