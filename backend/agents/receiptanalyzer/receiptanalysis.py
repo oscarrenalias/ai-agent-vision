@@ -3,7 +3,7 @@ import logging
 from datetime import UTC, datetime
 from pprint import pformat
 
-from copilotkit.langgraph import copilotkit_customize_config, copilotkit_emit_message
+from copilotkit.langgraph import copilotkit_customize_config, copilotkit_emit_message, copilotkit_emit_tool_call
 from langchain.chains import TransformChain
 from langchain.prompts import ChatPromptTemplate
 from langchain.tools import tool
@@ -23,6 +23,9 @@ from common.repository_factory import get_receipt_repository
 from common.server.utils import get_uploads_folder
 
 logger = logging.getLogger(__name__)
+
+# Global constant to control caching behavior in this module
+USE_CACHE = False
 
 
 @tool
@@ -77,7 +80,7 @@ def persist_receipt_tool(receipt: Receipt) -> dict:
 
 def setup_chain():
     """Setup processing chain for image files."""
-    extraction_model = OpenAIModel(use_cache=True).get_model()
+    extraction_model = OpenAIModel(use_cache=USE_CACHE).get_model()
     prompt = ReceiptAnalyzerPrompt()
     parser = JsonOutputParser(pydantic_object=Receipt)
 
@@ -111,7 +114,7 @@ def setup_chain():
 
 def setup_pdf_chain():
     """Setup processing chain for PDF files."""
-    extraction_model = OpenAIModel(use_cache=True).get_model()
+    extraction_model = OpenAIModel(use_cache=USE_CACHE).get_model()
     prompt = ReceiptAnalyzerPrompt()
     parser = JsonOutputParser(pydantic_object=Receipt)
 
@@ -222,16 +225,15 @@ class ReceiptAnalysisFlow:
             ]
         )
 
-        model = OpenAIModel(openai_model="gpt-4o", use_cache=True).get_model().bind_tools(self.get_tools())
+        model = OpenAIModel(openai_model="gpt-4o", use_cache=USE_CACHE).get_model().bind_tools(self.get_tools())
         no_messages_config = copilotkit_customize_config(
-            config, emit_intermediate_state=False, emit_messages=False, emit_tool_calls=True
+            config, emit_intermediate_state=False, emit_messages=False, emit_tool_calls=False
         )
         prompt = prompt_template.invoke({"receipt_image_path": state["receipt_image_path"], "messages": state["messages"]})
         response = await model.ainvoke(prompt, config=no_messages_config)
 
         if response.tool_calls:
             # Emit a status message before processing tools
-            await copilotkit_emit_message(config, "🔄 Analyzing receipt and extracting data...")
             return Command(goto="tool_node", update={"messages": response})
 
         # reset a key part of the state
@@ -246,11 +248,8 @@ class ReceiptAnalysisFlow:
         for tool_call in state["messages"][-1].tool_calls:
             tool = tools_by_name[tool_call["name"]]
 
-            # Emit specific status messages based on the tool being called
-            if tool_call["name"] == "receipt_analyzer_tool":
-                await copilotkit_emit_message(config, "📊 Classifying receipt data...")
-            elif tool_call["name"] == "persist_receipt_tool":
-                await copilotkit_emit_message(config, "💾 Saving receipt to database...")
+            # Emit a tool call so that the user interface shows that there is some progress happening
+            await copilotkit_emit_tool_call(config, name=tool_call["name"], args={})
 
             tool_msg = tool.invoke(tool_call["args"])
             logger.debug(f"Tool call {tool_call['name']}, result: {tool_msg}")
