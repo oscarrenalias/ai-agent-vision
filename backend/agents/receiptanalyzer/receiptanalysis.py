@@ -183,7 +183,7 @@ class ReceiptAnalysisFlow:
     async def receipt_analysis_start(self, state: ReceiptState, config: RunnableConfig) -> dict:
         # this node is only here to handle the interrupt
         if state["receipt_image_path"] is None or state["receipt_image_path"].strip() == "":
-            state["receipt_image_path"] = interrupt("Please provide an image with the receipt.")
+            state["receipt_image_path"] = interrupt("Please provide an image or a PDF file with the receipt.")
 
         if state["receipt_image_path"].strip() == "__CANCEL__":
             # emit a message to the UI to indicate that the receipt is being processed,
