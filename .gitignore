@@ -84,3 +84,4 @@ data/samples/*
 backend/VERSION.txt
 pkg/
 !deploy/pkg/
+backend/examples/*.pdf

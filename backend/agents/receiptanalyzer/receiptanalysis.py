@@ -222,12 +222,16 @@ class ReceiptAnalysisFlow:
             ]
         )
 
-        model = OpenAIModel(openai_model="gpt-4o", use_cache=False).get_model().bind_tools(self.get_tools())
-        no_messages_config = copilotkit_customize_config(config, emit_messages=False, emit_tool_calls=True)
+        model = OpenAIModel(openai_model="gpt-4o", use_cache=True).get_model().bind_tools(self.get_tools())
+        no_messages_config = copilotkit_customize_config(
+            config, emit_intermediate_state=False, emit_messages=False, emit_tool_calls=True
+        )
         prompt = prompt_template.invoke({"receipt_image_path": state["receipt_image_path"], "messages": state["messages"]})
         response = await model.ainvoke(prompt, config=no_messages_config)
 
         if response.tool_calls:
+            # Emit a status message before processing tools
+            await copilotkit_emit_message(config, "🔄 Analyzing receipt and extracting data...")
             return Command(goto="tool_node", update={"messages": response})
 
         # reset a key part of the state
@@ -235,11 +239,19 @@ class ReceiptAnalysisFlow:
 
         return Command(goto="__end__", update={"messages": response})
 
-    def tool_node(self, state: ReceiptState, config: RunnableConfig) -> dict:
+    async def tool_node(self, state: ReceiptState, config: RunnableConfig) -> dict:
         # TODO: eventually we should use the tool node from langgraph
         tools_by_name = {tool.name: tool for tool in self.get_tools()}
+
         for tool_call in state["messages"][-1].tool_calls:
             tool = tools_by_name[tool_call["name"]]
+
+            # Emit specific status messages based on the tool being called
+            if tool_call["name"] == "receipt_analyzer_tool":
+                await copilotkit_emit_message(config, "📊 Classifying receipt data...")
+            elif tool_call["name"] == "persist_receipt_tool":
+                await copilotkit_emit_message(config, "💾 Saving receipt to database...")
+
             tool_msg = tool.invoke(tool_call["args"])
             logger.debug(f"Tool call {tool_call['name']}, result: {tool_msg}")
             state["messages"].append(ToolMessage(content=tool_msg, tool_call_id=tool_call["id"]))
